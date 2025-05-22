@@ -293,3 +293,73 @@ def user_delete(user, user_id):
         flash(f'Error deleting user: {result.get("message", "Unknown error")}', 'danger')
     
     return redirect(url_for('admin.user_list'))
+
+# Missing admin routes
+
+@admin_bp.route('/subscriptions')
+@admin_required
+def subscriptions(user):
+    """Admin subscriptions management page"""
+    try:
+        # Import and patch admin functions
+        from admin_db_functions import patch_client_db, get_all_subscriptions
+        patch_client_db()
+        subscriptions = get_all_subscriptions()
+    except Exception as e:
+        logger.warning(f"Error loading subscriptions: {e}")
+        subscriptions = []
+    
+    return render_template('admin/subscriptions-dashboard.html', 
+                         user=user, 
+                         subscriptions=subscriptions)
+
+@admin_bp.route('/reports')
+@admin_required  
+def reports(user):
+    """Admin reports page"""
+    try:
+        from admin_db_functions import patch_client_db, get_admin_reports
+        patch_client_db()
+        reports = get_admin_reports()
+    except Exception as e:
+        logger.warning(f"Error loading reports: {e}")
+        reports = {}
+    
+    return render_template('admin/reports-dashboard.html',
+                         user=user,
+                         reports=reports)
+
+@admin_bp.route('/settings')
+@admin_required
+def settings(user):
+    """Admin settings page"""
+    try:
+        from admin_db_functions import patch_client_db, get_admin_settings
+        patch_client_db()
+        settings = get_admin_settings()
+    except Exception as e:
+        logger.warning(f"Error loading settings: {e}")
+        settings = {}
+    
+    return render_template('admin/settings-dashboard.html',
+                         user=user, 
+                         settings=settings)
+
+@admin_bp.route('/settings', methods=['POST'])
+@admin_required
+def settings_update(user):
+    """Update admin settings"""
+    try:
+        from admin_db_functions import patch_client_db, update_admin_settings
+        patch_client_db()
+        settings_data = request.form.to_dict()
+        result = update_admin_settings(settings_data)
+        
+        if result.get('status') == 'success':
+            flash('Settings updated successfully', 'success')
+        else:
+            flash('Failed to update settings', 'danger')
+    except Exception as e:
+        flash(f'Error updating settings: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.settings'))

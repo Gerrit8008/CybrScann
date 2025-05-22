@@ -92,8 +92,8 @@ def register():
                                  email=email,
                                  full_name=full_name)
         
-        # Create user
-        result = create_user(username, email, password, full_name)
+        # Create user with client role
+        result = create_user(username, email, password, 'client', full_name)
         
         if result['status'] == 'success':
             # Automatically create a client profile for the user
@@ -382,7 +382,7 @@ def admin_create_user(user):
                                  })
         
         # Create user
-        result = create_user(username, email, password, full_name, role)
+        result = create_user(username, email, password, role, full_name)
         
         if result['status'] == 'success':
             flash('User created successfully', 'success')

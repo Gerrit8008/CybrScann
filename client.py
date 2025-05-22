@@ -5,9 +5,9 @@ import json
 from datetime import datetime
 from functools import wraps
 
-# Import authentication utilities
-from auth_utils import verify_session
+# Import authentication utilities and database functions
 from client_db import (
+    verify_session,
     get_client_by_user_id, 
     get_deployed_scanners_by_client_id,
     get_scan_history_by_client_id,
@@ -23,7 +23,7 @@ from client_db import (
     get_available_scanners_for_client,
     get_client_dashboard_data,
     format_scan_results_for_client,
-    register_client  # Add this import
+    register_client
 )
 
 # Define client blueprint
@@ -33,39 +33,7 @@ client_bp = Blueprint('client', __name__, url_prefix='/client')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
-import os
-import logging
-import json
-from datetime import datetime
-from functools import wraps
-
-# Import authentication utilities
-from auth_utils import verify_session
-from client_db import (
-    get_client_by_user_id, 
-    get_deployed_scanners_by_client_id,
-    get_scan_history_by_client_id,
-    get_scanner_by_id,
-    update_scanner_config,
-    regenerate_scanner_api_key,
-    log_scan,
-    get_scan_history,
-    get_scanner_stats,
-    update_client,
-    get_client_statistics,
-    get_recent_activities,
-    get_available_scanners_for_client,
-    get_client_dashboard_data,
-    format_scan_results_for_client
-)
-
-# Define client blueprint
-client_bp = Blueprint('client', __name__, url_prefix='/client')
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Remove duplicate imports and blueprint definition
 
 # Middleware to require client login with role check
 def client_required(f):

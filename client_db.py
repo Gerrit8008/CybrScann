@@ -3420,7 +3420,7 @@ def verify_session(session_token):
                 "username": session['username'],
                 "email": session['email'],
                 "role": session['role'],
-                "full_name": session.get('full_name', '')
+                "full_name": session['full_name'] if session['full_name'] else ''
             }
         }
         
