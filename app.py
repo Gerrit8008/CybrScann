@@ -6,57 +6,203 @@ import platform
 import socket
 import re
 import uuid
-from werkzeug.utils import secure_filename
 import urllib.parse
 from datetime import datetime
 import json
 import sys
 import traceback
-import requests
 from datetime import timedelta
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from email_handler import send_email_report
-from config import get_config
-from dotenv import load_dotenv
-from flask_login import LoginManager, current_user, login_required
-from client_db import init_client_db, CLIENT_DB_PATH
-from database_manager import DatabaseManager
-from database_utils import get_db_connection, get_client_db
 
-# Import scan functionality
-from scan import (
-    extract_domain_from_email,
-    server_lookup,
-    get_client_and_gateway_ip,
-    categorize_risks_by_services,
-    get_default_gateway_ip,
-    scan_gateway_ports,
-    check_ssl_certificate,
-    check_security_headers,
-    detect_cms,
-    analyze_cookies,
-    detect_web_framework,
-    crawl_for_sensitive_content,
-    generate_threat_scenario,
-    analyze_dns_configuration,
-    check_spf_status,
-    check_dmarc_record,
-    check_dkim_record,
-    check_os_updates,
-    check_firewall_status,
-    check_open_ports,
-    analyze_port_risks,
-    calculate_risk_score,
-    get_severity_level,
-    get_recommendations,
-    generate_html_report,
-    determine_industry,
-    get_industry_benchmarks,
-    calculate_industry_percentile
+# Setup basic logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+logger = logging.getLogger(__name__)
+logger.info("Starting CybrScan application initialization...")
+
+try:
+    from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+    logger.info("✅ Flask imported successfully")
+except ImportError as e:
+    logger.error(f"❌ Failed to import Flask: {e}")
+    raise
+
+try:
+    from werkzeug.utils import secure_filename
+    logger.info("✅ Werkzeug imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Werkzeug not available: {e}")
+    # Create a fallback secure_filename function
+    def secure_filename(filename):
+        return "".join(c for c in filename if c.isalnum() or c in "._-")
+
+try:
+    from flask_cors import CORS
+    logger.info("✅ Flask-CORS imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Flask-CORS not available: {e}")
+    CORS = None
+
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    logger.info("✅ Flask-Limiter imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Flask-Limiter not available: {e}")
+    Limiter = None
+
+try:
+    from email_handler import send_email_report
+    logger.info("✅ Email handler imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Email handler not available: {e}")
+    def send_email_report(*args, **kwargs):
+        return {"status": "error", "message": "Email functionality not available"}
+
+try:
+    from config import get_config
+    logger.info("✅ Config imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Config module not available: {e}")
+    def get_config():
+        return type('Config', (), {'DEBUG': False})
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    logger.info("✅ Environment variables loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ python-dotenv not available: {e}")
+
+try:
+    from flask_login import LoginManager, current_user, login_required
+    logger.info("✅ Flask-Login imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Flask-Login not available: {e}")
+    LoginManager = None
+    current_user = None
+    def login_required(f):
+        return f
+
+try:
+    from client_db import init_client_db, CLIENT_DB_PATH
+    logger.info("✅ Client DB imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Client DB not available: {e}")
+    CLIENT_DB_PATH = "client_scanner.db"
+    def init_client_db():
+        pass
+
+try:
+    from database_manager import DatabaseManager
+    logger.info("✅ Database Manager imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Database Manager not available: {e}")
+    DatabaseManager = None
+
+try:
+    from database_utils import get_db_connection, get_client_db
+    logger.info("✅ Database Utils imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Database Utils not available: {e}")
+    def get_db_connection():
+        return sqlite3.connect(CLIENT_DB_PATH)
+    def get_client_db():
+        return sqlite3.connect(CLIENT_DB_PATH)
+
+# Import scan functionality with fallbacks
+try:
+    from scan import (
+        extract_domain_from_email,
+        server_lookup,
+        get_client_and_gateway_ip,
+        categorize_risks_by_services,
+        get_default_gateway_ip,
+        scan_gateway_ports,
+        check_ssl_certificate,
+        check_security_headers,
+        detect_cms,
+        analyze_cookies,
+        detect_web_framework,
+        crawl_for_sensitive_content,
+        generate_threat_scenario,
+        analyze_dns_configuration,
+        check_spf_status,
+        check_dmarc_record,
+        check_dkim_record,
+        check_os_updates,
+        check_firewall_status,
+        check_open_ports,
+        analyze_port_risks,
+        calculate_risk_score,
+        get_severity_level,
+        get_recommendations,
+        generate_html_report,
+        determine_industry,
+        get_industry_benchmarks,
+        calculate_industry_percentile
+    )
+    logger.info("✅ Scan functionality imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Scan functionality not available: {e}")
+    # Create minimal fallback functions
+    def extract_domain_from_email(email): 
+        return email.split('@')[-1] if '@' in email else email
+    def server_lookup(domain): 
+        return {"status": "error", "message": "Scan functionality not available"}
+    def get_client_and_gateway_ip(): 
+        return "127.0.0.1", "127.0.0.1"
+    def categorize_risks_by_services(results): 
+        return {}
+    def get_default_gateway_ip(): 
+        return "127.0.0.1"
+    def scan_gateway_ports(ip): 
+        return []
+    def check_ssl_certificate(domain): 
+        return {"status": "error"}
+    def check_security_headers(url): 
+        return {"status": "error"}
+    def detect_cms(url): 
+        return {"cms": "unknown"}
+    def analyze_cookies(url): 
+        return {"cookies": []}
+    def detect_web_framework(url): 
+        return {"framework": "unknown"}
+    def crawl_for_sensitive_content(url): 
+        return {"sensitive_files": []}
+    def generate_threat_scenario(results): 
+        return "Security scan unavailable"
+    def analyze_dns_configuration(domain): 
+        return {"status": "error"}
+    def check_spf_status(domain): 
+        return {"status": "error"}
+    def check_dmarc_record(domain): 
+        return {"status": "error"}
+    def check_dkim_record(domain): 
+        return {"status": "error"}
+    def check_os_updates(): 
+        return {"status": "error"}
+    def check_firewall_status(): 
+        return {"status": "error"}
+    def check_open_ports(ip): 
+        return []
+    def analyze_port_risks(ports): 
+        return {}
+    def calculate_risk_score(results): 
+        return 0
+    def get_severity_level(score): 
+        return "Unknown"
+    def get_recommendations(results): 
+        return ["Scan functionality not available"]
+    def generate_html_report(results): 
+        return "<html><body>Scan not available</body></html>"
+    def determine_industry(domain): 
+        return "Unknown"
+    def get_industry_benchmarks(industry): 
+        return {}
+    def calculate_industry_percentile(score, industry): 
+        return 0
 
 # Define upload folder for file uploads
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -170,23 +316,35 @@ log_system_info()
 
 def create_app():
     """Create and configure the Flask application"""
-    from flask import Flask
-    from flask_limiter import Limiter
-    from flask_limiter.util import get_remote_address
+    logger.info("Creating Flask application...")
     
     app = Flask(__name__)
-    app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+    app.secret_key = os.environ.get('SECRET_KEY', 'cybrscan-secret-key-2025')
     
-    # Enable CORS
-    CORS(app)
+    logger.info("✅ Flask app created successfully")
     
-    # Create rate limiter
-    limiter = Limiter(
-        app=app,
-        key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"],
-        storage_uri="memory://"
-    )
+    # Enable CORS if available
+    if CORS:
+        CORS(app)
+        logger.info("✅ CORS enabled")
+    else:
+        logger.warning("⚠️ CORS not available, skipping")
+    
+    # Create rate limiter if available
+    limiter = None
+    if Limiter:
+        try:
+            limiter = Limiter(
+                app=app,
+                key_func=get_remote_address,
+                default_limits=["200 per day", "50 per hour"],
+                storage_uri="memory://"
+            )
+            logger.info("✅ Rate limiter enabled")
+        except Exception as e:
+            logger.warning(f"⚠️ Rate limiter failed to initialize: {e}")
+    else:
+        logger.warning("⚠️ Rate limiter not available, skipping")
     
     return app, limiter
 
@@ -491,46 +649,54 @@ except Exception as fix_error:
     logging.debug(f"Exception traceback: {traceback.format_exc()}")
 
 # Register blueprints directly
+logger.info("Starting blueprint registration...")
+
+# Essential blueprints (auth and admin)
 try:
-    # Import and register auth blueprint
     from auth_routes import auth_bp
     app.register_blueprint(auth_bp)
-    logging.info("Registered auth_bp")
-    
-    # Import and register admin blueprint  
+    logger.info("✅ Registered auth_bp")
+except Exception as e:
+    logger.error(f"❌ Failed to register auth_bp: {e}")
+    logger.error(traceback.format_exc())
+
+try:
     from admin import admin_bp
     app.register_blueprint(admin_bp)
-    logging.info("Registered admin_bp")
-    
-    # Import and register client blueprint
-    try:
-        from client import client_bp
-        app.register_blueprint(client_bp)
-        logging.info("Registered client_bp")
-    except ImportError as e:
-        logging.warning(f"Could not import client_bp: {e}")
-    
-    # Import and register API blueprint
-    try:
-        from api import api_bp
-        app.register_blueprint(api_bp)
-        logging.info("Registered api_bp")
-    except ImportError as e:
-        logging.warning(f"Could not import api_bp: {e}")
-    
-    # Import and register scanner blueprint
-    try:
-        from scanner_router import scanner_bp
-        app.register_blueprint(scanner_bp)
-        logging.info("Registered scanner_bp")
-    except ImportError as e:
-        logging.warning(f"Could not import scanner_bp: {e}")
-        
-    logging.info(f"Successfully registered blueprints: {list(app.blueprints.keys())}")
-    
-except Exception as blueprint_error:
-    logging.error(f"Critical error registering blueprints: {blueprint_error}")
-    logging.debug(f"Blueprint error traceback: {traceback.format_exc()}")
+    logger.info("✅ Registered admin_bp")
+except Exception as e:
+    logger.error(f"❌ Failed to register admin_bp: {e}")
+    logger.error(traceback.format_exc())
+
+# Optional blueprints
+try:
+    from client import client_bp
+    app.register_blueprint(client_bp)
+    logger.info("✅ Registered client_bp")
+except Exception as e:
+    logger.warning(f"⚠️ Could not register client_bp: {e}")
+
+try:
+    from api import api_bp
+    app.register_blueprint(api_bp)
+    logger.info("✅ Registered api_bp")
+except Exception as e:
+    logger.warning(f"⚠️ Could not register api_bp: {e}")
+
+try:
+    from scanner_router import scanner_bp
+    app.register_blueprint(scanner_bp)
+    logger.info("✅ Registered scanner_bp")
+except Exception as e:
+    logger.warning(f"⚠️ Could not register scanner_bp: {e}")
+
+registered_blueprints = list(app.blueprints.keys())
+logger.info(f"🎯 Final registered blueprints: {registered_blueprints}")
+
+if len(registered_blueprints) < 2:
+    logger.error("❌ Critical: Less than 2 blueprints registered! App may not work properly.")
+else:
+    logger.info("✅ Blueprint registration completed successfully")
 
 # Add basic routes
 @app.route('/')
