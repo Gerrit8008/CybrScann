@@ -553,13 +553,7 @@ login_manager.login_view = 'auth.login'
 #    """Route with parameters description"""
 #    return jsonify({'status': 'success', 'param': param_id})
 
-#@app.route('/api/v1/your-api-route')
-#def api_your_route():
-#    """API endpoint description"""
-#    return jsonify({
-#        'status': 'success',
- #       'data': your_api_data
- #   })
+# API routes are handled by blueprints
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -578,29 +572,7 @@ def internal_error(error):
     }), 500
 
 #@app.route('/auth/your-auth-route')
-#@login_required
-#def your_auth_route():
-#    """Protected route description"""
-#    return jsonify({
-#        'status': 'success',
-#        'user_data': get_user_data()
-#    })
-    
-#@app.route('/api/v1/your-api-route', methods=['POST'])
-#def api_post_route():
-#    """API POST endpoint description"""
-#    data = request.get_json()
-#    # Process your data here
-#    return jsonify({
- #       'status': 'success',
-#        'message': 'Data processed successfully'
- #   })
-
-#@app.route('/your-post-route', methods=['POST'])
-#def your_post_route():
-#    """POST route description"""
-#    data = request.get_json()
-#    return jsonify({'status': 'success', 'received': data})
+# Auth and POST routes handled by blueprints
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -2209,27 +2181,6 @@ def admin_simplified():
         <p>An error occurred: {str(e)}</p>
         <a href="/emergency_login">Back to Emergency Login</a>
         """
-        
-@app.route('/')
-def index():
-    """Render the home page"""
-    try:
-        logging.debug("Attempting to render index.html")
-        return render_template('index.html')
-    except Exception as e:
-        error_message = f"Error rendering index page: {str(e)}"
-        logging.error(error_message)
-        
-        return f"""
-        <html>
-            <head><title>Error</title></head>
-            <body>
-                <h1>An error occurred</h1>
-                <p>{error_message}</p>
-                <p>Please contact support.</p>
-            </body>
-        </html>
-        """, 500
 
 @app.route('/scan', methods=['GET', 'POST'])
 def scan_page():
@@ -3241,10 +3192,6 @@ def debug_submit():
 
 @app.route('/admin')
 def admin_dashboard_redirect():
-    return redirect(url_for('admin.dashboard'))
-
-@app.route('/admin', endpoint='main_admin_redirect')
-def admin_main_redirect():
     """Redirect to admin dashboard"""
     return redirect(url_for('admin.dashboard'))
 
