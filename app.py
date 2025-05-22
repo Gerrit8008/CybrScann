@@ -21,30 +21,10 @@ from flask_limiter.util import get_remote_address
 from email_handler import send_email_report
 from config import get_config
 from dotenv import load_dotenv
-from flask import Blueprint
-from api import api_bp  # Import the new API blueprint
+from flask_login import LoginManager, current_user, login_required
 from client_db import init_client_db, CLIENT_DB_PATH
-from scanner_router import scanner_bp
-# Using auth_bp from auth_routes instead
-from admin import admin_bp
-from api import api_bp
-from scanner_router import scanner_bp
-from setup_admin import configure_admin
-from client import client_bp  
-from flask_login import LoginManager, current_user
-from auth_routes import auth_bp
-from debug_middleware import register_debug_middleware
-from auth_hotfix import register_auth_hotfix
-from emergency_access import emergency_bp
-from register_routes import register_all_routes
-from admin_fix_integration import apply_admin_fixes
-from admin_route_fix import apply_admin_route_fixes
-from route_fix import fix_admin_routes
-from admin_fix_web import add_admin_fix_route
-from scanner_preview import scanner_preview_bp
 from database_manager import DatabaseManager
 from database_utils import get_db_connection, get_client_db
-from flask_login import LoginManager, current_user, login_required  # Add login_required here
 
 # Import scan functionality
 from scan import (
@@ -510,24 +490,62 @@ except Exception as fix_error:
     logging.error(f"Error applying fixes: {fix_error}")
     logging.debug(f"Exception traceback: {traceback.format_exc()}")
 
-# Register routes
+# Register blueprints directly
 try:
-    from register_routes import register_all_routes
-    app = register_all_routes(app)
-    logging.info("Routes registered successfully")
-except Exception as register_error:
-    logging.error(f"Error registering routes: {register_error}")
-    # Basic blueprints are already registered above in register_all_routes
-    logging.info("Blueprint registration completed")
+    # Import and register auth blueprint
+    from auth_routes import auth_bp
+    app.register_blueprint(auth_bp)
+    logging.info("Registered auth_bp")
+    
+    # Import and register admin blueprint  
+    from admin import admin_bp
+    app.register_blueprint(admin_bp)
+    logging.info("Registered admin_bp")
+    
+    # Import and register client blueprint
+    try:
+        from client import client_bp
+        app.register_blueprint(client_bp)
+        logging.info("Registered client_bp")
+    except ImportError as e:
+        logging.warning(f"Could not import client_bp: {e}")
+    
+    # Import and register API blueprint
+    try:
+        from api import api_bp
+        app.register_blueprint(api_bp)
+        logging.info("Registered api_bp")
+    except ImportError as e:
+        logging.warning(f"Could not import api_bp: {e}")
+    
+    # Import and register scanner blueprint
+    try:
+        from scanner_router import scanner_bp
+        app.register_blueprint(scanner_bp)
+        logging.info("Registered scanner_bp")
+    except ImportError as e:
+        logging.warning(f"Could not import scanner_bp: {e}")
+        
+    logging.info(f"Successfully registered blueprints: {list(app.blueprints.keys())}")
+    
+except Exception as blueprint_error:
+    logging.error(f"Critical error registering blueprints: {blueprint_error}")
+    logging.debug(f"Blueprint error traceback: {traceback.format_exc()}")
 
-try:
-    from admin_routes import admin_routes_bp
-    app.register_blueprint(admin_routes_bp)
-    logging.info("Admin routes blueprint registered")
-except ImportError:
-    logging.warning("Could not import admin_routes_bp")
-except Exception as e:
-    logging.error(f"Error registering admin_routes_bp: {e}")
+# Add basic routes
+@app.route('/')
+def index():
+    """Main landing page"""
+    return render_template('index.html')
+
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'app': 'CybrScan',
+        'blueprints': list(app.blueprints.keys())
+    })
     
 @app.route('/auth_status')
 def auth_status():
