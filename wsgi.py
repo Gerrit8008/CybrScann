@@ -14,19 +14,48 @@ logger.info("Starting application initialization in WSGI")
 
 try:
     # Import the Flask app
+    logger.info("Attempting to import Flask app...")
     from app import app as application
-    logger.info("Successfully imported app")
+    logger.info("✅ Successfully imported app from app.py")
+    
+    # Test that the app is properly configured
+    if application:
+        logger.info(f"✅ App object exists with name: {application.name}")
+        logger.info(f"✅ App has {len(application.blueprints)} blueprints registered")
+        logger.info(f"✅ Blueprints: {list(application.blueprints.keys())}")
+    else:
+        raise Exception("App object is None")
+        
 except Exception as e:
-    logger.error(f"Error importing app: {e}")
+    logger.error(f"❌ Error importing app: {e}")
     import traceback
+    logger.error("Full traceback:")
     logger.error(traceback.format_exc())
+    
     # Create a minimal application for error reporting
+    logger.info("Creating fallback Flask application...")
     from flask import Flask, Response
     application = Flask(__name__)
     
     @application.route('/')
     def error_page():
-        return Response(f"Application failed to start: {str(e)}", mimetype='text/plain')
+        return Response(f"""
+        <html>
+        <head><title>CybrScan - Startup Error</title></head>
+        <body>
+        <h1>Application Failed to Start</h1>
+        <p><strong>Error:</strong> {str(e)}</p>
+        <p>Please check the logs for more details.</p>
+        <pre>{traceback.format_exc()}</pre>
+        </body>
+        </html>
+        """, mimetype='text/html')
+        
+    @application.route('/health')
+    def health():
+        return {"status": "error", "message": f"App failed to start: {str(e)}"}
+        
+    logger.info("✅ Fallback application created successfully")
 
 # This allows the file to be run directly
 if __name__ == "__main__":
