@@ -481,73 +481,7 @@ def admin_delete_user(user, user_id):
     
     return redirect(url_for('auth.admin_users'))
 
-# API endpoint for checking username availability
-@auth_bp.route('/api/check-username', methods=['POST'])
-def check_username():
-    """Check if a username is available"""
-    username = request.json.get('username')
-    
-    if not username:
-        return jsonify({'available': False, 'message': 'Username is required'})
-    
-    # Connect to database
-    from client_db import get_db_connection
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Check if username exists
-    cursor.execute('SELECT id FROM users WHERE username = ?', (username,))
-    existing_user = cursor.fetchone()
-    
-    conn.close()
-    
-    if existing_user:
-        return jsonify({'available': False, 'message': 'Username is already taken'})
-    
-    return jsonify({'available': True, 'message': 'Username is available'})
-
-# API endpoint for checking email availability
-@auth_bp.route('/api/check-email', methods=['POST'])
-def check_email():
-    """Check if an email is available"""
-    email = request.json.get('email')
-    
-    if not email:
-        return jsonify({'available': False, 'message': 'Email is required'})
-    
-    # Connect to database
-    from client_db import get_db_connection
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Check if email exists
-    cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
-    existing_user = cursor.fetchone()
-    
-    conn.close()
-    
-    if existing_user:
-        return jsonify({'available': False, 'message': 'Email is already registered'})
-    
-    return jsonify({'available': True, 'message': 'Email is available'})
-
-# API endpoint for getting login statistics (admin only)
-@auth_bp.route('/api/login-stats')
-@admin_required
-def api_login_stats(user):
-    """Get login statistics for admin dashboard"""
-    stats = get_login_stats()
-    
-    if stats['status'] != 'success':
-        return jsonify({
-            'status': 'error',
-            'message': stats.get('message', 'Failed to retrieve login statistics')
-        }), 500
-    
-    return jsonify({
-        'status': 'success',
-        'data': stats['stats']
-    })
+# API endpoints moved to api.py to avoid route conflicts
 
 @auth_bp.route('/reset-password', methods=['GET', 'POST'])
 def reset_password_request():
