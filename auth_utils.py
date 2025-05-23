@@ -139,6 +139,73 @@ def authenticate_user(username_or_email, password, ip_address=None, user_agent=N
         logger.error(f"Authentication error: {e}")
         return {"status": "error", "message": f"Authentication failed: {str(e)}"}
 
+def create_session(user_id, user_email, role, ip_address=None, user_agent=None):
+    """
+    Create a session for a user without password authentication
+    
+    Args:
+        user_id (int): User ID
+        user_email (str): User email
+        role (str): User role
+        ip_address (str, optional): Client IP address
+        user_agent (str, optional): Client user agent
+        
+    Returns:
+        dict: Session creation result
+    """
+    try:
+        # Connect to database
+        conn = sqlite3.connect(CLIENT_DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get user details
+        cursor.execute('SELECT * FROM users WHERE id = ? AND active = 1', (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            conn.close()
+            return {"status": "error", "message": "User not found"}
+        
+        # Create a session token
+        session_token = secrets.token_hex(32)
+        created_at = datetime.now().isoformat()
+        expires_at = (datetime.now() + timedelta(hours=24)).isoformat()
+        
+        # Store session in database
+        cursor.execute('''
+        INSERT INTO sessions (
+            user_id, session_token, created_at, expires_at, ip_address, user_agent
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user['id'], session_token, created_at, expires_at, ip_address, user_agent))
+        
+        # Update last login timestamp
+        cursor.execute('''
+        UPDATE users 
+        SET last_login = ? 
+        WHERE id = ?
+        ''', (created_at, user['id']))
+        
+        conn.commit()
+        
+        # Return success with user info
+        result = {
+            "status": "success",
+            "user_id": user['id'],
+            "username": user['username'],
+            "email": user['email'],
+            "role": user['role'],
+            "full_name": user.get('full_name'),
+            "session_token": session_token
+        }
+        
+        conn.close()
+        return result
+    
+    except Exception as e:
+        logger.error(f"Session creation error: {e}")
+        return {"status": "error", "message": f"Session creation failed: {str(e)}"}
+
 def verify_session(session_token):
     """
     Verify a session token
