@@ -705,37 +705,16 @@
                     form.style.display = 'none';
                     paymentProcessingDiv.style.display = 'block';
                     
-                    // Simulate payment processing
-                    setTimeout(function() {
-                        // Hide processing and show success
-                        paymentProcessingDiv.style.display = 'none';
-                        paymentSuccessDiv.style.display = 'block';
-                        
-                        // Add a backup link to dashboard
-                        const dashboardLink = document.createElement('div');
-                        dashboardLink.className = 'text-center mt-4';
-                        dashboardLink.innerHTML = '<a href="/admin/dashboard" class="btn btn-outline-primary">If not redirected, click here to go to dashboard</a>';
-                        paymentSuccessDiv.appendChild(dashboardLink);
-                        
-                        // Redirect directly after a delay - this helps bypass any server errors
-                        setTimeout(function() {
-                            // First try the form submission
-                            try {
-                                form.submit();
-                            } catch (err) {
-                                console.error('Form submission failed, trying direct redirect', err);
-                                // If form submission fails, try direct redirect
-                                window.location.href = '/admin/dashboard';
-                            }
-                            
-                            // Set a final fallback redirect
-                            setTimeout(function() {
-                                window.location.href = '/admin/dashboard';
-                            }, 3000);
-                        }, 2000);
-                    }, 1500);
+                    // Submit the form immediately - no artificial delays
+                    console.log('Processing payment and creating scanner...');
                     
-                    // Prevent default form submission
+                    // Submit the form directly after a short delay for UX
+                    setTimeout(function() {
+                        console.log('Submitting form to /customize endpoint...');
+                        form.submit();
+                    }, 1000);
+                    
+                    // Prevent default form submission initially
                     e.preventDefault();
                     return false;
                 }
