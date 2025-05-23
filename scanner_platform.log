@@ -1,0 +1,43 @@
+2025-05-22 16:00:45,536 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:00:45,549 - root - INFO - Schema executed successfully
+2025-05-22 16:00:45,549 - root - INFO - Users table doesn't exist yet - skipping column check
+2025-05-22 16:00:45,549 - root - INFO - Database initialization completed
+2025-05-22 16:36:18,922 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:36:18,934 - root - INFO - Schema executed successfully
+2025-05-22 16:36:18,935 - root - INFO - Database initialization completed
+2025-05-22 16:42:16,148 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:42:16,161 - root - INFO - Schema executed successfully
+2025-05-22 16:42:16,161 - root - INFO - Database initialization completed
+2025-05-22 16:42:16,161 - __main__ - ERROR - Error getting admin reports: no such table: scan_history
+2025-05-22 16:42:16,161 - __main__ - INFO - ✅ Admin database functions patched successfully
+2025-05-22 16:43:06,186 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:43:06,198 - root - INFO - Schema executed successfully
+2025-05-22 16:43:06,198 - root - INFO - Database initialization completed
+2025-05-22 16:43:06,198 - admin_db_functions - ERROR - Error getting admin reports: no such table: scan_history
+2025-05-22 16:43:06,199 - admin_db_functions - INFO - Admin settings updated: {'test': 'value'}
+2025-05-22 21:13:19,770 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:13:19,787 - root - INFO - Schema executed successfully
+2025-05-22 21:13:19,788 - root - INFO - Database initialization completed
+2025-05-22 21:13:19,789 - scanner_db_functions - ERROR - Error creating scanner: no such table: scanners
+2025-05-22 21:13:46,732 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:13:46,762 - root - INFO - Schema executed successfully
+2025-05-22 21:13:46,763 - root - INFO - Database initialization completed
+2025-05-22 21:13:51,418 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:13:51,431 - root - INFO - Schema executed successfully
+2025-05-22 21:13:51,431 - root - INFO - Database initialization completed
+2025-05-22 21:13:51,438 - scanner_db_functions - INFO - Scanner 'Test Client Scanner' created successfully for client 1
+2025-05-22 21:35:20,573 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:35:20,590 - root - INFO - Schema executed successfully
+2025-05-22 21:35:20,591 - root - INFO - Database initialization completed
+2025-05-22 21:35:20,591 - scanner_db_functions - INFO - ✅ Scanner database functions patched successfully
+2025-05-22 21:35:20,592 - fix_auth - INFO - Database tables verified
+2025-05-22 21:35:20,592 - fix_auth - INFO - Database tables verified
+2025-05-22 21:35:20,622 - fix_auth - INFO - Updated existing admin user
+2025-05-22 21:35:20,627 - fix_auth - INFO - Admin user created/updated successfully
+2025-05-22 21:35:20,627 - fix_auth - INFO - Authentication fix applied successfully
+2025-05-22 21:35:20,662 - root - INFO - Created user: customizetest with role: client
+2025-05-22 21:35:20,675 - scanner_db_functions - INFO - Scanner 'Customize Route Test Scanner' created successfully for client 7
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated HTML files for scanner scanner_3b720d2e
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated API documentation for scanner

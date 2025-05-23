@@ -825,6 +825,10 @@ def customize_scanner():
     """Admin scanner customization and deployment"""
     if request.method == 'POST':
         try:
+            # Check if payment was processed
+            payment_processed = request.form.get('payment_processed', '0')
+            logging.info(f"Payment processed flag: {payment_processed}")
+            
             # Extract form data
             scanner_data = {
                 'business_name': request.form.get('business_name', '').strip(),
@@ -938,7 +942,7 @@ def customize_scanner():
                 flash('Scanner created and deployed successfully!', 'success')
                 
                 # Redirect to scanner deployment page showing integration options
-                return redirect(url_for('scanner_deployment_info', scanner_uid=scanner_uid))
+                return redirect(f'/scanner/{scanner_uid}/info')
             else:
                 flash(f'Scanner created but deployment failed: {deployment_result["message"]}', 'warning')
                 return redirect(url_for('admin.dashboard'))
