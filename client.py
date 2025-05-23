@@ -110,6 +110,13 @@ def dashboard(user):
             }
         else:
             # Normal flow - get real data for existing client
+            # Import scanner functions
+            from scanner_db_functions import patch_client_db_scanner_functions, get_scanners_by_client_id
+            patch_client_db_scanner_functions()
+            
+            # Get client's scanners
+            client_scanners = get_scanners_by_client_id(client['id'])
+            
             # Get comprehensive dashboard data - Pass client_id
             dashboard_data = get_client_dashboard_data(client['id'])
             
@@ -145,7 +152,7 @@ def dashboard(user):
             'user': user,
             'client': dashboard_data['client'],
             'user_client': dashboard_data['client'],
-            'scanners': dashboard_data['scanners'],
+            'scanners': client_scanners if 'client_scanners' in locals() else dashboard_data['scanners'],
             'scan_history': dashboard_data['scan_history'],
             'total_scans': stats.get('total_scans', 0),
             'client_stats': stats,
@@ -791,3 +798,64 @@ def profile(user):
         logger.error(f"Error displaying client profile: {str(e)}")
         flash('An error occurred while loading your profile', 'danger')
         return redirect(url_for('client.dashboard'))
+
+@client_bp.route('/scanners/create', methods=['GET', 'POST'])
+@client_required
+def scanner_create(user):
+    """Create a new scanner for the client"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        
+        if not client:
+            flash('Please complete your profile first', 'warning')
+            return redirect(url_for('client.profile'))
+        
+        if request.method == 'POST':
+            # Get form data
+            scanner_data = {
+                'name': request.form.get('scanner_name', '').strip(),
+                'description': request.form.get('description', '').strip(),
+                'domain': request.form.get('domain', '').strip(),
+                'primary_color': request.form.get('primary_color', '#FF6900'),
+                'secondary_color': request.form.get('secondary_color', '#808588'),
+                'logo_url': request.form.get('logo_url', ''),
+                'contact_email': request.form.get('contact_email', client['contact_email']),
+                'contact_phone': request.form.get('contact_phone', client.get('contact_phone', '')),
+                'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
+                'email_intro': request.form.get('email_intro', ''),
+                'scan_types': request.form.getlist('scan_types[]')
+            }
+            
+            # Validation
+            if not scanner_data['name']:
+                flash('Scanner name is required', 'danger')
+                return render_template('client/scanner-create.html', 
+                                     user=user, 
+                                     client=client, 
+                                     form_data=scanner_data)
+            
+            # Create scanner in database
+            from scanner_db_functions import patch_client_db_scanner_functions, create_scanner_for_client
+            patch_client_db_scanner_functions()
+            result = create_scanner_for_client(client['id'], scanner_data, user['user_id'])
+            
+            if result.get('status') == 'success':
+                flash(f'Scanner "{scanner_data["name"]}" created successfully!', 'success')
+                return redirect(url_for('client.scanners'))
+            else:
+                flash(f'Error creating scanner: {result.get("message", "Unknown error")}', 'danger')
+                return render_template('client/scanner-create.html', 
+                                     user=user, 
+                                     client=client, 
+                                     form_data=scanner_data)
+        
+        # GET request - show creation form
+        return render_template('client/scanner-create.html', 
+                             user=user, 
+                             client=client)
+        
+    except Exception as e:
+        logger.error(f"Error creating scanner: {str(e)}")
+        flash('An error occurred while creating the scanner', 'danger')
+        return redirect(url_for('client.scanners'))

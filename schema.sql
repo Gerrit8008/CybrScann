@@ -30,3 +30,44 @@ CREATE TABLE IF NOT EXISTS clients (
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (updated_by) REFERENCES users(id)
 );
+
+-- Scanners table to store individual scanner configurations for clients
+CREATE TABLE IF NOT EXISTS scanners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    scanner_id TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    domain TEXT,
+    api_key TEXT UNIQUE NOT NULL,
+    primary_color TEXT DEFAULT '#FF6900',
+    secondary_color TEXT DEFAULT '#808588',
+    logo_url TEXT,
+    contact_email TEXT,
+    contact_phone TEXT,
+    email_subject TEXT DEFAULT 'Your Security Scan Report',
+    email_intro TEXT,
+    scan_types TEXT,  -- JSON or comma-separated list of enabled scan types
+    status TEXT DEFAULT 'active',  -- active, inactive, deleted
+    created_at TEXT NOT NULL,
+    created_by INTEGER,
+    updated_at TEXT NOT NULL,
+    updated_by INTEGER,
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Scan history table to track all scans performed by scanners
+CREATE TABLE IF NOT EXISTS scan_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scanner_id TEXT NOT NULL,
+    scan_id TEXT UNIQUE NOT NULL,
+    target_url TEXT,
+    scan_type TEXT,
+    status TEXT DEFAULT 'pending',  -- pending, running, completed, failed
+    results TEXT,  -- JSON results
+    created_at TEXT NOT NULL,
+    completed_at TEXT,
+    FOREIGN KEY (scanner_id) REFERENCES scanners(scanner_id) ON DELETE CASCADE
+);

@@ -363,3 +363,19 @@ def settings_update(user):
         flash(f'Error updating settings: {str(e)}', 'danger')
     
     return redirect(url_for('admin.settings'))
+
+@admin_bp.route('/scanners')
+@admin_required
+def scanners(user):
+    """Admin scanner management page"""
+    try:
+        from scanner_db_functions import patch_client_db_scanner_functions, get_all_scanners_for_admin
+        patch_client_db_scanner_functions()
+        scanners = get_all_scanners_for_admin()
+    except Exception as e:
+        logger.warning(f"Error loading scanners: {e}")
+        scanners = []
+    
+    return render_template('admin/scanners-dashboard.html', 
+                         user=user, 
+                         scanners=scanners)
