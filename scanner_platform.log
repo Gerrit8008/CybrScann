@@ -71,3 +71,29 @@
 2025-05-23 09:03:59,504 - root - INFO - Schema executed successfully
 2025-05-23 09:03:59,504 - root - INFO - Users table doesn't exist yet - skipping column check
 2025-05-23 09:03:59,504 - root - INFO - Database initialization completed
+2025-05-23 09:16:59,365 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:16:59,374 - root - INFO - Schema executed successfully
+2025-05-23 09:16:59,374 - root - INFO - Database initialization completed
+2025-05-23 09:17:23,412 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:17:23,422 - root - INFO - Schema executed successfully
+2025-05-23 09:17:23,422 - root - INFO - Database initialization completed
+2025-05-23 09:17:37,972 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:17:37,982 - root - INFO - Schema executed successfully
+2025-05-23 09:17:37,983 - root - INFO - Database initialization completed
+2025-05-23 09:18:43,269 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:18:43,282 - root - INFO - Schema executed successfully
+2025-05-23 09:18:43,282 - root - INFO - Database initialization completed
+2025-05-23 09:18:43,283 - fix_auth - INFO - Database tables verified
+2025-05-23 09:18:43,283 - fix_auth - INFO - Database tables verified
+2025-05-23 09:18:43,308 - fix_auth - INFO - Updated existing admin user
+2025-05-23 09:18:43,317 - fix_auth - INFO - Admin user created/updated successfully
+2025-05-23 09:18:43,317 - fix_auth - INFO - Authentication fix applied successfully
+2025-05-23 09:18:43,350 - root - INFO - Created user: debug_34d070d4 with role: client
+2025-05-23 09:18:43,357 - scanner_db_functions - INFO - ✅ Scanner database functions patched successfully
+2025-05-23 09:18:43,363 - scanner_db_functions - INFO - Scanner 'Debug Test Scanner' created successfully for client 4
+2025-05-23 09:19:34,455 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:19:34,469 - root - INFO - Schema executed successfully
+2025-05-23 09:19:34,469 - root - INFO - Database initialization completed
+2025-05-23 09:20:08,414 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:20:08,423 - root - INFO - Schema executed successfully
+2025-05-23 09:20:08,423 - root - INFO - Database initialization completed
