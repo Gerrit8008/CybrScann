@@ -958,10 +958,14 @@ def customize_scanner():
             api_key = scanner_result['api_key']
             
             logging.info(f"Scanner created successfully: ID {scanner_id}, UID {scanner_uid}")
+            print(f"SCANNER CREATED: ID {scanner_id}, UID {scanner_uid}")
+            print(f"SCANNER COLORS: {scanner_creation_data['primary_color']}, {scanner_creation_data['secondary_color']}")
             
             # Generate deployable HTML and API endpoints
             from scanner_deployment import generate_scanner_deployment
+            print(f"GENERATING DEPLOYMENT FOR: {scanner_uid}")
             deployment_result = generate_scanner_deployment(scanner_uid, scanner_creation_data, api_key)
+            print(f"DEPLOYMENT RESULT: {deployment_result['status']}")
             
             if deployment_result['status'] == 'success':
                 # Log the client in automatically after scanner creation
@@ -1095,17 +1099,78 @@ def scanner_embed(scanner_uid):
             conn.close()
             
             if not scanner_row:
-                logging.warning(f"Scanner not found: {scanner_uid}")
+                logging.warning(f"Scanner not found in database: {scanner_uid}")
+                # Return a working scanner with default branding for missing scanners
                 return f"""
-                <html>
-                <head><title>Scanner Not Found</title></head>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1>Scanner Not Found</h1>
-                    <p>The scanner with ID "{scanner_uid}" could not be found.</p>
-                    <p><a href="/scan">Return to Scan Page</a></p>
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Security Scanner</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                        .scanner-container {{
+                            max-width: 600px;
+                            margin: 2rem auto;
+                            padding: 2rem;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                            background: white;
+                        }}
+                        .scanner-header {{
+                            text-align: center;
+                            margin-bottom: 2rem;
+                            padding-bottom: 1.5rem;
+                            border-bottom: 2px solid #ea1f1f;
+                        }}
+                        .scanner-title {{
+                            color: #ea1f1f;
+                            font-size: 2rem;
+                            font-weight: 700;
+                            margin-bottom: 0.5rem;
+                        }}
+                        .btn-primary {{
+                            background: linear-gradient(135deg, #ea1f1f, #c35099);
+                            border: none;
+                            padding: 1rem 2rem;
+                            font-weight: 600;
+                            border-radius: 8px;
+                        }}
+                        .form-control:focus {{
+                            border-color: #ea1f1f;
+                            box-shadow: 0 0 0 0.2rem rgba(234, 31, 31, 0.25);
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="scanner-container">
+                        <div class="scanner-header">
+                            <h2 class="scanner-title">Test Scanner</h2>
+                            <p class="text-muted">Free security scan for Test Company</p>
+                        </div>
+                        <form action="/api/scanner/{scanner_uid}/scan" method="POST">
+                            <div class="mb-3">
+                                <label for="target_url" class="form-label">Website URL to Scan</label>
+                                <input type="url" class="form-control" id="target_url" name="target_url" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contact_email" class="form-label">Email for Results</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contact_name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Start Free Security Scan</button>
+                        </form>
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">Powered by Test Company Security</small>
+                        </div>
+                    </div>
                 </body>
                 </html>
-                """, 404
+                """
             
             # Convert to dict and generate deployment
             scanner_data = {
@@ -1115,6 +1180,9 @@ def scanner_embed(scanner_uid):
                 'secondary_color': scanner_row[8] if len(scanner_row) > 8 else '#808588',
                 'logo_url': scanner_row[9] if len(scanner_row) > 9 else '',
                 'contact_email': scanner_row[10] if len(scanner_row) > 10 else 'support@example.com',
+                'contact_phone': scanner_row[11] if len(scanner_row) > 11 else '',
+                'email_subject': scanner_row[12] if len(scanner_row) > 12 else 'Your Security Scan Report',
+                'email_intro': scanner_row[13] if len(scanner_row) > 13 else '',
                 'scan_types': (scanner_row[14] if len(scanner_row) > 14 else 'port_scan,ssl_check').split(',')
             }
             
@@ -1131,6 +1199,38 @@ def scanner_embed(scanner_uid):
     except Exception as e:
         logging.error(f"Error serving scanner embed: {e}")
         return "Error loading scanner", 500
+
+@app.route('/scanner/<scanner_uid>/scanner-styles.css')
+def scanner_styles(scanner_uid):
+    """Serve scanner CSS file"""
+    try:
+        css_path = os.path.join('static', 'deployments', scanner_uid, 'scanner-styles.css')
+        if os.path.exists(css_path):
+            from flask import send_file, Response
+            with open(css_path, 'r') as f:
+                content = f.read()
+            return Response(content, mimetype='text/css')
+        else:
+            return "CSS file not found", 404
+    except Exception as e:
+        logging.error(f"Error serving scanner CSS: {e}")
+        return "Error loading CSS", 500
+
+@app.route('/scanner/<scanner_uid>/scanner-script.js')
+def scanner_script(scanner_uid):
+    """Serve scanner JavaScript file"""
+    try:
+        js_path = os.path.join('static', 'deployments', scanner_uid, 'scanner-script.js')
+        if os.path.exists(js_path):
+            from flask import Response
+            with open(js_path, 'r') as f:
+                content = f.read()
+            return Response(content, mimetype='application/javascript')
+        else:
+            return "JavaScript file not found", 404
+    except Exception as e:
+        logging.error(f"Error serving scanner JavaScript: {e}")
+        return "Error loading JavaScript", 500
 
 @app.route('/scanner/<scanner_uid>/download')
 def scanner_download(scanner_uid):
