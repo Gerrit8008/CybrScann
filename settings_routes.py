@@ -85,8 +85,8 @@ def settings_dashboard(user):
                 """, (
                     'Scanner Platform',
                     '/static/img/logo.png',
-                    '#FF6900',
-                    '#248aa0',
+                    '#02054c',
+                    '#35a310',
                     'admin@scannerplatform.com',
                     datetime.now().isoformat(),
                     user['id']

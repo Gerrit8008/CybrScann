@@ -102,8 +102,8 @@ def test_whitelabel_scan_page():
                 client_branding = {
                     'business_name': branding_row[0],
                     'contact_email': branding_row[1],
-                    'primary_color': branding_row[2] or '#FF6900',
-                    'secondary_color': branding_row[3] or '#248aa0',
+                    'primary_color': branding_row[2] or '#02054c',
+                    'secondary_color': branding_row[3] or '#35a310',
                     'logo_url': branding_row[4] or '',
                     'email_subject': branding_row[5] or 'Your Security Scan Report',
                     'email_intro': branding_row[6] or ''

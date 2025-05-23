@@ -65,8 +65,8 @@ def generate_scanner(client_id, client_data):
             'business_name': client_data.get('business_name', ''),
             'business_domain': client_data.get('business_domain', ''),
             'scanner_name': client_data.get('scanner_name', 'Security Scanner'),
-            'primary_color': client_data.get('primary_color', '#FF6900'),
-            'secondary_color': client_data.get('secondary_color', '#248aa0'),
+            'primary_color': client_data.get('primary_color', '#02054c'),
+            'secondary_color': client_data.get('secondary_color', '#35a310'),
             'default_scans': client_data.get('default_scans', []),
             'logo_path': client_data.get('logo_path', ''),
             'favicon_path': client_data.get('favicon_path', ''),
@@ -174,8 +174,8 @@ def update_scanner(client_id, client_data):
             'business_name': client_data.get('business_name', config_data.get('business_name', '')),
             'business_domain': client_data.get('business_domain', config_data.get('business_domain', '')),
             'scanner_name': client_data.get('scanner_name', config_data.get('scanner_name', 'Security Scanner')),
-            'primary_color': client_data.get('primary_color', config_data.get('primary_color', '#FF6900')),
-            'secondary_color': client_data.get('secondary_color', config_data.get('secondary_color', '#248aa0')),
+            'primary_color': client_data.get('primary_color', config_data.get('primary_color', '#02054c')),
+            'secondary_color': client_data.get('secondary_color', config_data.get('secondary_color', '#35a310')),
             'last_updated': datetime.now().isoformat()
         })
         

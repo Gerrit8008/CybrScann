@@ -25,8 +25,8 @@ def create_scanner_for_client(client_id, scanner_data, created_by_user_id):
         scanner_name = scanner_data.get('name', 'Untitled Scanner')
         description = scanner_data.get('description', '')
         domain = scanner_data.get('domain', '')
-        primary_color = scanner_data.get('primary_color', '#35a310')
-        secondary_color = scanner_data.get('secondary_color', '#248aa0')
+        primary_color = scanner_data.get('primary_color', '#02054c')
+        secondary_color = scanner_data.get('secondary_color', '#35a310')
         logo_url = scanner_data.get('logo_url', '')
         contact_email = scanner_data.get('contact_email', '')
         contact_phone = scanner_data.get('contact_phone', '')
@@ -203,8 +203,8 @@ if __name__ == "__main__":
         'name': 'Test Scanner',
         'description': 'A test scanner',
         'domain': 'test.com',
-        'primary_color': '#35a310',
-        'secondary_color': '#248aa0',
+        'primary_color': '#02054c',
+        'secondary_color': '#35a310',
         'contact_email': 'test@test.com',
         'scan_types': ['port_scan', 'ssl_check']
     }

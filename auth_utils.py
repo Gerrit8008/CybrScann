@@ -462,8 +462,8 @@ def register_client(user_id, business_data):
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 client_id,
-                business_data.get('primary_color', '#35a310'),
-                business_data.get('secondary_color', '#248aa0'),
+                business_data.get('primary_color', '#02054c'),
+                business_data.get('secondary_color', '#35a310'),
                 business_data.get('logo_url', ''),
                 business_data.get('email_subject', 'Your Security Scan Report'),
                 business_data.get('email_intro', ''),

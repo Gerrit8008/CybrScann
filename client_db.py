@@ -244,8 +244,8 @@ def get_client_by_user_id(user_id):
                 'contact_phone': result[4],
                 'scanner_name': result[5],
                 'subscription_level': result[6],
-                'primary_color': result[7] if len(result) > 7 else '#35a310',
-                'secondary_color': result[8] if len(result) > 8 else '#248aa0',
+                'primary_color': result[7] if len(result) > 7 else '#02054c',
+                'secondary_color': result[8] if len(result) > 8 else '#35a310',
                 'email_subject': result[9] if len(result) > 9 else 'Your Security Scan Report',
                 'email_intro': result[10] if len(result) > 10 else ''
             }
@@ -1309,8 +1309,8 @@ def create_client(conn, client_data, user_id):
     # Insert customization data if provided
     customization_data = {
         'client_id': client_id,
-        'primary_color': client_data.get('primary_color', '#35a310'),
-        'secondary_color': client_data.get('secondary_color', '#248aa0'),
+        'primary_color': client_data.get('primary_color', '#02054c'),
+        'secondary_color': client_data.get('secondary_color', '#35a310'),
         'last_updated': now,
         'updated_by': user_id
     }
@@ -2360,8 +2360,8 @@ def get_client_by_user_id(user_id):
                 'contact_phone': result[4],
                 'scanner_name': result[5],
                 'subscription_level': result[6],
-                'primary_color': result[7] if len(result) > 7 else '#35a310',
-                'secondary_color': result[8] if len(result) > 8 else '#248aa0',
+                'primary_color': result[7] if len(result) > 7 else '#02054c',
+                'secondary_color': result[8] if len(result) > 8 else '#35a310',
                 'email_subject': result[9] if len(result) > 9 else 'Your Security Scan Report',
                 'email_intro': result[10] if len(result) > 10 else ''
             }
@@ -2762,8 +2762,8 @@ def _register_client_impl(conn, cursor, user_id, business_data):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             client_id,
-            business_data.get('primary_color', '#35a310'),
-            business_data.get('secondary_color', '#248aa0'),
+            business_data.get('primary_color', '#02054c'),
+            business_data.get('secondary_color', '#35a310'),
             business_data.get('email_subject', 'Your Security Scan Report'),
             business_data.get('email_intro', 'Thank you for using our security scanner.'),
             json.dumps(business_data.get('default_scans', ['network', 'web', 'email', 'system'])),
@@ -3508,8 +3508,8 @@ def create_client(conn, cursor, client_data, user_id):
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         client_id,
-        client_data.get('primary_color', '#35a310'),
-        client_data.get('secondary_color', '#248aa0'),
+        client_data.get('primary_color', '#02054c'),
+        client_data.get('secondary_color', '#35a310'),
         client_data.get('logo_path', ''),
         client_data.get('favicon_path', ''),
         client_data.get('email_subject', 'Your Security Scan Report'),
