@@ -215,20 +215,21 @@ def get_client_by_user_id(user_id):
         
         cursor.execute('''
             SELECT 
-                id,
-                business_name,
-                business_domain,
-                contact_email,
-                contact_phone,
-                scanner_name,
-                subscription_level,
-                primary_color,
-                secondary_color,
-                email_subject,
-                email_intro
-            FROM clients 
-            WHERE user_id = ? AND active = 1
-            ORDER BY created_at DESC 
+                c.id,
+                c.business_name,
+                c.business_domain,
+                c.contact_email,
+                c.contact_phone,
+                c.scanner_name,
+                c.subscription_level,
+                cust.primary_color,
+                cust.secondary_color,
+                cust.email_subject,
+                cust.email_intro
+            FROM clients c
+            LEFT JOIN customizations cust ON c.id = cust.client_id
+            WHERE c.user_id = ? AND c.active = 1
+            ORDER BY c.created_at DESC 
             LIMIT 1
         ''', (user_id,))
         
@@ -2330,20 +2331,21 @@ def get_client_by_user_id(user_id):
         
         cursor.execute('''
             SELECT 
-                id,
-                business_name,
-                business_domain,
-                contact_email,
-                contact_phone,
-                scanner_name,
-                subscription_level,
-                primary_color,
-                secondary_color,
-                email_subject,
-                email_intro
-            FROM clients 
-            WHERE user_id = ? AND active = 1
-            ORDER BY created_at DESC 
+                c.id,
+                c.business_name,
+                c.business_domain,
+                c.contact_email,
+                c.contact_phone,
+                c.scanner_name,
+                c.subscription_level,
+                cust.primary_color,
+                cust.secondary_color,
+                cust.email_subject,
+                cust.email_intro
+            FROM clients c
+            LEFT JOIN customizations cust ON c.id = cust.client_id
+            WHERE c.user_id = ? AND c.active = 1
+            ORDER BY c.created_at DESC 
             LIMIT 1
         ''', (user_id,))
         

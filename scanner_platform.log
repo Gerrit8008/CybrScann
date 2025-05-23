@@ -47,3 +47,16 @@
 2025-05-23 08:26:13,915 - root - INFO - Initializing database from schema.sql...
 2025-05-23 08:26:13,928 - root - INFO - Schema executed successfully
 2025-05-23 08:26:13,929 - root - INFO - Database initialization completed
+2025-05-23 08:34:59,908 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:34:59,923 - root - INFO - Schema executed successfully
+2025-05-23 08:34:59,924 - root - INFO - Database initialization completed
+2025-05-23 08:35:24,313 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:35:24,327 - root - INFO - Schema executed successfully
+2025-05-23 08:35:24,327 - root - INFO - Database initialization completed
+2025-05-23 08:35:24,327 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:35:24,345 - root - INFO - Schema executed successfully
+2025-05-23 08:35:24,346 - root - INFO - Database initialization completed
+2025-05-23 08:37:49,113 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:37:49,123 - root - INFO - Schema executed successfully
+2025-05-23 08:37:49,124 - root - INFO - Database initialization completed
+2025-05-23 08:37:49,124 - scanner_db_functions - INFO - ✅ Scanner database functions patched successfully
