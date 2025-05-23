@@ -713,19 +713,29 @@
             
             // Form submission handler - UPDATED to fix redirect issues
             form.addEventListener('submit', function(e) {
+                console.log('Form submit event triggered');
+                console.log('Current step:', steps.findIndex(step => step.classList.contains('active')));
+                console.log('Step 4 active:', steps[3].classList.contains('active'));
+                
                 if (steps[3].classList.contains('active')) {
+                    console.log('On payment step - validating...');
                     // If we're on the payment step, validate it first
                     if (!validateStep4()) {
+                        console.log('Validation failed - preventing submission');
                         e.preventDefault();
                         return false;
                     }
                     
+                    console.log('Validation passed - processing payment');
+                    
                     // Set payment processed flag
                     document.getElementById('paymentProcessed').value = '1';
+                    console.log('Payment processed flag set to 1');
                     
                     // Hide the form and show processing animation
                     form.style.display = 'none';
                     paymentProcessingDiv.style.display = 'block';
+                    console.log('Showing processing animation');
                     
                     // Submit the form immediately - no artificial delays
                     console.log('Processing payment and creating scanner...');
@@ -733,12 +743,24 @@
                     // Submit the form directly after a short delay for UX
                     setTimeout(function() {
                         console.log('Submitting form to /customize endpoint...');
+                        console.log('Form action:', form.action);
+                        console.log('Form method:', form.method);
+                        
+                        // Log form data before submission
+                        const formData = new FormData(form);
+                        console.log('Form data being submitted:');
+                        for (let [key, value] of formData.entries()) {
+                            console.log(`  ${key}: ${value}`);
+                        }
+                        
                         form.submit();
                     }, 1000);
                     
                     // Prevent default form submission initially
                     e.preventDefault();
                     return false;
+                } else {
+                    console.log('Not on payment step - allowing normal form behavior');
                 }
             });
             
