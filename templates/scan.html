@@ -209,16 +209,32 @@
                             <div class="row">
                                 {% for scanner in user_scanners %}
                                 <div class="col-md-6 mb-2">
-                                    <div class="card border-success">
+                                    <div class="card" style="border-left: 4px solid {{ scanner.primary_color or '#FF6900' }};">
                                         <div class="card-body py-2">
-                                            <h6 class="card-title mb-1">
-                                                <i class="bi bi-shield-check text-success me-1"></i>
-                                                {{ scanner.name }}
-                                            </h6>
+                                            <div class="d-flex align-items-center mb-1">
+                                                {% if scanner.logo_url %}
+                                                <img src="{{ scanner.logo_url }}" alt="Logo" style="width: 24px; height: 24px; margin-right: 8px; border-radius: 4px;">
+                                                {% endif %}
+                                                <h6 class="card-title mb-0" style="color: {{ scanner.primary_color or '#FF6900' }};">
+                                                    <i class="bi bi-shield-check me-1"></i>
+                                                    {{ scanner.name }}
+                                                </h6>
+                                            </div>
+                                            {% if scanner.business_name %}
+                                            <p class="card-text small mb-1"><strong>{{ scanner.business_name }}</strong></p>
+                                            {% endif %}
                                             <p class="card-text small mb-2">{{ scanner.description }}</p>
-                                            <p class="card-text small text-muted mb-0">
-                                                <i class="bi bi-globe me-1"></i>{{ scanner.domain }}
-                                            </p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <p class="card-text small text-muted mb-0">
+                                                    <i class="bi bi-globe me-1"></i>{{ scanner.domain }}
+                                                </p>
+                                                {% if scanner.primary_color and scanner.secondary_color %}
+                                                <div class="d-flex">
+                                                    <div style="width: 12px; height: 12px; background-color: {{ scanner.primary_color }}; border-radius: 50%; margin-right: 4px;" title="Primary Color"></div>
+                                                    <div style="width: 12px; height: 12px; background-color: {{ scanner.secondary_color }}; border-radius: 50%;" title="Secondary Color"></div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
