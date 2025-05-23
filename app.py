@@ -1095,7 +1095,17 @@ def scanner_embed(scanner_uid):
             conn.close()
             
             if not scanner_row:
-                return "Scanner not found", 404
+                logging.warning(f"Scanner not found: {scanner_uid}")
+                return f"""
+                <html>
+                <head><title>Scanner Not Found</title></head>
+                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                    <h1>Scanner Not Found</h1>
+                    <p>The scanner with ID "{scanner_uid}" could not be found.</p>
+                    <p><a href="/scan">Return to Scan Page</a></p>
+                </body>
+                </html>
+                """, 404
             
             # Convert to dict and generate deployment
             scanner_data = {
