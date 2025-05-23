@@ -128,7 +128,7 @@ def authenticate_user(username_or_email, password, ip_address=None, user_agent=N
             "username": user['username'],
             "email": user['email'],
             "role": user['role'],
-            "full_name": user.get('full_name'),
+            "full_name": user['full_name'] if 'full_name' in user.keys() else None,
             "session_token": session_token
         }
         
@@ -195,7 +195,7 @@ def create_session(user_id, user_email, role, ip_address=None, user_agent=None):
             "username": user['username'],
             "email": user['email'],
             "role": user['role'],
-            "full_name": user.get('full_name'),
+            "full_name": user['full_name'] if 'full_name' in user.keys() else None,
             "session_token": session_token
         }
         
@@ -446,6 +446,30 @@ def register_client(user_id, business_data):
         ))
         
         client_id = cursor.lastrowid
+        
+        # Save customizations if provided
+        if any([
+            business_data.get('primary_color'),
+            business_data.get('secondary_color'),
+            business_data.get('logo_url'),
+            business_data.get('email_subject'),
+            business_data.get('email_intro')
+        ]):
+            cursor.execute('''
+            INSERT INTO customizations (
+                client_id, primary_color, secondary_color, logo_path, 
+                email_subject, email_intro, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                client_id,
+                business_data.get('primary_color', '#FF6900'),
+                business_data.get('secondary_color', '#808588'),
+                business_data.get('logo_url', ''),
+                business_data.get('email_subject', 'Your Security Scan Report'),
+                business_data.get('email_intro', ''),
+                now,
+                now
+            ))
         
         conn.commit()
         conn.close()

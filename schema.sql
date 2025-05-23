@@ -58,6 +58,23 @@ CREATE TABLE IF NOT EXISTS scanners (
     FOREIGN KEY (updated_by) REFERENCES users(id)
 );
 
+-- Customizations table for client branding and visual options
+CREATE TABLE IF NOT EXISTS customizations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    primary_color TEXT DEFAULT '#FF6900',
+    secondary_color TEXT DEFAULT '#808588',
+    logo_path TEXT,
+    favicon_path TEXT,
+    custom_css TEXT,
+    email_subject TEXT DEFAULT 'Your Security Scan Report',
+    email_intro TEXT,
+    email_signature TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+);
+
 -- Scan history table to track all scans performed by scanners
 CREATE TABLE IF NOT EXISTS scan_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

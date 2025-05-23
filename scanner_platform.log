@@ -64,3 +64,10 @@
 2025-05-23 08:47:19,954 - root - INFO - Schema executed successfully
 2025-05-23 08:47:19,954 - root - INFO - Database initialization completed
 2025-05-23 08:47:19,959 - scanner_db_functions - INFO - Scanner 'Test Client Scanner' created successfully for client 1
+2025-05-23 09:03:59,465 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:03:59,482 - root - INFO - Schema executed successfully
+2025-05-23 09:03:59,482 - root - INFO - Database initialization completed
+2025-05-23 09:03:59,482 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:03:59,504 - root - INFO - Schema executed successfully
+2025-05-23 09:03:59,504 - root - INFO - Users table doesn't exist yet - skipping column check
+2025-05-23 09:03:59,504 - root - INFO - Database initialization completed

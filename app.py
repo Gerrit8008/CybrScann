@@ -904,7 +904,12 @@ def customize_scanner():
                 'contact_email': scanner_data['contact_email'],
                 'contact_phone': scanner_data['contact_phone'],
                 'scanner_name': scanner_data['scanner_name'],
-                'subscription_level': scanner_data['subscription']
+                'subscription_level': scanner_data['subscription'],
+                'primary_color': scanner_data['primary_color'],
+                'secondary_color': scanner_data['secondary_color'],
+                'logo_url': scanner_data.get('logo_url', ''),
+                'email_subject': scanner_data['email_subject'],
+                'email_intro': scanner_data['email_intro']
             }
             
             client_result = register_client(user_id, client_data)
@@ -929,6 +934,7 @@ def customize_scanner():
             
             scanner_creation_data = {
                 'name': scanner_data['scanner_name'],
+                'business_name': scanner_data['business_name'],  # Add business_name for deployment
                 'description': scanner_data.get('description', f"Security scanner for {scanner_data['business_name']}"),
                 'domain': scanner_data['business_domain'],
                 'primary_color': scanner_data['primary_color'],
@@ -977,8 +983,17 @@ def customize_scanner():
                     # Redirect to scanner deployment page showing integration options  
                     return redirect(f'/scanner/{scanner_uid}/info')
             else:
-                flash(f'Scanner created but deployment failed: {deployment_result["message"]}', 'warning')
-                return redirect(url_for('admin.dashboard'))
+                # Even if deployment fails, log the client in and redirect to scan page
+                from auth_utils import create_session
+                session_result = create_session(user_id, user_email, 'client')
+                if session_result['status'] == 'success':
+                    session['session_token'] = session_result['session_token']
+                    session['user_id'] = user_id
+                    session['user_email'] = user_email
+                    session['user_role'] = 'client'
+                
+                flash(f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.', 'warning')
+                return redirect('/scan')
             
         except Exception as e:
             logging.error(f"Error in customize_scanner: {str(e)}")
@@ -2674,11 +2689,20 @@ def scan_page():
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 
-                # Get scanners for this user
+                # Get scanners for this user with customizations
                 cursor.execute('''
-                    SELECT s.scanner_id, s.name, s.description, s.domain
+                    SELECT 
+                        s.scanner_id, 
+                        s.name, 
+                        s.description, 
+                        s.domain,
+                        s.primary_color,
+                        s.secondary_color,
+                        c.business_name,
+                        cust.logo_path as logo_url
                     FROM scanners s
                     JOIN clients c ON s.client_id = c.id
+                    LEFT JOIN customizations cust ON c.id = cust.client_id
                     WHERE c.user_id = ?
                     ORDER BY s.created_at DESC
                 ''', (user_id,))
