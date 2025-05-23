@@ -855,8 +855,8 @@ def customize_scanner():
                 'contact_email': request.form.get('contact_email', '').strip(),
                 'contact_phone': request.form.get('contact_phone', '').strip(),
                 'scanner_name': request.form.get('scanner_name', '').strip(),
-                'primary_color': request.form.get('primary_color', '#FF6900'),
-                'secondary_color': request.form.get('secondary_color', '#808588'),
+                'primary_color': request.form.get('primary_color', '#35a310'),
+                'secondary_color': request.form.get('secondary_color', '#248aa0'),
                 'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
                 'email_intro': request.form.get('email_intro', ''),
                 'subscription': request.form.get('subscription', 'basic'),
@@ -1176,8 +1176,8 @@ def scanner_embed(scanner_uid):
             scanner_data = {
                 'name': scanner_row[3] if len(scanner_row) > 3 else 'Security Scanner',
                 'business_name': scanner_row[-1] if len(scanner_row) > 15 else 'Security Services',
-                'primary_color': scanner_row[7] if len(scanner_row) > 7 else '#FF6900',
-                'secondary_color': scanner_row[8] if len(scanner_row) > 8 else '#808588',
+                'primary_color': scanner_row[7] if len(scanner_row) > 7 else '#35a310',
+                'secondary_color': scanner_row[8] if len(scanner_row) > 8 else '#248aa0',
                 'logo_url': scanner_row[9] if len(scanner_row) > 9 else '',
                 'contact_email': scanner_row[10] if len(scanner_row) > 10 else 'support@example.com',
                 'contact_phone': scanner_row[11] if len(scanner_row) > 11 else '',
@@ -1445,8 +1445,8 @@ def create_client_direct(conn, cursor, client_data, user_id):
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         client_id,
-        client_data.get('primary_color', '#FF6900'),
-        client_data.get('secondary_color', '#808588'),
+        client_data.get('primary_color', '#35a310'),
+        client_data.get('secondary_color', '#248aa0'),
         client_data.get('logo_path', ''),
         client_data.get('favicon_path', ''),
         client_data.get('email_subject', 'Your Security Scan Report'),
@@ -2709,7 +2709,7 @@ def scan_page():
                         html_report, 
                         client['business_name'],
                         client.get('logo_path', ''),
-                        client.get('primary_color', '#FF6900'),
+                        client.get('primary_color', '#35a310'),
                         email_subject,
                         email_intro
                     )
@@ -2843,8 +2843,8 @@ def scan_page():
                         client_branding = {
                             'business_name': branding_row[0],
                             'contact_email': branding_row[1],
-                            'primary_color': branding_row[2] or '#FF6900',
-                            'secondary_color': branding_row[3] or '#808588',
+                            'primary_color': branding_row[2] or '#35a310',
+                            'secondary_color': branding_row[3] or '#248aa0',
                             'logo_url': branding_row[4] or '',
                             'email_subject': branding_row[5] or 'Your Security Scan Report',
                             'email_intro': branding_row[6] or ''

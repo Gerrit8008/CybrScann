@@ -60,7 +60,7 @@ def create_scanner():
             'contact_phone': request.form.get('contact_phone', ''),
             'scanner_name': request.form.get('scanner_name', ''),
             'primary_color': request.form.get('primary_color', '#FF6900'),
-            'secondary_color': request.form.get('secondary_color', '#808588'),
+            'secondary_color': request.form.get('secondary_color', '#248aa0'),
             'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
             'email_intro': request.form.get('email_intro', ''),
             'subscription': request.form.get('subscription', 'basic'),
