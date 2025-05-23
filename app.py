@@ -820,14 +820,33 @@ def login_redirect():
     return redirect(url_for('auth.login'))
     
 # Add a route for the customization form
+@app.route('/test_redirect')
+def test_redirect():
+    """Test route to verify redirects work"""
+    flash('Test redirect successful!', 'success')
+    return redirect('/scan')
+
 @app.route('/customize', methods=['GET', 'POST'])
 def customize_scanner():
     """Admin scanner customization and deployment"""
     if request.method == 'POST':
+        # Add debugging at the start
+        print("=" * 50)
+        print("CUSTOMIZE POST REQUEST RECEIVED")
+        print("=" * 50)
+        logging.info("Customize POST request started")
+        
         try:
             # Check if payment was processed
             payment_processed = request.form.get('payment_processed', '0')
+            print(f"Payment processed flag: {payment_processed}")
             logging.info(f"Payment processed flag: {payment_processed}")
+            
+            # Log all form data for debugging
+            print("Form data received:")
+            for key, value in request.form.items():
+                print(f"  {key}: {value}")
+                logging.info(f"Form field {key}: {value}")
             
             # Extract form data
             scanner_data = {
@@ -965,6 +984,12 @@ def customize_scanner():
             logging.error(f"Error in customize_scanner: {str(e)}")
             import traceback
             logging.error(traceback.format_exc())
+            
+            # For debugging, also print to console
+            print(f"CUSTOMIZE ERROR: {str(e)}")
+            print("TRACEBACK:")
+            print(traceback.format_exc())
+            
             flash(f'Error creating scanner: {str(e)}', 'danger')
             return render_template('admin/customization-form.html')
     
