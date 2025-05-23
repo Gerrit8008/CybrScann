@@ -168,7 +168,7 @@ def test_customize_route_complete():
                     'description': 'Scanner created via /customize route test',
                     'domain': 'https://customizetest.com',
                     'primary_color': '#FF6900',
-                    'secondary_color': '#808588',
+                    'secondary_color': '#248aa0',
                     'contact_email': 'customize@test.com',
                     'scan_types': ['port_scan', 'ssl_check']
                 }

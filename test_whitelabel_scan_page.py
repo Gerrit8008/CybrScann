@@ -103,7 +103,7 @@ def test_whitelabel_scan_page():
                     'business_name': branding_row[0],
                     'contact_email': branding_row[1],
                     'primary_color': branding_row[2] or '#FF6900',
-                    'secondary_color': branding_row[3] or '#808588',
+                    'secondary_color': branding_row[3] or '#248aa0',
                     'logo_url': branding_row[4] or '',
                     'email_subject': branding_row[5] or 'Your Security Scan Report',
                     'email_intro': branding_row[6] or ''

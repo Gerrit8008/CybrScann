@@ -107,7 +107,7 @@ def test_complete_purchase_flow():
             'contact_phone': '+1234567890',
             'scanner_name': 'Purchase Test Scanner',
             'primary_color': '#FF6900',
-            'secondary_color': '#808588',
+            'secondary_color': '#248aa0',
             'email_subject': 'Your Security Scan Report',
             'email_intro': 'Thank you for your purchase!',
             'subscription': 'basic',

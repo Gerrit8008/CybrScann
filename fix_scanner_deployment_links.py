@@ -59,7 +59,7 @@ def fix_all_scanner_deployments():
                     'description': scanner_row[4] or f'Security scanner for {business_name}',
                     'domain': scanner_row[5],
                     'primary_color': scanner_row[7] or '#FF6900',
-                    'secondary_color': scanner_row[8] or '#808588',
+                    'secondary_color': scanner_row[8] or '#248aa0',
                     'logo_url': scanner_row[9] or '',
                     'contact_email': scanner_row[10],
                     'contact_phone': scanner_row[11],

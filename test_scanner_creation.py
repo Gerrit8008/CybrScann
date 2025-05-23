@@ -27,7 +27,7 @@ def test_scanner_creation_flow():
         'description': 'A test scanner created by client',
         'domain': 'https://testclient.com',
         'primary_color': '#FF6900',
-        'secondary_color': '#808588',
+        'secondary_color': '#248aa0',
         'contact_email': 'test@testclient.com',
         'contact_phone': '+1234567890',
         'email_subject': 'Your Security Scan Report',

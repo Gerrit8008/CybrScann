@@ -176,8 +176,8 @@ def generate_scanner_html(deployment_dir, scanner_uid, scanner_data, api_key):
             scanner_uid=scanner_uid,
             scanner_name=scanner_data.get('name', 'Security Scanner'),
             business_name=scanner_data.get('business_name', 'Security Services'),
-            primary_color=scanner_data.get('primary_color', '#FF6900'),
-            secondary_color=scanner_data.get('secondary_color', '#808588'),
+            primary_color=scanner_data.get('primary_color', '#35a310'),
+            secondary_color=scanner_data.get('secondary_color', '#248aa0'),
             logo_url=scanner_data.get('logo_url', ''),
             contact_email=scanner_data.get('contact_email', 'support@example.com'),
             scan_types=scanner_data.get('scan_types', ['port_scan', 'ssl_check']),
@@ -230,7 +230,7 @@ def generate_scanner_css(deployment_dir, scanner_data):
     text-align: center;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 2px solid {scanner_data.get('primary_color', '#FF6900')};
+    border-bottom: 2px solid {scanner_data.get('primary_color', '#35a310')};
 }}
 
 .scanner-logo {{
@@ -239,14 +239,14 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .scanner-title {{
-    color: {scanner_data.get('primary_color', '#FF6900')};
+    color: {scanner_data.get('primary_color', '#35a310')};
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }}
 
 .scanner-description {{
-    color: {scanner_data.get('secondary_color', '#808588')};
+    color: {scanner_data.get('secondary_color', '#248aa0')};
     font-size: 1.1rem;
     margin: 0;
 }}
@@ -264,12 +264,12 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .scanner-input:focus {{
-    border-color: {scanner_data.get('primary_color', '#FF6900')};
-    box-shadow: 0 0 0 0.2rem {scanner_data.get('primary_color', '#FF6900')}33;
+    border-color: {scanner_data.get('primary_color', '#35a310')};
+    box-shadow: 0 0 0 0.2rem {scanner_data.get('primary_color', '#35a310')}33;
 }}
 
 .scanner-submit-btn {{
-    background: linear-gradient(135deg, {scanner_data.get('primary_color', '#FF6900')}, {scanner_data.get('secondary_color', '#808588')});
+    background: linear-gradient(135deg, {scanner_data.get('primary_color', '#35a310')}, {scanner_data.get('secondary_color', '#248aa0')});
     border: none;
     border-radius: 8px;
     padding: 1rem 2rem;
@@ -301,7 +301,7 @@ def generate_scanner_css(deployment_dir, scanner_data):
     padding: 1.5rem;
     background: #f8f9fa;
     border-radius: 8px;
-    border-left: 4px solid {scanner_data.get('primary_color', '#FF6900')};
+    border-left: 4px solid {scanner_data.get('primary_color', '#35a310')};
 }}
 
 .scan-error {{
@@ -325,13 +325,13 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .form-check-input:checked {{
-    background-color: {scanner_data.get('primary_color', '#FF6900')};
-    border-color: {scanner_data.get('primary_color', '#FF6900')};
+    background-color: {scanner_data.get('primary_color', '#35a310')};
+    border-color: {scanner_data.get('primary_color', '#35a310')};
 }}
 
 .form-check-input:focus {{
-    border-color: {scanner_data.get('primary_color', '#FF6900')};
-    box-shadow: 0 0 0 0.25rem {scanner_data.get('primary_color', '#FF6900')}33;
+    border-color: {scanner_data.get('primary_color', '#35a310')};
+    box-shadow: 0 0 0 0.25rem {scanner_data.get('primary_color', '#35a310')}33;
 }}
 
 /* Responsive design */

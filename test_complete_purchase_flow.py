@@ -69,7 +69,7 @@ def test_complete_purchase_flow():
         'contact_phone': '555-1234',
         'scanner_name': 'Test Scanner',
         'primary_color': '#FF6900',
-        'secondary_color': '#808588',
+        'secondary_color': '#248aa0',
         'email_subject': 'Your Security Scan Report',
         'email_intro': 'Test intro',
         'subscription': 'basic',

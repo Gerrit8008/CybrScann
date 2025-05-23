@@ -818,7 +818,7 @@ def scanner_create(user):
                 'description': request.form.get('description', '').strip(),
                 'domain': request.form.get('domain', '').strip(),
                 'primary_color': request.form.get('primary_color', '#FF6900'),
-                'secondary_color': request.form.get('secondary_color', '#808588'),
+                'secondary_color': request.form.get('secondary_color', '#248aa0'),
                 'logo_url': request.form.get('logo_url', ''),
                 'contact_email': request.form.get('contact_email', client['contact_email']),
                 'contact_phone': request.form.get('contact_phone', client.get('contact_phone', '')),
