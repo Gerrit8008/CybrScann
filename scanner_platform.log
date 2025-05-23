@@ -97,3 +97,22 @@
 2025-05-23 09:20:08,414 - root - INFO - Initializing database from schema.sql...
 2025-05-23 09:20:08,423 - root - INFO - Schema executed successfully
 2025-05-23 09:20:08,423 - root - INFO - Database initialization completed
+2025-05-23 10:07:30,324 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:07:30,336 - root - INFO - Schema executed successfully
+2025-05-23 10:07:30,337 - root - INFO - Database initialization completed
+2025-05-23 10:07:57,972 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:07:57,982 - root - INFO - Schema executed successfully
+2025-05-23 10:07:57,983 - root - INFO - Database initialization completed
+2025-05-23 10:08:21,545 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:08:21,556 - root - INFO - Schema executed successfully
+2025-05-23 10:08:21,557 - root - INFO - Database initialization completed
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-23 10:12:57,156 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:12:57,166 - root - INFO - Schema executed successfully
+2025-05-23 10:12:57,166 - root - INFO - Database initialization completed
+2025-05-23 10:13:46,923 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:13:46,936 - root - INFO - Schema executed successfully
+2025-05-23 10:13:46,937 - root - INFO - Database initialization completed
