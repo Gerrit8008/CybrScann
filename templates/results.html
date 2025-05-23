@@ -3,10 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprehensive Security Scan Results</title>
+    {% if client_branding and client_branding.business_name %}
+        <title>{{ client_branding.business_name }} Security Scan Results</title>
+    {% else %}
+        <title>Comprehensive Security Scan Results</title>
+    {% endif %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/css/styles.css">
+    {% if client_branding %}
+    <style>
+        :root {
+            --primary-color: {{ client_branding.primary_color }};
+            --secondary-color: {{ client_branding.secondary_color }};
+            --primary-dark: {{ client_branding.primary_color }};
+        }
+        .header {
+            background: linear-gradient(135deg, {{ client_branding.primary_color }}, {{ client_branding.secondary_color }});
+        }
+        .btn-primary, .btn-light {
+            background-color: {{ client_branding.primary_color }};
+            border-color: {{ client_branding.primary_color }};
+        }
+        .btn-primary:hover, .btn-light:hover {
+            background-color: {{ client_branding.secondary_color }};
+            border-color: {{ client_branding.secondary_color }};
+        }
+        .card-header {
+            background-color: {{ client_branding.primary_color }} !important;
+            color: white !important;
+        }
+        .severity.critical, .severity.high, .bg-danger {
+            background-color: #dc3545 !important;
+        }
+        .severity.medium, .bg-warning {
+            background-color: {{ client_branding.secondary_color }} !important;
+            color: white !important;
+        }
+        .severity.low, .bg-success {
+            background-color: #28a745 !important;
+        }
+    </style>
+    {% endif %}
     <style>
         /* Fix for modal flashing */
         .modal {
@@ -43,8 +81,16 @@
                 <input class="form-check-input" type="checkbox" id="toggleExplanations" checked>
                 <label class="form-check-label text-white" for="toggleExplanations">Show Explanations</label>
             </div>
-            <img src="/static/images/logo.png" alt="Company Logo" class="logo" onerror="this.style.display='none';">
-            <h1>Comprehensive Security Scan Results</h1>
+            {% if client_branding and client_branding.logo_url %}
+                <img src="{{ client_branding.logo_url }}" alt="{{ client_branding.business_name }} Logo" class="logo" onerror="this.style.display='none';">
+            {% else %}
+                <img src="/static/images/logo.png" alt="Company Logo" class="logo" onerror="this.style.display='none';">
+            {% endif %}
+            {% if client_branding and client_branding.business_name %}
+                <h1>{{ client_branding.business_name }} Security Scan Results</h1>
+            {% else %}
+                <h1>Comprehensive Security Scan Results</h1>
+            {% endif %}
             <p class="mb-0">Scan date: {{ scan.timestamp|default('April 30, 2025') }}</p>
             <!-- Hidden scan_id field for email functionality -->
             <input type="hidden" id="scan-id" value="{{ scan.scan_id|default('') }}">
@@ -828,10 +874,18 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <p class="mb-0">&copy; 2025 Central Georgia Technology. All rights reserved.</p>
+                    {% if client_branding and client_branding.business_name %}
+                        <p class="mb-0">&copy; 2025 {{ client_branding.business_name }}. All rights reserved.</p>
+                    {% else %}
+                        <p class="mb-0">&copy; 2025 Central Georgia Technology. All rights reserved.</p>
+                    {% endif %}
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-0">470-481-0400 | sales@cengatech.com</p>
+                    {% if client_branding and client_branding.contact_email %}
+                        <p class="mb-0">{{ client_branding.contact_email }}</p>
+                    {% else %}
+                        <p class="mb-0">470-481-0400 | sales@cengatech.com</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

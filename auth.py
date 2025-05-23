@@ -250,8 +250,8 @@ def register_client(user_id, business_data):
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     client_id,
-                    business_data.get('primary_color', '#FF6900'),
-                    business_data.get('secondary_color', '#248aa0'),
+                    business_data.get('primary_color', '#02054c'),
+                    business_data.get('secondary_color', '#35a310'),
                     business_data.get('email_subject', 'Your Security Scan Report'),
                     business_data.get('email_intro', 'Thank you for using our security scanner.'),
                     json.dumps(business_data.get('default_scans', ['network', 'web', 'email', 'system'])),
@@ -336,8 +336,8 @@ def complete_profile():
             'contact_phone': request.form.get('contact_phone', ''),
             'scanner_name': request.form.get('scanner_name', request.form.get('business_name', '') + ' Scanner'),
             'subscription_level': 'basic',  # Default to basic
-            'primary_color': request.form.get('primary_color', '#FF6900'),
-            'secondary_color': request.form.get('secondary_color', '#248aa0'),
+            'primary_color': request.form.get('primary_color', '#02054c'),
+            'secondary_color': request.form.get('secondary_color', '#35a310'),
             'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
             'email_intro': request.form.get('email_intro', 'Thank you for using our security scanner.'),
             'default_scans': request.form.getlist('default_scans') or ['network', 'web', 'email', 'system']
