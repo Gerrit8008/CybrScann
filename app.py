@@ -2818,6 +2818,38 @@ def scan_page():
                 ''', (user_id,))
                 
                 user_scanners = [dict(row) for row in cursor.fetchall()]
+                
+                # Get client branding information
+                client_branding = None
+                if user_scanners:
+                    # Get the first scanner's client for branding
+                    cursor.execute('''
+                        SELECT 
+                            c.business_name,
+                            c.contact_email,
+                            cust.primary_color,
+                            cust.secondary_color,
+                            cust.logo_path,
+                            cust.email_subject,
+                            cust.email_intro
+                        FROM clients c
+                        LEFT JOIN customizations cust ON c.id = cust.client_id
+                        WHERE c.user_id = ?
+                        LIMIT 1
+                    ''', (user_id,))
+                    
+                    branding_row = cursor.fetchone()
+                    if branding_row:
+                        client_branding = {
+                            'business_name': branding_row[0],
+                            'contact_email': branding_row[1],
+                            'primary_color': branding_row[2] or '#FF6900',
+                            'secondary_color': branding_row[3] or '#808588',
+                            'logo_url': branding_row[4] or '',
+                            'email_subject': branding_row[5] or 'Your Security Scan Report',
+                            'email_intro': branding_row[6] or ''
+                        }
+                
                 conn.close()
                 
                 logging.info(f"Found {len(user_scanners)} scanners for user {user_id}")
@@ -2855,7 +2887,8 @@ def scan_page():
             rendered_html = template.render(
                 error=error, 
                 user_scanners=user_scanners, 
-                current_user=current_user
+                current_user=current_user,
+                client_branding=client_branding if 'client_branding' in locals() else None
             )
             
             return rendered_html
@@ -2864,7 +2897,8 @@ def scan_page():
     return render_template('scan.html', 
                          error=error, 
                          user_scanners=user_scanners, 
-                         current_user=current_user)
+                         current_user=current_user,
+                         client_branding=client_branding if 'client_branding' in locals() else None)
 
 @app.route('/results')
 def results():

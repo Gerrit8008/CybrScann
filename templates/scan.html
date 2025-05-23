@@ -3,11 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if client_branding %}
+    <title>{{ client_branding.business_name }} Security Assessment</title>
+    {% else %}
     <title>Start Security Scan - Vulnerability Scanner</title>
+    {% endif %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/css/styles.css">
     <style>
+        /* White label branding styles */
+        {% if client_branding %}
+        :root {
+            --primary-color: {{ client_branding.primary_color }};
+            --secondary-color: {{ client_branding.secondary_color }};
+        }
+        
+        .header {
+            background: linear-gradient(135deg, {{ client_branding.primary_color }}, {{ client_branding.secondary_color }});
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, {{ client_branding.primary_color }}, {{ client_branding.secondary_color }});
+            border-color: {{ client_branding.primary_color }};
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, {{ client_branding.secondary_color }}, {{ client_branding.primary_color }});
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, {{ client_branding.primary_color }}22, {{ client_branding.secondary_color }}22);
+            border-bottom: 2px solid {{ client_branding.primary_color }};
+        }
+        
+        .step-bullet.active {
+            background-color: {{ client_branding.primary_color }};
+            border-color: {{ client_branding.primary_color }};
+        }
+        
+        .step-bullet.completed {
+            background-color: {{ client_branding.secondary_color }};
+            border-color: {{ client_branding.secondary_color }};
+        }
+        
+        .form-control:focus {
+            border-color: {{ client_branding.primary_color }};
+            box-shadow: 0 0 0 0.2rem {{ client_branding.primary_color }}33;
+        }
+        
+        .alert-info {
+            background-color: {{ client_branding.primary_color }}15;
+            border-color: {{ client_branding.primary_color }};
+            color: {{ client_branding.primary_color }};
+        }
+        {% endif %}
+        
         /* Additional styles to complement styles.css */
         .scan-step {
             display: none;
@@ -182,10 +233,21 @@
 <body>
     <div class="header fade-in">
         <div class="container">
+            {% if client_branding and client_branding.logo_url %}
+            <img src="{{ client_branding.logo_url }}" alt="{{ client_branding.business_name }} Logo" class="logo" 
+                 onerror="this.style.display='none';">
+            {% else %}
             <img src="/static/images/logo.png" alt="Company Logo" class="logo" 
                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwIiB5PSIzMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmaWxsPSJ3aGl0ZSI+Q2VudHJhbCBHZW9yZ2lhPC90ZXh0Pjx0ZXh0IHg9IjEwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSI+VGVjaG5vbG9neTwvdGV4dD48L3N2Zz4='; this.style.maxWidth='180px';">
+            {% endif %}
+            
+            {% if client_branding %}
+            <h1>{{ client_branding.business_name }} Security Assessment</h1>
+            <p>{{ client_branding.email_intro or 'Complete the form below to begin your comprehensive security assessment' }}</p>
+            {% else %}
             <h1>Start Security Scan</h1>
             <p>Complete the form below to begin your vulnerability assessment</p>
+            {% endif %}
         </div>
     </div>
     
@@ -195,14 +257,18 @@
                 <div class="card fade-in">
                     <div class="card-header">
                         <i class="bi bi-shield"></i>
+                        {% if client_branding %}
+                        <h2 class="mb-0">{{ client_branding.business_name }} Security Assessment</h2>
+                        {% else %}
                         <h2 class="mb-0">Security Assessment Form</h2>
+                        {% endif %}
                     </div>
                     <div class="card-body">
                         <!-- Show user's scanners if logged in -->
                         {% if current_user and user_scanners %}
                         <div class="alert alert-info mb-4">
                             <h4 class="alert-heading">
-                                <i class="bi bi-shield-check me-2"></i>Welcome back, {{ current_user.email }}!
+                                <i class="bi bi-shield-check me-2"></i>Welcome back{% if client_branding %} to {{ client_branding.business_name }}{% endif %}!
                             </h4>
                             <p class="mb-3">You have {{ user_scanners|length }} scanner(s) available:</p>
                             
