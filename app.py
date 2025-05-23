@@ -2682,7 +2682,7 @@ def scan_page():
             session_result = verify_session(session_token)
             if session_result['status'] == 'success':
                 current_user = session_result['user']
-                user_id = current_user['id']
+                user_id = current_user['user_id']
                 
                 # Get user's scanners
                 from client_db import get_db_connection
