@@ -939,10 +939,24 @@ def customize_scanner():
             deployment_result = generate_scanner_deployment(scanner_uid, scanner_creation_data, api_key)
             
             if deployment_result['status'] == 'success':
-                flash('Scanner created and deployed successfully!', 'success')
+                # Log the client in automatically after scanner creation
+                from auth_utils import create_session
                 
-                # Redirect to scanner deployment page showing integration options
-                return redirect(f'/scanner/{scanner_uid}/info')
+                # Create a session for the new client
+                session_result = create_session(user_id, user_email, 'client')
+                if session_result['status'] == 'success':
+                    session['session_token'] = session_result['session_token']
+                    session['user_id'] = user_id
+                    session['user_email'] = user_email
+                    session['user_role'] = 'client'
+                    flash('Scanner created successfully! You can now run scans.', 'success')
+                    
+                    # Redirect to main scan page where client can see their scanner
+                    return redirect('/scan')
+                else:
+                    flash('Scanner created and deployed successfully!', 'success')
+                    # Redirect to scanner deployment page showing integration options  
+                    return redirect(f'/scanner/{scanner_uid}/info')
             else:
                 flash(f'Scanner created but deployment failed: {deployment_result["message"]}', 'warning')
                 return redirect(url_for('admin.dashboard'))
@@ -2617,6 +2631,41 @@ def scan_page():
     # For GET requests, show the scan form
     error = request.args.get('error')
     
+    # Check if user is logged in and get their scanners
+    user_scanners = []
+    current_user = None
+    
+    session_token = session.get('session_token')
+    if session_token:
+        try:
+            from auth_utils import verify_session
+            session_result = verify_session(session_token)
+            if session_result['status'] == 'success':
+                current_user = session_result['user']
+                user_id = current_user['id']
+                
+                # Get user's scanners
+                from client_db import get_db_connection
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                
+                # Get scanners for this user
+                cursor.execute('''
+                    SELECT s.scanner_id, s.name, s.description, s.domain
+                    FROM scanners s
+                    JOIN clients c ON s.client_id = c.id
+                    WHERE c.user_id = ?
+                    ORDER BY s.created_at DESC
+                ''', (user_id,))
+                
+                user_scanners = [dict(row) for row in cursor.fetchall()]
+                conn.close()
+                
+                logging.info(f"Found {len(user_scanners)} scanners for user {user_id}")
+                
+        except Exception as e:
+            logging.error(f"Error checking user session or getting scanners: {e}")
+    
     # Check for client_id in query parameters (used for client-specific scanner)
     client_id = request.args.get('client_id')
     client = None
@@ -2644,12 +2693,19 @@ def scan_page():
             
             from jinja2 import Template
             template = Template(template_content)
-            rendered_html = template.render(error=error)
+            rendered_html = template.render(
+                error=error, 
+                user_scanners=user_scanners, 
+                current_user=current_user
+            )
             
             return rendered_html
     
-    # Fall back to standard template
-    return render_template('scan.html', error=error)
+    # Fall back to standard template with scanner information
+    return render_template('scan.html', 
+                         error=error, 
+                         user_scanners=user_scanners, 
+                         current_user=current_user)
 
 @app.route('/results')
 def results():
