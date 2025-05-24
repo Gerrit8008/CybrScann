@@ -307,7 +307,7 @@
                                 
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle-fill me-2"></i>
-                                    You've selected: <strong><span id="selectedPlanDisplay">Basic Plan</span></strong> at <strong><span id="selectedPriceDisplay">$49/month</span></strong>
+                                    You've selected: <strong><span id="selectedPlanDisplay">Starter Plan</span></strong> at <strong><span id="selectedPriceDisplay">$99/month</span></strong>
                                 </div>
                                 
                                 <div class="card mb-4">
@@ -676,14 +676,11 @@
                         case 2:
                             isValid = validateStep3();
                             // Update payment summary
-                            selectedPlanDisplay.textContent = basicPlan.checked ? 'Basic Plan' : 'Professional Plan';
-                            selectedPriceDisplay.textContent = basicPlan.checked ? '$49/month' : '$149/month';
+                            selectedPlanDisplay.textContent = starterPlan.checked ? 'Starter Plan' : 'Professional Plan';
+                            selectedPriceDisplay.textContent = starterPlan.checked ? '$99/month' : '$249/month';
                             break;
                     }
                     
-                    if (isValid) {
-                        goToStep(index + 1);
-                    }
                     if (isValid) {
                         goToStep(index + 1);
                     }
