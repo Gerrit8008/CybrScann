@@ -263,46 +263,53 @@
                                     <div class="col-md-4">
                                         <div class="card h-100">
                                             <div class="card-header text-center">
-                                                <h5>Basic</h5>
-                                                <h4 class="text-primary">Free</h4>
+                                                <h5>Starter</h5>
+                                                <h4 class="text-primary">$99<span class="text-muted">/month</span></h4>
                                             </div>
                                             <div class="card-body">
                                                 <ul class="feature-list">
-                                                    <li>1 Scanner</li>
-                                                    <li>50 Scans/month</li>
-                                                    <li>Basic Reports</li>
-                                                    <li>Email Support</li>
+                                                    <li>Up to 25 client accounts</li>
+                                                    <li>100 scans per month</li>
+                                                    <li>White-label branding</li>
+                                                    <li>Basic reporting</li>
+                                                    <li>Email support</li>
+                                                    <li>Client portal access</li>
+                                                    <li>Basic integrations</li>
                                                 </ul>
                                                 <div class="text-center mt-3">
-                                                    {% if client.subscription_level == 'basic' %}
+                                                    {% if client.subscription_level == 'starter' %}
                                                         <button class="btn btn-outline-success" disabled>Current Plan</button>
                                                     {% else %}
-                                                        <a href="/client/billing/downgrade?plan=basic" class="btn btn-outline-primary">Downgrade</a>
+                                                        <a href="/client/billing/upgrade?plan=starter" class="btn btn-outline-primary">Get Started</a>
                                                     {% endif %}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card h-100">
-                                            <div class="card-header text-center">
-                                                <h5>Pro</h5>
-                                                <h4 class="text-primary">$29/month</h4>
+                                        <div class="card h-100 border-primary">
+                                            <div class="card-header text-center bg-primary text-white">
+                                                <h5>Professional</h5>
+                                                <h4>$249<span class="text-light">/month</span></h4>
+                                                <small class="badge bg-warning text-dark">Most Popular</small>
                                             </div>
                                             <div class="card-body">
                                                 <ul class="feature-list">
-                                                    <li>5 Scanners</li>
-                                                    <li>500 Scans/month</li>
-                                                    <li>Advanced Reports</li>
-                                                    <li>Priority Support</li>
-                                                    <li>API Access</li>
-                                                    <li>Custom Branding</li>
+                                                    <li>Up to 100 client accounts</li>
+                                                    <li>500 scans per month</li>
+                                                    <li>Advanced white-labeling</li>
+                                                    <li>Professional reporting</li>
+                                                    <li>Priority phone support</li>
+                                                    <li>Advanced client portal</li>
+                                                    <li>API access</li>
+                                                    <li>Custom integrations</li>
+                                                    <li>Scheduled scanning</li>
                                                 </ul>
                                                 <div class="text-center mt-3">
-                                                    {% if client.subscription_level == 'pro' %}
+                                                    {% if client.subscription_level == 'professional' %}
                                                         <button class="btn btn-outline-success" disabled>Current Plan</button>
                                                     {% else %}
-                                                        <a href="/client/billing/upgrade?plan=pro" class="btn btn-primary">Upgrade to Pro</a>
+                                                        <a href="/client/billing/upgrade?plan=professional" class="btn btn-primary">Start Free Trial</a>
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -312,23 +319,26 @@
                                         <div class="card h-100">
                                             <div class="card-header text-center">
                                                 <h5>Enterprise</h5>
-                                                <h4 class="text-primary">Custom</h4>
+                                                <h4 class="text-primary">$499<span class="text-muted">/month</span></h4>
                                             </div>
                                             <div class="card-body">
                                                 <ul class="feature-list">
-                                                    <li>Unlimited Scanners</li>
-                                                    <li>Unlimited Scans</li>
-                                                    <li>Enterprise Reports</li>
-                                                    <li>Dedicated Support</li>
-                                                    <li>Advanced API</li>
-                                                    <li>White Labeling</li>
-                                                    <li>SSO Integration</li>
+                                                    <li>Unlimited client accounts</li>
+                                                    <li>Unlimited scans</li>
+                                                    <li>Complete white-labeling</li>
+                                                    <li>Executive reporting</li>
+                                                    <li>24/7 dedicated support</li>
+                                                    <li>Multi-tenant management</li>
+                                                    <li>Full API access</li>
+                                                    <li>Custom development</li>
+                                                    <li>SLA guarantees</li>
+                                                    <li>Training & onboarding</li>
                                                 </ul>
                                                 <div class="text-center mt-3">
                                                     {% if client.subscription_level == 'enterprise' %}
                                                         <button class="btn btn-outline-success" disabled>Current Plan</button>
                                                     {% else %}
-                                                        <a href="/client/contact/enterprise" class="btn btn-outline-primary">Contact Sales</a>
+                                                        <a href="/contact?plan=enterprise" class="btn btn-primary">Contact Sales</a>
                                                     {% endif %}
                                                 </div>
                                             </div>
