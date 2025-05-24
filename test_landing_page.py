@@ -14,6 +14,14 @@ def test_template_exists():
     print("🔍 Testing Landing Page Setup")
     print("=" * 40)
     
+    # Check if logo file exists
+    logo_path = "static/images/logo.png"
+    if os.path.exists(logo_path):
+        print("✅ Logo file exists")
+    else:
+        print("❌ Logo file not found")
+        return False
+    
     template_path = "templates/index.html"
     
     if os.path.exists(template_path):
@@ -30,6 +38,8 @@ def test_template_exists():
             
             checks = [
                 ("CybrScan brand name", "CybrScan" in content),
+                ("Logo implementation", "/static/images/logo.png" in content),
+                ("Favicon implementation", "favicon" in content.lower()),
                 ("Primary color", "#02054c" in content),
                 ("Secondary color", "#61c608" in content),
                 ("Client login link", "/auth/login?type=client" in content),

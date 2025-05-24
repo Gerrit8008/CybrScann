@@ -34,7 +34,8 @@ Secondary Color: #61c608 (Bright Green)
 ## 📱 Sections
 
 ### 1. Navigation Bar
-- Fixed navigation with CybrScan logo
+- Fixed navigation with CybrScan logo from `/static/images/logo.png`
+- Logo automatically sized and responsive
 - Links to Features, Login, and Demo
 - "Get Started" CTA button
 - Mobile-responsive hamburger menu
@@ -65,7 +66,8 @@ Secondary Color: #61c608 (Bright Green)
 - **Try Before You Buy**: Free scan option for visitors
 
 ### 6. Footer
-- Company information and branding
+- Company information and branding with logo
+- Logo automatically inverted to white for dark background
 - Navigation links organized by category
 - Social media links
 - Copyright and powered by text
@@ -177,9 +179,16 @@ Main content sections can be updated in `templates/index.html`:
 - **Company Info**: Update footer details
 
 ### Branding Updates
-- **Logo**: Replace logo reference in navigation
+- **Logo**: Replace `/static/images/logo.png` with your logo file
 - **Company Name**: Update "CybrScan" throughout
 - **Taglines**: Modify value propositions
+
+### Logo Requirements
+- **File Path**: `/static/images/logo.png`
+- **Format**: PNG recommended (supports transparency)
+- **Size**: Optimal dimensions 200px × 60px (maintains aspect ratio)
+- **Background**: Transparent background works best
+- **Colors**: Logo will be automatically inverted to white in footer
 
 ## 🧪 Testing
 
