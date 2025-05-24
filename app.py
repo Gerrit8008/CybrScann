@@ -665,13 +665,26 @@ except Exception as e:
     logger.error(f"❌ Failed to register admin_bp: {e}")
     logger.error(traceback.format_exc())
 
-# Optional blueprints
+# Optional blueprints - Client blueprint is CRITICAL for login
 try:
     from client import client_bp
     app.register_blueprint(client_bp)
     logger.info("✅ Registered client_bp")
 except Exception as e:
-    logger.warning(f"⚠️ Could not register client_bp: {e}")
+    logger.error(f"❌ CRITICAL: Could not register client_bp: {e}")
+    logger.error("This will cause login failures for client users!")
+    logger.error(traceback.format_exc())
+    
+    # Create a minimal fallback client route to prevent 500 errors
+    @app.route('/client/dashboard')
+    def fallback_client_dashboard():
+        return """
+        <h1>Client Dashboard Temporarily Unavailable</h1>
+        <p>The client dashboard is temporarily unavailable due to missing dependencies.</p>
+        <p>Please install Flask: <code>pip install flask</code></p>
+        <p><a href="/admin/dashboard">Go to Admin Dashboard</a></p>
+        """
+    logger.info("✅ Created fallback client dashboard route")
 
 try:
     from api import api_bp

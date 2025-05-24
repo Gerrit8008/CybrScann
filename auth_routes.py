@@ -160,9 +160,13 @@ def login():
             if result['role'] == 'admin':
                 return redirect(url_for('admin.dashboard'))
             else:
-                # For clients, always go to client dashboard 
-                # This bypasses any complete_profile redirection
-                return redirect(url_for('client.dashboard'))
+                # For clients, try client dashboard, fallback to admin if not available
+                try:
+                    return redirect(url_for('client.dashboard'))
+                except Exception as e:
+                    logger.warning(f"Client dashboard not available, redirecting to admin: {e}")
+                    # Fallback to a working route
+                    return redirect('/admin/dashboard')
         else:
             flash(result['message'], 'danger')
             return render_template('auth/login.html')
