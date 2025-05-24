@@ -167,12 +167,21 @@ def dashboard(user):
         except (ValueError, TypeError):
             avg_security_score = 0
         
+        # DEBUG: Log scan history being passed to template
+        scan_history = dashboard_data['scan_history']
+        logger.info(f"🔍 DASHBOARD DEBUG - Passing {len(scan_history)} scans to template")
+        if scan_history:
+            first_scan = scan_history[0]
+            logger.info(f"   First scan: ID={first_scan.get('scan_id', 'N/A')[:8]}..., Lead={first_scan.get('lead_name', 'N/A')}, Email={first_scan.get('lead_email', 'N/A')}")
+        else:
+            logger.warning("   ❌ No scan history to display!")
+        
         template_vars = {
             'user': user,
             'client': dashboard_data['client'],
             'user_client': dashboard_data['client'],
             'scanners': client_scanners if client_scanners else dashboard_data.get('scanners', []),
-            'scan_history': dashboard_data['scan_history'],
+            'scan_history': scan_history,
             'total_scans': stats.get('total_scans', 0),
             'client_stats': stats,
             'recent_activities': dashboard_data.get('recent_activities', []),
@@ -965,4 +974,112 @@ def scanner_create(user):
     except Exception as e:
         logger.error(f"Error creating scanner: {str(e)}")
         flash('An error occurred while creating the scanner', 'danger')
+@client_bp.route('/debug-dashboard')
+@require_auth
+def debug_dashboard(user):
+    """Debug route to test dashboard data"""
+    try:
+        from client_db import get_client_dashboard_data, get_db_connection
+        import sqlite3
+        
+        # Get user's client
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM clients WHERE user_id = ? AND active = 1", (user['id'],))
+        client_row = cursor.fetchone()
+        conn.close()
+        
+        if not client_row:
+            return f"<h1>DEBUG: No client found for user {user['id']}</h1>"
+            
+        client = dict(client_row)
+        client_id = client['id']
+        
+        # Get dashboard data
+        dashboard_data = get_client_dashboard_data(client_id)
+        
+        if not dashboard_data:
+            return f"<h1>DEBUG: No dashboard data for client {client_id}</h1>"
+            
+        scan_history = dashboard_data['scan_history']
+        
+        # Create debug HTML
+        html = f"""
+        <html>
+        <head>
+            <title>Dashboard Debug</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container mt-4">
+                <h1>🔍 Dashboard Debug Results</h1>
+                <div class="alert alert-info">
+                    <h4>User Info</h4>
+                    <p>User ID: {user['id']}<br>
+                    Username: {user['username']}<br>
+                    Client ID: {client_id}<br>
+                    Business: {client['business_name']}</p>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h4>Dashboard Stats</h4>
+                    <p>Total Scans: {dashboard_data['stats']['total_scans']}<br>
+                    Scan History Count: {len(scan_history)}<br>
+                    Avg Security Score: {dashboard_data['stats']['avg_security_score']}</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Scan History Data ({len(scan_history)} items)</h4>
+                    </div>
+                    <div class="card-body">
+                        {"<p>No scan history found!</p>" if not scan_history else ""}
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Scan ID</th>
+                                    <th>Lead Name</th>
+                                    <th>Email</th>
+                                    <th>Company</th>
+                                    <th>Target</th>
+                                    <th>Score</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+        """
+        
+        for scan in scan_history[:10]:  # Show first 10
+            html += f"""
+                                <tr>
+                                    <td>{scan.get('scan_id', 'N/A')[:8]}...</td>
+                                    <td>{scan.get('lead_name', 'N/A')}</td>
+                                    <td>{scan.get('lead_email', 'N/A')}</td>
+                                    <td>{scan.get('lead_company', 'N/A')}</td>
+                                    <td>{scan.get('target', 'N/A')}</td>
+                                    <td>{scan.get('security_score', 'N/A')}</td>
+                                    <td>{scan.get('timestamp', 'N/A')}</td>
+                                </tr>
+            """
+            
+        html += """
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/client/dashboard" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return html
+        
+    except Exception as e:
+        import traceback
+        return f"<h1>ERROR: {str(e)}</h1><pre>{traceback.format_exc()}</pre>"
         return redirect(url_for('client.scanners'))
