@@ -647,6 +647,11 @@ def index():
     """Main landing page"""
     return render_template('index.html')
 
+@app.route('/pricing')
+def pricing():
+    """Pricing page for MSP plans"""
+    return render_template('pricing.html')
+
 @app.route('/health')
 def health():
     """Health check endpoint"""
