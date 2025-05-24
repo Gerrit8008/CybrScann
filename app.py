@@ -7,11 +7,13 @@ import socket
 import re
 import uuid
 import urllib.parse
+import time
 from datetime import datetime, timedelta
 import json
 import sys
 import traceback
 from flask import send_file
+from werkzeug.utils import secure_filename
 
 # Setup basic logging first
 logging.basicConfig(
@@ -853,6 +855,45 @@ def customize_scanner():
                 print(f"  {key}: {value}")
                 logging.info(f"Form field {key}: {value}")
             
+            # Handle file uploads
+            logo_path = ''
+            favicon_path = ''
+            
+            # Create uploads directory if it doesn't exist
+            uploads_dir = os.path.join('static', 'uploads')
+            if not os.path.exists(uploads_dir):
+                os.makedirs(uploads_dir)
+            
+            # Handle logo upload
+            if 'logo' in request.files and request.files['logo'].filename:
+                logo_file = request.files['logo']
+                if logo_file and logo_file.filename:
+                    # Generate unique filename
+                    filename = secure_filename(logo_file.filename)
+                    timestamp = str(int(time.time()))
+                    name, ext = os.path.splitext(filename)
+                    unique_filename = f"logo_{timestamp}_{name}{ext}"
+                    logo_path = os.path.join(uploads_dir, unique_filename)
+                    logo_file.save(logo_path)
+                    # Store as URL path for database
+                    logo_path = f"/static/uploads/{unique_filename}"
+                    logging.info(f"Logo uploaded and saved to: {logo_path}")
+            
+            # Handle favicon upload  
+            if 'favicon' in request.files and request.files['favicon'].filename:
+                favicon_file = request.files['favicon']
+                if favicon_file and favicon_file.filename:
+                    # Generate unique filename
+                    filename = secure_filename(favicon_file.filename)
+                    timestamp = str(int(time.time()))
+                    name, ext = os.path.splitext(filename)
+                    unique_filename = f"favicon_{timestamp}_{name}{ext}"
+                    favicon_path = os.path.join(uploads_dir, unique_filename)
+                    favicon_file.save(favicon_path)
+                    # Store as URL path for database
+                    favicon_path = f"/static/uploads/{unique_filename}"
+                    logging.info(f"Favicon uploaded and saved to: {favicon_path}")
+            
             # Extract form data
             scanner_data = {
                 'business_name': request.form.get('business_name', '').strip(),
@@ -866,7 +907,8 @@ def customize_scanner():
                 'email_intro': request.form.get('email_intro', ''),
                 'subscription': request.form.get('subscription', 'basic'),
                 'default_scans': request.form.getlist('default_scans[]'),
-                'logo_url': request.form.get('logo_url', ''),
+                'logo_path': logo_path,
+                'favicon_path': favicon_path,
                 'description': request.form.get('description', '')
             }
             
@@ -912,7 +954,8 @@ def customize_scanner():
                 'subscription_level': scanner_data['subscription'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
-                'logo_url': scanner_data.get('logo_url', ''),
+                'logo_path': scanner_data.get('logo_path', ''),
+                'favicon_path': scanner_data.get('favicon_path', ''),
                 'email_subject': scanner_data['email_subject'],
                 'email_intro': scanner_data['email_intro']
             }
@@ -944,7 +987,8 @@ def customize_scanner():
                 'domain': scanner_data['business_domain'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
-                'logo_url': scanner_data.get('logo_url', ''),
+                'logo_path': scanner_data.get('logo_path', ''),
+                'favicon_path': scanner_data.get('favicon_path', ''),
                 'contact_email': scanner_data['contact_email'],
                 'contact_phone': scanner_data['contact_phone'],
                 'email_subject': scanner_data['email_subject'],
@@ -2962,6 +3006,7 @@ def results():
                         cust.primary_color,
                         cust.secondary_color,
                         cust.logo_path,
+                        cust.favicon_path,
                         cust.email_subject,
                         cust.email_intro
                     FROM clients c
@@ -2977,9 +3022,10 @@ def results():
                         'contact_email': branding_row[1],
                         'primary_color': branding_row[2] or '#02054c',
                         'secondary_color': branding_row[3] or '#35a310',
-                        'logo_url': branding_row[4] or '',
-                        'email_subject': branding_row[5] or 'Your Security Scan Report',
-                        'email_intro': branding_row[6] or ''
+                        'logo_path': branding_row[4] or '',
+                        'favicon_path': branding_row[5] or '',
+                        'email_subject': branding_row[6] or 'Your Security Scan Report',
+                        'email_intro': branding_row[7] or ''
                     }
                 
                 conn.close()

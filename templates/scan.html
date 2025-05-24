@@ -237,8 +237,8 @@
 <body>
     <div class="header fade-in">
         <div class="container">
-            {% if client_branding and client_branding.logo_url %}
-            <img src="{{ client_branding.logo_url }}" alt="{{ client_branding.business_name }} Logo" class="logo" 
+            {% if client_branding and (client_branding.logo_url or client_branding.logo_path) %}
+            <img src="{{ client_branding.logo_url or client_branding.logo_path }}" alt="{{ client_branding.business_name }} Logo" class="logo" 
                  onerror="this.style.display='none';">
             {% else %}
             <img src="/static/images/logo.png" alt="Company Logo" class="logo" 

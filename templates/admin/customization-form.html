@@ -250,7 +250,7 @@
                                 <h3 class="section-title mt-5"><i class="bi bi-credit-card me-2"></i>Subscription Options</h3>
                                 
                                 <div class="row mb-4">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <div class="card payment-card h-100">
                                             <div class="card-header">
                                                 <div class="form-check">
@@ -269,13 +269,14 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card payment-card h-100">
-                                            <div class="card-header">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card payment-card h-100 border-primary">
+                                            <div class="card-header bg-primary text-white">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="radio" name="subscription" id="professionalPlan" value="professional">
-                                                    <label class="form-check-label fw-bold" for="professionalPlan">Professional Plan</label>
+                                                    <label class="form-check-label fw-bold text-white" for="professionalPlan">Professional Plan</label>
                                                 </div>
+                                                <small class="badge bg-warning text-dark">Most Popular</small>
                                             </div>
                                             <div class="card-body">
                                                 <h5 class="text-center mb-3">$249/month</h5>
@@ -285,6 +286,25 @@
                                                     <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced white-labeling</li>
                                                     <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Priority phone support</li>
                                                     <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>API access</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card payment-card h-100">
+                                            <div class="card-header">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="subscription" id="enterprisePlan" value="enterprise">
+                                                    <label class="form-check-label fw-bold" for="enterprisePlan">Enterprise Plan</label>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="text-center mb-3">$499/month</h5>
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited client accounts</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited scans</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Complete white-labeling</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>24/7 dedicated support</li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -509,6 +529,7 @@
             // Initialize subscription selection display
             const starterPlan = document.getElementById('starterPlan');
             const professionalPlan = document.getElementById('professionalPlan');
+            const enterprisePlan = document.getElementById('enterprisePlan');
             const selectedPlanDisplay = document.getElementById('selectedPlanDisplay');
             const selectedPriceDisplay = document.getElementById('selectedPriceDisplay');
             
@@ -676,8 +697,16 @@
                         case 2:
                             isValid = validateStep3();
                             // Update payment summary
-                            selectedPlanDisplay.textContent = starterPlan.checked ? 'Starter Plan' : 'Professional Plan';
-                            selectedPriceDisplay.textContent = starterPlan.checked ? '$99/month' : '$249/month';
+                            if (starterPlan.checked) {
+                                selectedPlanDisplay.textContent = 'Starter Plan';
+                                selectedPriceDisplay.textContent = '$99/month';
+                            } else if (professionalPlan.checked) {
+                                selectedPlanDisplay.textContent = 'Professional Plan';
+                                selectedPriceDisplay.textContent = '$249/month';
+                            } else if (enterprisePlan.checked) {
+                                selectedPlanDisplay.textContent = 'Enterprise Plan';
+                                selectedPriceDisplay.textContent = '$499/month';
+                            }
                             break;
                     }
                     
