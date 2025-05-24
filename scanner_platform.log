@@ -160,3 +160,8 @@
 2025-05-24 17:44:51,415 - root - INFO - Database initialization completed
 2025-05-24 17:44:51,420 - root - INFO - Loaded 5 scans from client-specific database
 2025-05-24 17:44:51,422 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 18:06:01,695 - root - INFO - Initializing database from schema.sql...
+2025-05-24 18:06:01,712 - root - INFO - Schema executed successfully
+2025-05-24 18:06:01,713 - root - INFO - Database initialization completed
+2025-05-24 18:06:01,837 - client_database_manager - INFO - Created dedicated database for client 3 (Test Corp): /home/ggrun/CybrScan_1/client_databases/client_3_scans.db
+2025-05-24 18:06:01,945 - client_database_manager - INFO - Created dedicated database for client 4 (Debug Test Corp): /home/ggrun/CybrScan_1/client_databases/client_4_scans.db
