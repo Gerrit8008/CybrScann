@@ -1063,10 +1063,10 @@ def customize_scanner():
                     session['user_id'] = user_id
                     session['user_email'] = user_email
                     session['user_role'] = 'client'
-                    flash('Scanner created successfully! You can now run scans.', 'success')
+                    flash('Scanner created successfully! You can now manage your scanners.', 'success')
                     
-                    # Redirect to main scan page where client can see their scanner
-                    return redirect('/scan')
+                    # Redirect to client scanners page where they can see their new scanner
+                    return redirect('/client/scanners')
                 else:
                     flash('Scanner created and deployed successfully!', 'success')
                     # Redirect to scanner deployment page showing integration options  
@@ -1082,7 +1082,7 @@ def customize_scanner():
                     session['user_role'] = 'client'
                 
                 flash(f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.', 'warning')
-                return redirect('/scan')
+                return redirect('/client/scanners')
             
         except Exception as e:
             logging.error(f"Error in customize_scanner: {str(e)}")
@@ -3025,8 +3025,28 @@ def results():
         
         # Get client branding information for white label results
         client_branding = None
-        current_user = session.get('user', {})
-        user_id = current_user.get('user_id')
+        user_id = None
+        
+        # Try to get user_id from session token first (preferred method)
+        session_token = session.get('session_token')
+        if session_token:
+            try:
+                from auth_utils import verify_session
+                session_result = verify_session(session_token)
+                if session_result['status'] == 'success':
+                    current_user = session_result['user']
+                    user_id = current_user['user_id']
+                    logging.info(f"Results page: Found user_id {user_id} via session token")
+            except Exception as e:
+                logging.error(f"Error verifying session token: {e}")
+        
+        # Fallback to direct session user_id
+        if not user_id:
+            user_id = session.get('user_id') or session.get('user', {}).get('user_id')
+            if user_id:
+                logging.info(f"Results page: Found user_id {user_id} via direct session")
+        
+        logging.info(f"Results page: Final user_id for branding lookup: {user_id}")
         
         if user_id:
             try:
@@ -3063,6 +3083,9 @@ def results():
                         'email_subject': branding_row[6] or 'Your Security Scan Report',
                         'email_intro': branding_row[7] or ''
                     }
+                    logging.info(f"Results page: Found client branding: {client_branding}")
+                else:
+                    logging.warning(f"Results page: No branding found for user_id {user_id}")
                 
                 conn.close()
             except Exception as e:
