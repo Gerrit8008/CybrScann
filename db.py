@@ -73,6 +73,13 @@ def save_scan_results(scan_data):
         # Also save to client_scanner.db if client_id is available
         if scan_data.get('client_id'):
             save_client_scan_record(scan_data)
+            
+            # Save to client-specific database as well
+            try:
+                from client_database_manager import save_scan_to_client_db
+                save_scan_to_client_db(scan_data['client_id'], scan_data)
+            except Exception as e:
+                logging.error(f"Error saving to client-specific database: {e}")
 
         conn.commit()
         scan_id = scan_data.get('scan_id')
