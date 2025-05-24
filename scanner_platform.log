@@ -143,3 +143,20 @@
 2025-05-24 17:23:52,991 - root - INFO - Loaded 4 scans from client-specific database
 2025-05-24 17:23:53,001 - client_database_manager - INFO - Saved scan f3393be0-4ddf-4614-80e5-7bfc9137245d to client 2 database
 2025-05-24 17:23:53,002 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:36:54,250 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:36:54,268 - root - INFO - Schema executed successfully
+2025-05-24 17:36:54,269 - root - INFO - Database initialization completed
+2025-05-24 17:37:47,591 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:37:47,605 - root - INFO - Schema executed successfully
+2025-05-24 17:37:47,605 - root - INFO - Database initialization completed
+2025-05-24 17:37:47,618 - client_database_manager - INFO - Saved scan 48ad5bde-346f-4e8a-9902-1978fa6a3fe2 to client 2 database
+2025-05-24 17:42:56,440 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:42:56,457 - root - INFO - Schema executed successfully
+2025-05-24 17:42:56,457 - root - INFO - Database initialization completed
+2025-05-24 17:42:56,463 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:42:56,464 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:44:51,400 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:44:51,414 - root - INFO - Schema executed successfully
+2025-05-24 17:44:51,415 - root - INFO - Database initialization completed
+2025-05-24 17:44:51,420 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:44:51,422 - root - INFO - Loaded 5 scans from client-specific database
