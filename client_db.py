@@ -595,23 +595,32 @@ def get_client_dashboard_data(client_id):
         """, (client_id,))
         stats['scanners_count'] = cursor.fetchone()['count']
         
-        # Get total scans
+        # Get total scans - try client-specific database first
         stats['total_scans'] = 0  # Default value
         
-        # Check if scan_history table exists
         try:
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scan_history'")
-            if cursor.fetchone():
-                cursor.execute("PRAGMA table_info(scan_history)")
-                columns = [column[1] for column in cursor.fetchall()]
-                if 'client_id' in columns:
-                    cursor.execute("SELECT COUNT(*) as count FROM scan_history WHERE client_id = ?", (client_id,))
-                    stats['total_scans'] = cursor.fetchone()['count']
+            from client_database_manager import get_client_scan_statistics
+            client_stats = get_client_scan_statistics(client_id)
+            stats['total_scans'] = client_stats['total_scans']
+            stats['avg_security_score'] = client_stats['avg_score']
         except Exception as e:
-            logging.warning(f"Error getting scan count: {e}")
+            logging.info(f"Client-specific database not available for {client_id}, using main database")
+            
+            # Fallback: Check if scan_history table exists in main database
+            try:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scan_history'")
+                if cursor.fetchone():
+                    cursor.execute("PRAGMA table_info(scan_history)")
+                    columns = [column[1] for column in cursor.fetchall()]
+                    if 'client_id' in columns:
+                        cursor.execute("SELECT COUNT(*) as count FROM scan_history WHERE client_id = ?", (client_id,))
+                        stats['total_scans'] = cursor.fetchone()['count']
+            except Exception as e:
+                logging.warning(f"Error getting scan count: {e}")
         
-        # Set default numeric values
-        stats['avg_security_score'] = 75  # Default numeric value
+        # Set default numeric values if not already set
+        if 'avg_security_score' not in stats or stats['avg_security_score'] == 0:
+            stats['avg_security_score'] = 75  # Default numeric value
         stats['reports_count'] = stats['total_scans']
         stats['critical_issues'] = 0
         stats['high_issues'] = 0

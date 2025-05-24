@@ -332,11 +332,21 @@ def scan_reports(user):
         if 'score_min' in request.args and request.args.get('score_min'):
             filters['score_min'] = request.args.get('score_min')
         
-        # Get scan reports with filters
-        scan_reports, pagination = get_scan_reports_for_client(client['id'], page, per_page, filters)
-        
-        # Get summary statistics
-        scan_stats = get_scan_statistics_for_client(client['id'])
+        # Try to get scan reports from client-specific database first
+        try:
+            from client_database_manager import get_client_scan_reports, get_client_scan_statistics
+            scan_reports, pagination = get_client_scan_reports(client['id'], page, per_page, filters)
+            scan_stats = get_client_scan_statistics(client['id'])
+            
+            # If no data in client-specific database, fall back to main database
+            if not scan_reports:
+                scan_reports, pagination = get_scan_reports_for_client(client['id'], page, per_page, filters)
+                scan_stats = get_scan_statistics_for_client(client['id'])
+        except Exception as e:
+            logger.error(f"Error getting client-specific scan data: {e}")
+            # Fall back to main database
+            scan_reports, pagination = get_scan_reports_for_client(client['id'], page, per_page, filters)
+            scan_stats = get_scan_statistics_for_client(client['id'])
         
         return render_template(
             'client/scan-reports.html',

@@ -1094,6 +1094,17 @@ def customize_scanner():
             scanner_uid = scanner_result['scanner_uid']
             api_key = scanner_result['api_key']
             
+            # Create dedicated database for this client
+            try:
+                from client_database_manager import create_client_specific_database
+                db_path = create_client_specific_database(client_id, scanner_data['business_name'])
+                if db_path:
+                    logging.info(f"Created dedicated database for client {client_id}: {db_path}")
+                else:
+                    logging.warning(f"Failed to create dedicated database for client {client_id}")
+            except Exception as e:
+                logging.error(f"Error creating client database: {e}")
+            
             logging.info(f"Scanner created successfully: ID {scanner_id}, UID {scanner_uid}")
             print(f"SCANNER CREATED: ID {scanner_id}, UID {scanner_uid}")
             print(f"SCANNER COLORS: {scanner_creation_data['primary_color']}, {scanner_creation_data['secondary_color']}")
