@@ -3108,35 +3108,49 @@ def scan_page():
                 except Exception as client_db_error:
                     logging.error(f"Error saving to client-specific database: {client_db_error}")
                     import traceback
-                    logging.error(traceback.format_exc())
-            else:
+                    logging.error(traceback.format_exc())            else:
                 # Check if current user is logged in and link scan to their client
                 try:
                     from client_db import verify_session, get_client_by_user_id
                     session_token = session.get('session_token')
                     if session_token:
                         result = verify_session(session_token)
-                        if result['valid']:
+                        # Handle different return formats from verify_session
+                        if result.get('status') == 'success' and result.get('user'):
                             user_client = get_client_by_user_id(result['user']['user_id'])
                             if user_client:
                                 scan_results['client_id'] = user_client['id']
                                 scan_results['scanner_id'] = 'web_interface'
                                 scan_results.update(lead_data)
+                                logger.info(f"Linked scan to client {user_client['id']} via user {result['user']['user_id']}")
                                 
                                 # Save to client-specific database
-                                from client_database_manager import save_scan_to_client_db
-                                save_scan_to_client_db(user_client['id'], scan_results)
-                                logging.info(f"Linked scan to logged-in user's client {user_client['id']}")
+                                try:
+                                    from client_database_manager import save_scan_to_client_db
+                                    save_scan_to_client_db(user_client['id'], scan_results)
+                                    logging.info(f"Saved scan to client-specific database for client {user_client['id']}")
+                                except Exception as client_db_error:
+                                    logging.error(f"Error saving to client-specific database: {client_db_error}")
                                 
                                 # Legacy client logging
-                                from client_db import log_scan
-                                log_scan(user_client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
-                except Exception as user_link_error:
-                    logging.warning(f"Could not link scan to current user: {user_link_error}")
+                                try:
+                                    from client_db import log_scan
+                                    log_scan(user_client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
+                                except Exception as log_error:
+                                    logging.error(f"Error logging scan: {log_error}")
+                            else:
+                                logger.warning(f"No client found for user {result['user']['user_id']}")
+                        else:
+                            logger.warning(f"Session verification failed: {result.get('message', 'Unknown error')}")
+                    else:
+                        logger.warning("No session token found for scan linking")
+                                
+                except Exception as e:
+                    logger.warning(f"Could not link scan to current user: {e}")
                     import traceback
-                    logging.warning(traceback.format_exc())
+                    logger.warning(traceback.format_exc())
             
-            # Check if scan_results contains valid data
+            \2
             if not scan_results or 'scan_id' not in scan_results:
                 logging.error("Scan did not return valid results")
                 return render_template('scan.html', error="Scan failed to return valid results. Please try again.")
