@@ -975,7 +975,7 @@ def scanner_create(user):
         logger.error(f"Error creating scanner: {str(e)}")
         flash('An error occurred while creating the scanner', 'danger')
 @client_bp.route('/debug-dashboard')
-@require_auth
+@client_required
 def debug_dashboard(user):
     """Debug route to test dashboard data"""
     try:
