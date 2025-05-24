@@ -630,8 +630,30 @@ def get_client_dashboard_data(client_id):
         scanners_result = get_deployed_scanners_by_client_id(client_id)
         scanners = scanners_result.get('scanners', [])
         
-        # Get scan history
-        scan_history = get_scan_history_by_client_id(client_id, limit=5)
+        # Get scan history - try client-specific database first
+        scan_history = []
+        try:
+            from client_database_manager import get_client_scan_reports
+            client_scans, _ = get_client_scan_reports(client_id, page=1, per_page=5)
+            if client_scans:
+                # Convert client scan format to dashboard format
+                for scan in client_scans:
+                    scan_history.append({
+                        'scan_id': scan.get('scan_id', ''),
+                        'timestamp': scan.get('scan_date', ''),
+                        'scanner_name': scan.get('scanner_name', 'Web Interface'),
+                        'target': scan.get('target_url', ''),
+                        'status': 'completed',
+                        'security_score': scan.get('security_score', 0),
+                        'issues_found': scan.get('issues_count', 0)
+                    })
+                logging.info(f"Loaded {len(scan_history)} scans from client-specific database")
+        except Exception as e:
+            logging.info(f"Client-specific scan history not available: {e}")
+        
+        # Fallback to main database if no client-specific scans found
+        if not scan_history:
+            scan_history = get_scan_history_by_client_id(client_id, limit=5)
         
         # Get recent activities (simplified)
         recent_activities = []  # TODO: Implement actual activity tracking

@@ -2822,6 +2822,42 @@ def scan_page():
                 # Legacy client logging (keeping for compatibility)
                 from client_db import log_scan
                 log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''))
+                
+                # Save to client-specific database for reporting
+                try:
+                    from client_database_manager import save_scan_to_client_db
+                    save_scan_to_client_db(client['id'], scan_results)
+                    logging.info(f"Saved scan to client-specific database for client {client['id']}")
+                except Exception as client_db_error:
+                    logging.error(f"Error saving to client-specific database: {client_db_error}")
+                    import traceback
+                    logging.error(traceback.format_exc())
+            else:
+                # Check if current user is logged in and link scan to their client
+                try:
+                    from client_db import verify_session, get_client_by_user_id
+                    session_token = session.get('session_token')
+                    if session_token:
+                        result = verify_session(session_token)
+                        if result['valid']:
+                            user_client = get_client_by_user_id(result['user']['user_id'])
+                            if user_client:
+                                scan_results['client_id'] = user_client['id']
+                                scan_results['scanner_id'] = 'web_interface'
+                                scan_results.update(lead_data)
+                                
+                                # Save to client-specific database
+                                from client_database_manager import save_scan_to_client_db
+                                save_scan_to_client_db(user_client['id'], scan_results)
+                                logging.info(f"Linked scan to logged-in user's client {user_client['id']}")
+                                
+                                # Legacy client logging
+                                from client_db import log_scan
+                                log_scan(user_client['id'], scan_results['scan_id'], lead_data.get('target', ''))
+                except Exception as user_link_error:
+                    logging.warning(f"Could not link scan to current user: {user_link_error}")
+                    import traceback
+                    logging.warning(traceback.format_exc())
             
             # Check if scan_results contains valid data
             if not scan_results or 'scan_id' not in scan_results:
