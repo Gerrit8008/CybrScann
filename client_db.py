@@ -587,11 +587,11 @@ def get_client_dashboard_data(client_id):
         # Get statistics
         stats = {}
         
-        # Get scanner count
+        # Get scanner count  
         cursor.execute("""
             SELECT COUNT(*) as count
-            FROM deployed_scanners
-            WHERE client_id = ? AND deploy_status = 'deployed'
+            FROM scanners
+            WHERE client_id = ?
         """, (client_id,))
         stats['scanners_count'] = cursor.fetchone()['count']
         
@@ -626,9 +626,14 @@ def get_client_dashboard_data(client_id):
         stats['high_issues'] = 0
         stats['medium_issues'] = 0
         
-        # Get scanners
-        scanners_result = get_deployed_scanners_by_client_id(client_id)
-        scanners = scanners_result.get('scanners', [])
+        # Get scanners - simple direct query
+        cursor.execute("""
+            SELECT id, name, client_id, status, domain, primary_color, secondary_color, 
+                   logo_url, created_at
+            FROM scanners 
+            WHERE client_id = ?
+        """, (client_id,))
+        scanners = [dict(row) for row in cursor.fetchall()]
         
         # Get scan history - try client-specific database first
         scan_history = []
@@ -640,12 +645,12 @@ def get_client_dashboard_data(client_id):
                 for scan in client_scans:
                     scan_history.append({
                         'scan_id': scan.get('scan_id', ''),
-                        'timestamp': scan.get('scan_date', ''),
+                        'timestamp': scan.get('timestamp', scan.get('created_at', '')),
                         'scanner_name': scan.get('scanner_name', 'Web Interface'),
-                        'target': scan.get('target_url', ''),
-                        'status': 'completed',
+                        'target': scan.get('target_domain', scan.get('target_url', '')),
+                        'status': scan.get('status', 'completed'),
                         'security_score': scan.get('security_score', 0),
-                        'issues_found': scan.get('issues_count', 0)
+                        'issues_found': scan.get('vulnerabilities_found', scan.get('issues_count', 0))
                     })
                 logging.info(f"Loaded {len(scan_history)} scans from client-specific database")
         except Exception as e:
