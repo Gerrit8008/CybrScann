@@ -191,3 +191,20 @@
 2025-05-24 19:09:08,963 - root - INFO - Loaded 5 scans from client-specific database
 2025-05-24 19:09:08,964 - root - INFO - Loaded 1 scans from client-specific database
 2025-05-24 19:09:08,966 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 19:49:16,333 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:49:16,343 - root - INFO - Schema executed successfully
+2025-05-24 19:49:16,343 - root - INFO - Database initialization completed
+2025-05-24 19:50:35,055 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:50:35,066 - root - INFO - Schema executed successfully
+2025-05-24 19:50:35,066 - root - INFO - Database initialization completed
+2025-05-24 19:51:53,021 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:51:53,032 - root - INFO - Schema executed successfully
+2025-05-24 19:51:53,033 - root - INFO - Database initialization completed
+2025-05-24 19:52:57,781 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:52:57,794 - root - INFO - Schema executed successfully
+2025-05-24 19:52:57,794 - root - INFO - Database initialization completed
+2025-05-24 19:54:39,929 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:54:39,941 - root - INFO - Schema executed successfully
+2025-05-24 19:54:39,941 - root - INFO - Database initialization completed
+2025-05-24 19:54:39,961 - client_database_manager - WARNING - Recreating database for client 5 - missing scans table
+2025-05-24 19:54:40,016 - client_database_manager - INFO - Created dedicated database for client 5 (Client 6 Test Company): /home/ggrun/CybrScan_1/client_databases/client_5_scans.db
