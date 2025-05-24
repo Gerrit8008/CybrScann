@@ -1221,14 +1221,48 @@ def scanner_deployment_info(scanner_uid):
 
 @app.route('/scanner/<scanner_uid>/embed')
 def scanner_embed(scanner_uid):
-    """Serve the embeddable scanner HTML"""
+    """Serve the embeddable scanner HTML using main scan template"""
     try:
-        # Check if deployment files exist
-        deployment_path = os.path.join('static', 'deployments', scanner_uid, 'index.html')
+        # Get scanner data from database to provide branding
+        from client_db import get_db_connection
         
-        if os.path.exists(deployment_path):
-            with open(deployment_path, 'r') as f:
-                return f.read()
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.logo_path
+        FROM scanners s 
+        JOIN clients c ON s.client_id = c.id 
+        LEFT JOIN customizations cu ON c.id = cu.client_id
+        WHERE s.scanner_id = ?
+        ''', (scanner_uid,))
+        
+        scanner_row = cursor.fetchone()
+        conn.close()
+        
+        if scanner_row:
+            # Convert to dict for easier access
+            scanner_data = dict(scanner_row) if hasattr(scanner_row, 'keys') else dict(zip([col[0] for col in cursor.description], scanner_row))
+            
+            # Create client branding object
+            client_branding = {
+                'business_name': scanner_data.get('business_name', ''),
+                'primary_color': scanner_data.get('primary_color', '#02054c'),
+                'secondary_color': scanner_data.get('secondary_color', '#35a310'),
+                'logo_path': scanner_data.get('logo_path', ''),
+                'scanner_name': scanner_data.get('name', 'Security Scanner')
+            }
+            
+            # Add client_id and scanner_id to URL parameters for tracking
+            import urllib.parse
+            client_id = scanner_data.get('client_id')
+            scanner_id = scanner_data.get('scanner_id')
+            
+            # Render the main scan template with client branding
+            return render_template('scan.html', 
+                                 client_branding=client_branding,
+                                 client_id=client_id,
+                                 scanner_id=scanner_id,
+                                 embed_mode=True)
         else:
             # Generate deployment if it doesn't exist
             from scanner_deployment import generate_scanner_deployment
@@ -2799,14 +2833,16 @@ def scan_page():
             lead_id = save_lead_data(lead_data)
             logging.info(f"Lead data saved with ID: {lead_id}")
             
-            # Check for client_id in query parameters (used for client-specific scanner)
-            client_id = request.args.get('client_id')
+            # Check for client_id in query parameters or form data (used for client-specific scanner)
+            client_id = request.args.get('client_id') or request.form.get('client_id')
+            scanner_id = request.args.get('scanner_id') or request.form.get('scanner_id')
             
             # If client_id is provided, get client customizations
             client = None
             if client_id:
                 from client_db import get_client_by_id
                 client = get_client_by_id(client_id)
+                logging.info(f"Using client {client_id} for scan tracking (scanner: {scanner_id})")
             
             # Run the full consolidated scan
             logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
@@ -2815,7 +2851,7 @@ def scan_page():
             # Add client tracking information to scan results
             if client:
                 scan_results['client_id'] = client['id']
-                scan_results['scanner_id'] = request.args.get('scanner_id', 'web_interface')
+                scan_results['scanner_id'] = scanner_id or 'web_interface'
                 # Copy lead data into scan results for tracking
                 scan_results.update(lead_data)
                 
