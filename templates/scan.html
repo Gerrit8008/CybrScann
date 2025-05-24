@@ -290,6 +290,14 @@
                         </div>
                         
                         <form id="scanForm" method="post" action="/scan">
+                            <!-- Hidden fields for client tracking -->
+                            {% if client_id %}
+                            <input type="hidden" name="client_id" value="{{ client_id }}">
+                            {% endif %}
+                            {% if scanner_id %}
+                            <input type="hidden" name="scanner_id" value="{{ scanner_id }}">
+                            {% endif %}
+                            
                             <!-- Step 1: Contact Information -->
                             <div class="scan-step active" id="step1">
                                 <h3 class="section-title"><i class="bi bi-person-lines-fill me-2"></i>Contact Information</h3>
