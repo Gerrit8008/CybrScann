@@ -2840,9 +2840,23 @@ def scan_page():
             # If client_id is provided, get client customizations
             client = None
             if client_id:
-                from client_db import get_client_by_id
-                client = get_client_by_id(client_id)
-                logging.info(f"Using client {client_id} for scan tracking (scanner: {scanner_id})")
+                try:
+                    from client_db import get_db_connection
+                    conn = get_db_connection()
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+                    client_row = cursor.fetchone()
+                    conn.close()
+                    
+                    if client_row:
+                        client = dict(client_row)
+                        logging.info(f"Using client {client_id} for scan tracking (scanner: {scanner_id})")
+                    else:
+                        logging.warning(f"Client {client_id} not found")
+                except Exception as client_error:
+                    logging.error(f"Error getting client {client_id}: {client_error}")
+                    client = None
             
             # Run the full consolidated scan
             logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
@@ -2988,6 +3002,7 @@ def scan_page():
                 return render_template('results.html', scan=scan_results)
                 
         except Exception as scan_error:
+            import traceback
             logging.error(f"Error during scan: {str(scan_error)}")
             logging.debug(f"Exception traceback: {traceback.format_exc()}")
             
@@ -3089,10 +3104,19 @@ def scan_page():
     
     if client_id:
         try:
-            from client_db import get_client_by_id
-            client = get_client_by_id(client_id)
+            from client_db import get_db_connection
+            conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+            client_row = cursor.fetchone()
+            conn.close()
+            
+            if client_row:
+                client = dict(client_row)
         except Exception as e:
             logging.error(f"Error retrieving client {client_id}: {e}")
+            client = None
     
     # Use client's template if available
     if client:

@@ -226,6 +226,36 @@
         .alert-success-custom {
             border-left-color: #198754;
         }
+        
+        /* Score badge styles for enhanced lead tracking */
+        .score-excellent { 
+            background-color: #d1e7dd; 
+            color: #0f5132; 
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        .score-good { 
+            background-color: #d4edda; 
+            color: #155724; 
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        .score-warning { 
+            background-color: #fff3cd; 
+            color: #856404; 
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        .score-danger { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -661,38 +691,67 @@
                                 <thead>
                                     <tr>
                                         <th>Date</th>
-                                        <th>Scanner</th>
+                                        <th>Lead Name</th>
+                                        <th>Email</th>
+                                        <th>Company</th>
                                         <th>Target</th>
-                                        <th>Status</th>
                                         <th>Score</th>
-                                        <th>Issues</th>
-                                        <th>Report</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% if scan_history %}
                                         {% for scan in scan_history[:5] %}
                                         <tr>
-                                            <td>{{ scan.get('timestamp', '') }}</td>
-                                            <td>{{ scan.get('scanner_name', '') }}</td>
-                                            <td>{{ scan.get('target', '') }}</td>
                                             <td>
-                                                <span class="badge bg-{{ 'success' if scan.get('status', '') == 'completed' else 'warning' if scan.get('status', '') == 'running' else 'danger' }}">
-                                                    {{ scan.get('status', 'Unknown')|title }}
-                                                </span>
+                                                <small class="text-muted">
+                                                    {{ scan.get('timestamp', '')[:10] if scan.get('timestamp') else 'Unknown' }}<br>
+                                                    <span class="badge bg-light text-dark">{{ scan.get('timestamp', '')[11:16] if scan.get('timestamp') else '' }}</span>
+                                                </small>
                                             </td>
                                             <td>
-                                                <span class="text-{{ 'success' if scan.get('security_score', 0) > 70 else 'warning' if scan.get('security_score', 0) > 40 else 'danger' }}">
+                                                <strong>{{ scan.get('lead_name', 'Anonymous') }}</strong>
+                                                {% if scan.get('lead_phone') %}
+                                                <br><small class="text-muted">{{ scan.get('lead_phone') }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if scan.get('lead_email') %}
+                                                <a href="mailto:{{ scan.get('lead_email') }}" class="text-decoration-none">
+                                                    {{ scan.get('lead_email') }}
+                                                </a>
+                                                {% else %}
+                                                <span class="text-muted">No email</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <strong>{{ scan.get('lead_company', 'Unknown') }}</strong>
+                                                {% if scan.get('company_size') and scan.get('company_size') != 'Unknown' %}
+                                                <br><small class="badge bg-light text-dark">{{ scan.get('company_size') }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ scan.get('target', '') }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge score-{{ 'excellent' if scan.get('security_score', 0) >= 90 else 'good' if scan.get('security_score', 0) >= 70 else 'warning' if scan.get('security_score', 0) >= 50 else 'danger' }}">
                                                     {{ scan.get('security_score', 'N/A') }}%
                                                 </span>
+                                                {% if scan.get('risk_level') %}
+                                                <br><small class="text-muted">{{ scan.get('risk_level') }} Risk</small>
+                                                {% endif %}
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark">{{ scan.get('issues_found', 0) }} found</span>
-                                            </td>
-                                            <td>
-                                                <a href="/client/reports/{{ scan.get('scan_id', '') }}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-file-earmark-text me-1"></i> View
-                                                </a>
+                                                <div class="btn-group-vertical" role="group">
+                                                    <a href="/client/reports/{{ scan.get('scan_id', '') }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Full Report">
+                                                        <i class="bi bi-file-earmark-text me-1"></i> Report
+                                                    </a>
+                                                    {% if scan.get('lead_email') %}
+                                                    <a href="mailto:{{ scan.get('lead_email') }}?subject=Follow-up on Security Scan&body=Hi {{ scan.get('lead_name', '') }},%0D%0A%0D%0AI wanted to follow up on the security scan you ran..." class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Email Lead">
+                                                        <i class="bi bi-envelope me-1"></i> Email
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
                                             </td>
                                         </tr>
                                         {% endfor %}

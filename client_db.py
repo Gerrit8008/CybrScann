@@ -641,7 +641,7 @@ def get_client_dashboard_data(client_id):
             from client_database_manager import get_client_scan_reports
             client_scans, _ = get_client_scan_reports(client_id, page=1, per_page=5)
             if client_scans:
-                # Convert client scan format to dashboard format
+                # Convert client scan format to dashboard format - INCLUDE LEAD DATA!
                 for scan in client_scans:
                     scan_history.append({
                         'scan_id': scan.get('scan_id', ''),
@@ -650,7 +650,14 @@ def get_client_dashboard_data(client_id):
                         'target': scan.get('target_domain', scan.get('target_url', '')),
                         'status': scan.get('status', 'completed'),
                         'security_score': scan.get('security_score', 0),
-                        'issues_found': scan.get('vulnerabilities_found', scan.get('issues_count', 0))
+                        'issues_found': scan.get('vulnerabilities_found', scan.get('issues_count', 0)),
+                        # CRITICAL: Include lead information for client tracking
+                        'lead_name': scan.get('lead_name', ''),
+                        'lead_email': scan.get('lead_email', ''),
+                        'lead_phone': scan.get('lead_phone', ''),
+                        'lead_company': scan.get('lead_company', ''),
+                        'company_size': scan.get('company_size', ''),
+                        'risk_level': scan.get('risk_level', '')
                     })
                 logging.info(f"Loaded {len(scan_history)} scans from client-specific database")
         except Exception as e:
