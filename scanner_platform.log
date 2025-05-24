@@ -184,3 +184,10 @@
 2025-05-24 18:39:00,190 - root - INFO - Database initialization completed
 2025-05-24 18:39:00,195 - root - INFO - Loaded 1 scans from client-specific database
 2025-05-24 18:39:00,196 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 19:09:08,931 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:09:08,946 - root - INFO - Schema executed successfully
+2025-05-24 19:09:08,947 - root - INFO - Database initialization completed
+2025-05-24 19:09:08,958 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 19:09:08,963 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 19:09:08,964 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 19:09:08,966 - root - INFO - Loaded 5 scans from client-specific database
