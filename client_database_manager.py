@@ -246,11 +246,36 @@ def get_client_scan_reports(client_id, page=1, per_page=25, filters=None):
         db_path = os.path.join(db_dir, f'client_{client_id}_scans.db')
         
         if not os.path.exists(db_path):
+            logger.info(f"Client database not found for client {client_id}, returning empty results")
             return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
         
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        
+        # Check if the scans table exists and has the expected schema
+        try:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scans'")
+            if not cursor.fetchone():
+                logger.warning(f"Scans table not found in client {client_id} database")
+                conn.close()
+                return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
+                
+            # Check table schema - ensure required columns exist
+            cursor.execute("PRAGMA table_info(scans)")
+            columns = [col[1] for col in cursor.fetchall()]
+            required_columns = ['scan_id', 'timestamp', 'lead_name', 'lead_email', 'target_domain', 'security_score']
+            
+            missing_columns = [col for col in required_columns if col not in columns]
+            if missing_columns:
+                logger.warning(f"Client {client_id} database missing columns: {missing_columns}")
+                conn.close()
+                return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
+                
+        except Exception as schema_error:
+            logger.error(f"Schema validation error for client {client_id}: {schema_error}")
+            conn.close()
+            return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
         
         # Build WHERE clause based on filters
         where_conditions = []
@@ -315,6 +340,35 @@ def get_client_scan_reports(client_id, page=1, per_page=25, filters=None):
         logger.error(f"Error getting scan reports for client {client_id}: {e}")
         return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
 
+def ensure_client_database(client_id, business_name="Unknown Client"):
+    """Ensure client database exists and has proper schema"""
+    try:
+        db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client_databases')
+        db_path = os.path.join(db_dir, f'client_{client_id}_scans.db')
+        
+        if not os.path.exists(db_path):
+            logger.info(f"Creating missing database for client {client_id}")
+            return create_client_specific_database(client_id, business_name)
+        else:
+            # Validate existing database schema
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Check if scans table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scans'")
+            if not cursor.fetchone():
+                logger.warning(f"Recreating database for client {client_id} - missing scans table")
+                conn.close()
+                os.remove(db_path)  # Remove corrupted database
+                return create_client_specific_database(client_id, business_name)
+            
+            conn.close()
+            return db_path
+            
+    except Exception as e:
+        logger.error(f"Error ensuring client database for {client_id}: {e}")
+        return None
+
 def get_client_scan_statistics(client_id):
     """Get scan statistics from client's dedicated database"""
     try:
@@ -322,6 +376,7 @@ def get_client_scan_statistics(client_id):
         db_path = os.path.join(db_dir, f'client_{client_id}_scans.db')
         
         if not os.path.exists(db_path):
+            logger.info(f"Client database not found for client {client_id}, returning zero stats")
             return {
                 'total_scans': 0,
                 'avg_score': 0,
@@ -331,6 +386,28 @@ def get_client_scan_statistics(client_id):
         
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
+        
+        # Validate database schema
+        try:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scans'")
+            if not cursor.fetchone():
+                logger.warning(f"Scans table not found in client {client_id} database")
+                conn.close()
+                return {
+                    'total_scans': 0,
+                    'avg_score': 0,
+                    'this_month': 0,
+                    'unique_companies': 0
+                }
+        except Exception as schema_error:
+            logger.error(f"Schema validation error for client {client_id} statistics: {schema_error}")
+            conn.close()
+            return {
+                'total_scans': 0,
+                'avg_score': 0,
+                'this_month': 0,
+                'unique_companies': 0
+            }
         
         # Total scans
         cursor.execute("SELECT COUNT(*) FROM scans")

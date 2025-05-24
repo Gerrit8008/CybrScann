@@ -599,7 +599,11 @@ def get_client_dashboard_data(client_id):
         stats['total_scans'] = 0  # Default value
         
         try:
-            from client_database_manager import get_client_scan_statistics
+            from client_database_manager import get_client_scan_statistics, ensure_client_database
+            
+            # Ensure client database exists
+            ensure_client_database(client_id, client.get('business_name', 'Unknown Client'))
+            
             client_stats = get_client_scan_statistics(client_id)
             stats['total_scans'] = client_stats['total_scans']
             stats['avg_security_score'] = client_stats['avg_score']
@@ -638,7 +642,11 @@ def get_client_dashboard_data(client_id):
         # Get scan history - try client-specific database first
         scan_history = []
         try:
-            from client_database_manager import get_client_scan_reports
+            from client_database_manager import get_client_scan_reports, ensure_client_database
+            
+            # Ensure client database exists
+            ensure_client_database(client_id, client.get('business_name', 'Unknown Client'))
+            
             client_scans, _ = get_client_scan_reports(client_id, page=1, per_page=5)
             if client_scans:
                 # Convert client scan format to dashboard format - INCLUDE LEAD DATA!

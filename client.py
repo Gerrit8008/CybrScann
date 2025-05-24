@@ -334,7 +334,11 @@ def scan_reports(user):
         
         # Try to get scan reports from client-specific database first
         try:
-            from client_database_manager import get_client_scan_reports, get_client_scan_statistics
+            from client_database_manager import get_client_scan_reports, get_client_scan_statistics, ensure_client_database
+            
+            # Ensure client database exists and is properly set up
+            ensure_client_database(client['id'], client.get('business_name', 'Unknown Client'))
+            
             scan_reports, pagination = get_client_scan_reports(client['id'], page, per_page, filters)
             scan_stats = get_client_scan_statistics(client['id'])
             
