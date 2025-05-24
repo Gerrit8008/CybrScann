@@ -628,7 +628,7 @@ def get_client_dashboard_data(client_id):
         
         # Get scanners - simple direct query
         cursor.execute("""
-            SELECT id, name, client_id, status, domain, primary_color, secondary_color, 
+            SELECT id, scanner_id, name, client_id, status, domain, primary_color, secondary_color, 
                    logo_url, created_at
             FROM scanners 
             WHERE client_id = ?

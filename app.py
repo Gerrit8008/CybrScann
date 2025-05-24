@@ -2821,7 +2821,7 @@ def scan_page():
                 
                 # Legacy client logging (keeping for compatibility)
                 from client_db import log_scan
-                log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''))
+                log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
                 
                 # Save to client-specific database for reporting
                 try:
@@ -2853,7 +2853,7 @@ def scan_page():
                                 
                                 # Legacy client logging
                                 from client_db import log_scan
-                                log_scan(user_client['id'], scan_results['scan_id'], lead_data.get('target', ''))
+                                log_scan(user_client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
                 except Exception as user_link_error:
                     logging.warning(f"Could not link scan to current user: {user_link_error}")
                     import traceback

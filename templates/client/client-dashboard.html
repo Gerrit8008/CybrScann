@@ -571,28 +571,28 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="scanner-logo me-2" style="width: 32px; height: 32px; background-color: {{ scanner['primary_color']|default('#007bff') }}; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                                                        {{ (scanner.get('scanner_name') or scanner.get('name') or 'SC')[:2]|upper }}
+                                                        {{ (scanner.get('name') or 'SC')[:2]|upper }}
                                                     </div>
-                                                    <strong>{{ scanner.scanner_name }}</strong>
+                                                    <strong>{{ scanner.name }}</strong>
                                                 </div>
                                             </td>
                                             <td>
-                                                <a href="https://{{ scanner['subdomain'] }}.yourscannerdomain.com" target="_blank" class="text-decoration-none">
-                                                    {{ scanner['subdomain'] }}.yourscannerdomain.com
+                                                <a href="https://{{ scanner['domain'] }}" target="_blank" class="text-decoration-none">
+                                                    {{ scanner['domain'] }}
                                                     <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                                 </a>
                                             </td>
                                             <td>
-                                                <span class="status-badge {% if scanner.deploy_status == 'deployed' %}status-deployed{% elif scanner.deploy_status == 'pending' %}status-pending{% else %}status-inactive{% endif %}">
-                                                    {{ scanner['deploy_status']|title }}
+                                                <span class="status-badge {% if scanner.status == 'active' %}status-deployed{% elif scanner.status == 'pending' %}status-pending{% else %}status-inactive{% endif %}">
+                                                    {{ scanner['status']|title }}
                                                 </span>
                                             </td>
                                             <td>
                                                 <div class="btn-group-vertical" role="group">
-                                                    <a href="/api/scanner/{{ scanner.get('scanner_id', scanner.get('subdomain', '')) }}" target="_blank" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="API Endpoint">
+                                                    <a href="/api/scanner/{{ scanner.scanner_id }}" target="_blank" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="API Endpoint">
                                                         <i class="bi bi-code-slash me-1"></i>API
                                                     </a>
-                                                    <a href="/scanner/{{ scanner.get('scanner_id', scanner.get('subdomain', '')) }}/embed" target="_blank" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="HTML Embed">
+                                                    <a href="/scanner/{{ scanner.scanner_id }}/embed" target="_blank" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="HTML Embed">
                                                         <i class="bi bi-file-code me-1"></i>HTML
                                                     </a>
                                                 </div>
