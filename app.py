@@ -868,11 +868,29 @@ def customize_scanner():
             if 'logo' in request.files and request.files['logo'].filename:
                 logo_file = request.files['logo']
                 if logo_file and logo_file.filename:
-                    # Generate unique filename
+                    # Validate file type
+                    allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'}
                     filename = secure_filename(logo_file.filename)
-                    timestamp = str(int(time.time()))
                     name, ext = os.path.splitext(filename)
-                    unique_filename = f"logo_{timestamp}_{name}{ext}"
+                    ext_lower = ext.lower()
+                    
+                    if ext_lower not in allowed_extensions:
+                        flash(f'Invalid logo file type. Allowed: {", ".join(allowed_extensions)}', 'danger')
+                        return render_template('admin/customization-form.html')
+                    
+                    # Check file size (max 5MB)
+                    logo_file.seek(0, 2)  # Seek to end
+                    file_size = logo_file.tell()
+                    logo_file.seek(0)  # Reset to beginning
+                    
+                    max_size = 5 * 1024 * 1024  # 5MB
+                    if file_size > max_size:
+                        flash('Logo file too large. Maximum size: 5MB', 'danger')
+                        return render_template('admin/customization-form.html')
+                    
+                    # Generate unique filename
+                    timestamp = str(int(time.time()))
+                    unique_filename = f"logo_{timestamp}_{name}{ext_lower}"
                     logo_path = os.path.join(uploads_dir, unique_filename)
                     logo_file.save(logo_path)
                     # Store as URL path for database
@@ -883,11 +901,29 @@ def customize_scanner():
             if 'favicon' in request.files and request.files['favicon'].filename:
                 favicon_file = request.files['favicon']
                 if favicon_file and favicon_file.filename:
-                    # Generate unique filename
+                    # Validate file type (more restrictive for favicons)
+                    allowed_favicon_extensions = {'.png', '.ico', '.svg'}
                     filename = secure_filename(favicon_file.filename)
-                    timestamp = str(int(time.time()))
                     name, ext = os.path.splitext(filename)
-                    unique_filename = f"favicon_{timestamp}_{name}{ext}"
+                    ext_lower = ext.lower()
+                    
+                    if ext_lower not in allowed_favicon_extensions:
+                        flash(f'Invalid favicon file type. Allowed: {", ".join(allowed_favicon_extensions)}', 'danger')
+                        return render_template('admin/customization-form.html')
+                    
+                    # Check file size (max 1MB for favicons)
+                    favicon_file.seek(0, 2)  # Seek to end
+                    file_size = favicon_file.tell()
+                    favicon_file.seek(0)  # Reset to beginning
+                    
+                    max_size = 1 * 1024 * 1024  # 1MB
+                    if file_size > max_size:
+                        flash('Favicon file too large. Maximum size: 1MB', 'danger')
+                        return render_template('admin/customization-form.html')
+                    
+                    # Generate unique filename
+                    timestamp = str(int(time.time()))
+                    unique_filename = f"favicon_{timestamp}_{name}{ext_lower}"
                     favicon_path = os.path.join(uploads_dir, unique_filename)
                     favicon_file.save(favicon_path)
                     # Store as URL path for database

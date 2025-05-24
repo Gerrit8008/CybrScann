@@ -261,15 +261,41 @@ def scanners(user):
         if 'search' in request.args and request.args.get('search'):
             filters['search'] = request.args.get('search')
         
-        # Get client's scanners with pagination
-        result = get_deployed_scanners_by_client_id(client['id'], page, per_page, filters)
+        # Get client's scanners - use the same function as the dashboard
+        from scanner_db_functions import patch_client_db_scanner_functions, get_scanners_by_client_id
+        patch_client_db_scanner_functions()
+        
+        try:
+            client_scanners = get_scanners_by_client_id(client['id'])
+            logger.info(f"Found {len(client_scanners) if client_scanners else 0} scanners for client {client['id']}")
+            
+            # Apply basic pagination to scanner list
+            all_scanners = client_scanners or []
+            total_count = len(all_scanners)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            paginated_scanners = all_scanners[start_idx:end_idx]
+            
+            # Calculate pagination info
+            total_pages = (total_count + per_page - 1) // per_page
+            pagination = {
+                'page': page,
+                'per_page': per_page,
+                'total_pages': total_pages,
+                'total_count': total_count
+            }
+            
+        except Exception as e:
+            logger.error(f"Error fetching scanners for client {client['id']}: {e}")
+            paginated_scanners = []
+            pagination = {'page': 1, 'per_page': 10, 'total_pages': 1, 'total_count': 0}
         
         return render_template(
             'client/scanners.html',
             user=user,
             client=client,
-            scanners=result.get('scanners', []),
-            pagination=result.get('pagination', {}),
+            scanners=paginated_scanners,
+            pagination=pagination,
             filters=filters
         )
     except Exception as e:

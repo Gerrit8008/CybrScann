@@ -198,18 +198,16 @@
                                 <div class="card scanner-card h-100">
                                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0">{{ scanner.scanner_name }}</h5>
-                                        <span class="status-badge {% if scanner.deploy_status == 'deployed' %}status-deployed{% elif scanner.deploy_status == 'pending' %}status-pending{% else %}status-inactive{% endif %}">
-                                            {{ scanner.deploy_status|title }}
+                                        <span class="status-badge {% if scanner.status == 'active' %}status-deployed{% elif scanner.status == 'pending' %}status-pending{% else %}status-inactive{% endif %}">
+                                            {{ scanner.status|title }}
                                         </span>
                                     </div>
                                     <div class="card-body">
                                         <p class="card-text">
-                                            <strong>Domain:</strong> {{ scanner.business_domain }}<br>
-                                            <strong>Created:</strong> {{ scanner.deploy_date|default(scanner.created_at, true) }}<br>
-                                            <strong>Scanner URL:</strong> 
-                                            <a href="https://{{ scanner.subdomain }}.yourscannerdomain.com" target="_blank">
-                                                {{ scanner.subdomain }}.yourscannerdomain.com
-                                            </a>
+                                            <strong>Domain:</strong> {{ scanner.domain }}<br>
+                                            <strong>Created:</strong> {{ scanner.created_at }}<br>
+                                            <strong>Status:</strong> {{ scanner.status|title }}<br>
+                                            <strong>Scans:</strong> {{ scanner.scan_count }} total
                                         </p>
                                     </div>
                                     <div class="card-footer bg-light">
@@ -225,8 +223,8 @@
                                                     <i class="bi bi-graph-up"></i>
                                                 </a>
                                             </div>
-                                            <a href="https://{{ scanner.subdomain }}.yourscannerdomain.com" target="_blank" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-box-arrow-up-right me-1"></i>Open Scanner
+                                            <a href="/scan" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-play-fill me-1"></i>Open Scanner
                                             </a>
                                         </div>
                                     </div>
