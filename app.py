@@ -443,7 +443,7 @@ def init_database():
     )
     ''')
     
-    # Create scan_history table
+    # Create scan_history table with enhanced tracking
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS scan_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -451,12 +451,64 @@ def init_database():
         scan_id TEXT UNIQUE NOT NULL,
         timestamp TEXT,
         target TEXT,
+        target_url TEXT,
         scan_type TEXT,
         status TEXT,
         report_path TEXT,
+        scanner_id TEXT,
+        lead_name TEXT,
+        lead_email TEXT,
+        lead_phone TEXT,
+        lead_company TEXT,
+        company_size TEXT,
+        security_score INTEGER DEFAULT 0,
+        results TEXT,
+        created_at TEXT,
         FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
     )
     ''')
+    
+    # Add missing columns to existing scan_history table (migration)
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN target_url TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN scanner_id TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_name TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_email TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_phone TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_company TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN company_size TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN security_score INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN results TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE scan_history ADD COLUMN created_at TEXT")
+    except sqlite3.OperationalError:
+        pass
     
     # Create audit_log table
     cursor.execute('''
@@ -891,8 +943,8 @@ def customize_scanner():
                     # Generate unique filename
                     timestamp = str(int(time.time()))
                     unique_filename = f"logo_{timestamp}_{name}{ext_lower}"
-                    logo_path = os.path.join(uploads_dir, unique_filename)
-                    logo_file.save(logo_path)
+                    logo_file_path = os.path.join(uploads_dir, unique_filename)
+                    logo_file.save(logo_file_path)
                     # Store as URL path for database
                     logo_path = f"/static/uploads/{unique_filename}"
                     logging.info(f"Logo uploaded and saved to: {logo_path}")
@@ -924,8 +976,8 @@ def customize_scanner():
                     # Generate unique filename
                     timestamp = str(int(time.time()))
                     unique_filename = f"favicon_{timestamp}_{name}{ext_lower}"
-                    favicon_path = os.path.join(uploads_dir, unique_filename)
-                    favicon_file.save(favicon_path)
+                    favicon_file_path = os.path.join(uploads_dir, unique_filename)
+                    favicon_file.save(favicon_file_path)
                     # Store as URL path for database
                     favicon_path = f"/static/uploads/{unique_filename}"
                     logging.info(f"Favicon uploaded and saved to: {favicon_path}")
@@ -2749,8 +2801,14 @@ def scan_page():
             logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
             scan_results = run_consolidated_scan(lead_data)
             
-            # If scan was performed through a client scanner, log it
+            # Add client tracking information to scan results
             if client:
+                scan_results['client_id'] = client['id']
+                scan_results['scanner_id'] = request.args.get('scanner_id', 'web_interface')
+                # Copy lead data into scan results for tracking
+                scan_results.update(lead_data)
+                
+                # Legacy client logging (keeping for compatibility)
                 from client_db import log_scan
                 log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''))
             

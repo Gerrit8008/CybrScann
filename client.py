@@ -23,7 +23,9 @@ from client_db import (
     get_available_scanners_for_client,
     get_client_dashboard_data,
     format_scan_results_for_client,
-    register_client
+    register_client,
+    get_scan_reports_for_client,
+    get_scan_statistics_for_client
 )
 
 # Define client blueprint
@@ -301,6 +303,54 @@ def scanners(user):
     except Exception as e:
         logger.error(f"Error displaying client scanners: {str(e)}")
         flash('An error occurred while loading your scanners', 'danger')
+        return redirect(url_for('client.dashboard'))
+
+@client_bp.route('/reports')
+@client_required
+def scan_reports(user):
+    """Display detailed scan reports for the client"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        
+        if not client:
+            flash('Please complete your client profile', 'info')
+            return redirect(url_for('auth.complete_profile'))
+        
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = 25
+        
+        # Get filters
+        filters = {}
+        if 'search' in request.args and request.args.get('search'):
+            filters['search'] = request.args.get('search')
+        if 'date_from' in request.args and request.args.get('date_from'):
+            filters['date_from'] = request.args.get('date_from')
+        if 'date_to' in request.args and request.args.get('date_to'):
+            filters['date_to'] = request.args.get('date_to')
+        if 'score_min' in request.args and request.args.get('score_min'):
+            filters['score_min'] = request.args.get('score_min')
+        
+        # Get scan reports with filters
+        scan_reports, pagination = get_scan_reports_for_client(client['id'], page, per_page, filters)
+        
+        # Get summary statistics
+        scan_stats = get_scan_statistics_for_client(client['id'])
+        
+        return render_template(
+            'client/scan-reports.html',
+            user=user,
+            client=client,
+            user_client=client,
+            scan_reports=scan_reports,
+            pagination=pagination,
+            filters=filters,
+            scan_stats=scan_stats
+        )
+    except Exception as e:
+        logger.error(f"Error displaying scan reports: {str(e)}")
+        flash('An error occurred while loading scan reports', 'danger')
         return redirect(url_for('client.dashboard'))
         
 @client_bp.route('/scanners/<int:scanner_id>/view')

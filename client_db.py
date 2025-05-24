@@ -4426,3 +4426,151 @@ def list_clients(conn, cursor, page=1, per_page=10, filters=None):
             "total_count": total_count
         }
     }
+
+def get_scan_reports_for_client(client_id, page=1, per_page=25, filters=None):
+    """Get detailed scan reports for a client with pagination and filtering"""
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Build WHERE clause based on filters
+        where_conditions = ["client_id = ?"]
+        params = [client_id]
+        
+        if filters:
+            if filters.get('search'):
+                search_term = f"%{filters['search']}%"
+                where_conditions.append("(lead_name LIKE ? OR lead_email LIKE ? OR lead_company LIKE ?)")
+                params.extend([search_term, search_term, search_term])
+            
+            if filters.get('date_from'):
+                where_conditions.append("DATE(created_at) >= ?")
+                params.append(filters['date_from'])
+            
+            if filters.get('date_to'):
+                where_conditions.append("DATE(created_at) <= ?")
+                params.append(filters['date_to'])
+            
+            if filters.get('score_min'):
+                where_conditions.append("security_score >= ?")
+                params.append(int(filters['score_min']))
+        
+        where_clause = " AND ".join(where_conditions)
+        
+        # Get total count for pagination
+        count_query = f"SELECT COUNT(*) FROM scan_history WHERE {where_clause}"
+        cursor.execute(count_query, params)
+        total_count = cursor.fetchone()[0]
+        
+        # Calculate pagination
+        total_pages = (total_count + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+        
+        # Get scan reports
+        query = f"""
+        SELECT 
+            id, client_id, scanner_id, scan_id, target_url, target, scan_type, status,
+            lead_name, lead_email, lead_phone, lead_company, company_size,
+            security_score, created_at, timestamp
+        FROM scan_history 
+        WHERE {where_clause}
+        ORDER BY created_at DESC, timestamp DESC
+        LIMIT ? OFFSET ?
+        """
+        
+        cursor.execute(query, params + [per_page, offset])
+        rows = cursor.fetchall()
+        
+        scan_reports = []
+        for row in rows:
+            if hasattr(row, 'keys'):
+                report = dict(row)
+            else:
+                report = {
+                    'id': row[0],
+                    'client_id': row[1],
+                    'scanner_id': row[2],
+                    'scan_id': row[3],
+                    'target_url': row[4],
+                    'target': row[5],
+                    'scan_type': row[6],
+                    'status': row[7],
+                    'lead_name': row[8],
+                    'lead_email': row[9],
+                    'lead_phone': row[10],
+                    'lead_company': row[11],
+                    'company_size': row[12],
+                    'security_score': row[13],
+                    'created_at': row[14],
+                    'timestamp': row[15]
+                }
+            scan_reports.append(report)
+        
+        conn.close()
+        
+        pagination = {
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages,
+            'total_count': total_count
+        }
+        
+        return scan_reports, pagination
+        
+    except Exception as e:
+        logger.error(f"Error getting scan reports for client {client_id}: {str(e)}")
+        if 'conn' in locals():
+            conn.close()
+        return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
+
+def get_scan_statistics_for_client(client_id):
+    """Get scan statistics summary for a client"""
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Total scans
+        cursor.execute("SELECT COUNT(*) FROM scan_history WHERE client_id = ?", (client_id,))
+        total_scans = cursor.fetchone()[0]
+        
+        # Average security score
+        cursor.execute("SELECT AVG(security_score) FROM scan_history WHERE client_id = ? AND security_score > 0", (client_id,))
+        avg_score_result = cursor.fetchone()[0]
+        avg_score = avg_score_result if avg_score_result else 0
+        
+        # This month's scans
+        cursor.execute("""
+            SELECT COUNT(*) FROM scan_history 
+            WHERE client_id = ? 
+            AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        """, (client_id,))
+        this_month = cursor.fetchone()[0]
+        
+        # Unique companies
+        cursor.execute("""
+            SELECT COUNT(DISTINCT lead_company) FROM scan_history 
+            WHERE client_id = ? AND lead_company IS NOT NULL AND lead_company != ''
+        """, (client_id,))
+        unique_companies = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        return {
+            'total_scans': total_scans,
+            'avg_score': avg_score,
+            'this_month': this_month,
+            'unique_companies': unique_companies
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting scan statistics for client {client_id}: {str(e)}")
+        if 'conn' in locals():
+            conn.close()
+        return {
+            'total_scans': 0,
+            'avg_score': 0,
+            'this_month': 0,
+            'unique_companies': 0
+        }

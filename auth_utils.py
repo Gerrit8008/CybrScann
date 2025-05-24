@@ -452,19 +452,22 @@ def register_client(user_id, business_data):
             business_data.get('primary_color'),
             business_data.get('secondary_color'),
             business_data.get('logo_url'),
+            business_data.get('logo_path'),
+            business_data.get('favicon_path'),
             business_data.get('email_subject'),
             business_data.get('email_intro')
         ]):
             cursor.execute('''
             INSERT INTO customizations (
-                client_id, primary_color, secondary_color, logo_path, 
+                client_id, primary_color, secondary_color, logo_path, favicon_path,
                 email_subject, email_intro, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 client_id,
                 business_data.get('primary_color', '#02054c'),
                 business_data.get('secondary_color', '#35a310'),
-                business_data.get('logo_url', ''),
+                business_data.get('logo_path', '') or business_data.get('logo_url', ''),
+                business_data.get('favicon_path', ''),
                 business_data.get('email_subject', 'Your Security Scan Report'),
                 business_data.get('email_intro', ''),
                 now,
