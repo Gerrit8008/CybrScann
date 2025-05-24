@@ -225,12 +225,12 @@
                                     <thead>
                                         <tr>
                                             <th>Date</th>
-                                            <th>Contact</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
                                             <th>Company</th>
-                                            <th>Size</th>
-                                            <th>Target</th>
                                             <th>Score</th>
-                                            <th>Actions</th>
+                                            <th>Full Report</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -239,55 +239,55 @@
                                                 <td>
                                                     <small class="text-muted">
                                                         {{ report.created_at[:10] if report.created_at else 'Unknown' }}<br>
-                                                        {{ report.created_at[11:16] if report.created_at else '' }}
+                                                        <span class="badge bg-light text-dark">{{ report.created_at[11:16] if report.created_at else '' }}</span>
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <div>
-                                                        <strong>{{ report.lead_name or 'Unknown' }}</strong><br>
-                                                        <small class="text-muted">{{ report.lead_email or 'No email' }}</small><br>
-                                                        {% if report.lead_phone %}
-                                                            <small class="text-muted">{{ report.lead_phone }}</small>
-                                                        {% endif %}
-                                                    </div>
+                                                    <strong>{{ report.lead_name or 'Unknown Name' }}</strong>
                                                 </td>
                                                 <td>
-                                                    <strong>{{ report.lead_company or 'Unknown Company' }}</strong>
+                                                    <a href="mailto:{{ report.lead_email }}" class="text-decoration-none">
+                                                        {{ report.lead_email or 'No email' }}
+                                                    </a>
                                                 </td>
                                                 <td>
-                                                    <span class="company-size-badge 
-                                                        {% if report.company_size == 'Small' %}size-small
-                                                        {% elif report.company_size == 'Medium' %}size-medium  
-                                                        {% elif report.company_size == 'Large' %}size-large
-                                                        {% elif report.company_size == 'Enterprise' %}size-enterprise
-                                                        {% else %}size-small{% endif %}">
-                                                        {{ report.company_size or 'Unknown' }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <small class="text-muted">{{ report.target_url or report.target or 'Unknown' }}</small>
-                                                </td>
-                                                <td>
-                                                    <span class="score-badge 
-                                                        {% if report.security_score >= 90 %}score-excellent
-                                                        {% elif report.security_score >= 75 %}score-good
-                                                        {% elif report.security_score >= 50 %}score-warning
-                                                        {% else %}score-danger{% endif %}">
-                                                        {{ report.security_score or 'N/A' }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm" role="group">
-                                                        <a href="/results?scan_id={{ report.scan_id }}" target="_blank" 
-                                                           class="btn btn-outline-primary" data-bs-toggle="tooltip" title="View Full Report">
-                                                            <i class="bi bi-file-text"></i>
+                                                    {% if report.lead_phone %}
+                                                        <a href="tel:{{ report.lead_phone }}" class="text-decoration-none">
+                                                            {{ report.lead_phone }}
                                                         </a>
-                                                        {% if report.lead_email %}
-                                                        <button class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Send Email">
-                                                            <i class="bi bi-envelope"></i>
-                                                        </button>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        <strong>{{ report.lead_company or 'Unknown Company' }}</strong>
+                                                        {% if report.company_size and report.company_size != 'Unknown' %}
+                                                            <br><small class="badge 
+                                                                {% if report.company_size == 'Small' %}bg-info
+                                                                {% elif report.company_size == 'Medium' %}bg-warning  
+                                                                {% elif report.company_size == 'Large' %}bg-success
+                                                                {% elif report.company_size == 'Enterprise' %}bg-danger
+                                                                {% else %}bg-secondary{% endif %}">
+                                                                {{ report.company_size }}
+                                                            </small>
                                                         {% endif %}
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge fs-6 
+                                                        {% if report.security_score >= 90 %}bg-success
+                                                        {% elif report.security_score >= 75 %}bg-primary
+                                                        {% elif report.security_score >= 50 %}bg-warning text-dark
+                                                        {% else %}bg-danger{% endif %}">
+                                                        {{ report.security_score or 'N/A' }}{% if report.security_score %}/100{% endif %}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="/results?scan_id={{ report.scan_id }}" target="_blank" 
+                                                       class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="View Complete Security Report">
+                                                        <i class="bi bi-file-earmark-text me-1"></i>View Report
+                                                    </a>
                                                 </td>
                                             </tr>
                                         {% endfor %}

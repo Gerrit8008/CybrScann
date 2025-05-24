@@ -117,6 +117,8 @@
                             <div class="step-circle" id="step3-indicator">3</div>
                             <div class="step-line" id="line3-4"></div>
                             <div class="step-circle" id="step4-indicator">4</div>
+                            <div class="step-line" id="line4-5"></div>
+                            <div class="step-circle" id="step5-indicator">5</div>
                         </div>
                         
                         <form id="customizationForm" method="post" action="/customize" enctype="multipart/form-data">
@@ -217,6 +219,39 @@
                                     <textarea class="form-control" id="emailIntro" name="email_intro" rows="3">Thank you for using our security scanner. Please find your detailed report attached.</textarea>
                                 </div>
                                 
+                                <!-- Additional Customization Options -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="scannerDescription" class="form-label">Scanner Description</label>
+                                        <textarea class="form-control" id="scannerDescription" name="scanner_description" rows="2" placeholder="Brief description of your security services"></textarea>
+                                        <div class="form-text">Appears below the scanner title</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ctaText" class="form-label">Call-to-Action Button Text</label>
+                                        <input type="text" class="form-control" id="ctaText" name="cta_text" value="Start Security Scan" placeholder="Start Security Scan">
+                                        <div class="form-text">Text displayed on the main scan button</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="companyTagline" class="form-label">Company Tagline</label>
+                                        <input type="text" class="form-control" id="companyTagline" name="company_tagline" placeholder="Protecting your digital assets">
+                                        <div class="form-text">Displayed prominently on the scanner page</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="supportEmail" class="form-label">Support Contact Email</label>
+                                        <input type="email" class="form-control" id="supportEmail" name="support_email" placeholder="support@yourcompany.com">
+                                        <div class="form-text">Contact email for scanner support</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="footerText" class="form-label">Custom Footer Text</label>
+                                    <textarea class="form-control" id="footerText" name="footer_text" rows="2" placeholder="© 2025 Your Company. All rights reserved."></textarea>
+                                    <div class="form-text">Custom text displayed in the scanner footer</div>
+                                </div>
+                                
                                 <div class="text-end">
                                     <button type="button" class="btn btn-secondary me-2" id="prev2">
                                         <i class="bi bi-arrow-left me-1"></i> Previous
@@ -252,6 +287,69 @@
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="checkbox" id="systemScan" name="default_scans[]" value="system" checked>
                                                 <label class="form-check-label" for="systemScan">System Security</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Advanced Customization Options -->
+                                <h3 class="section-title mt-5"><i class="bi bi-sliders me-2"></i>Advanced Customization</h3>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="scanPageTitle" class="form-label">Custom Scan Page Title</label>
+                                        <input type="text" class="form-control" id="scanPageTitle" name="scan_page_title" placeholder="Free Security Assessment">
+                                        <div class="form-text">Main title displayed on the scan form</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="scanPageSubtitle" class="form-label">Scan Page Subtitle</label>
+                                        <input type="text" class="form-control" id="scanPageSubtitle" name="scan_page_subtitle" placeholder="Protect your business from cyber threats">
+                                        <div class="form-text">Subtitle text below the main title</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="customTermsUrl" class="form-label">Terms of Service URL</label>
+                                        <input type="url" class="form-control" id="customTermsUrl" name="terms_url" placeholder="https://yourcompany.com/terms">
+                                        <div class="form-text">Link to your terms of service</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="customPrivacyUrl" class="form-label">Privacy Policy URL</label>
+                                        <input type="url" class="form-control" id="customPrivacyUrl" name="privacy_url" placeholder="https://yourcompany.com/privacy">
+                                        <div class="form-text">Link to your privacy policy</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="customCss" class="form-label">Custom CSS Styling</label>
+                                        <textarea class="form-control" id="customCss" name="custom_css" rows="4" placeholder="/* Add your custom CSS here */"></textarea>
+                                        <div class="form-text">Advanced: Add custom CSS to further customize the appearance</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Scanner Behavior Options</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="autoRedirect" name="auto_redirect" value="1">
+                                                <label class="form-check-label" for="autoRedirect">Auto-redirect to results</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="enableTracking" name="enable_tracking" value="1" checked>
+                                                <label class="form-check-label" for="enableTracking">Enable analytics tracking</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="requirePhone" name="require_phone" value="1">
+                                                <label class="form-check-label" for="requirePhone">Require phone number</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="showProgress" name="show_progress" value="1" checked>
+                                                <label class="form-check-label" for="showProgress">Show scan progress bar</label>
                                             </div>
                                         </div>
                                     </div>
@@ -413,6 +511,109 @@
                                 <!-- Hidden fields for payment processing -->
                                 <input type="hidden" id="paymentProcessed" name="payment_processed" value="0">
                                 <input type="hidden" id="paymentToken" name="payment_token" value="">
+                            </div>
+                            
+                            <!-- Step 5: Social Media & Contact Customization -->
+                            <div class="form-step" id="step5">
+                                <h3 class="section-title"><i class="bi bi-share me-2"></i>Social Media & Contact Information</h3>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="facebookUrl" class="form-label">Facebook URL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-facebook"></i></span>
+                                            <input type="url" class="form-control" id="facebookUrl" name="facebook_url" placeholder="https://facebook.com/yourcompany">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="twitterUrl" class="form-label">Twitter/X URL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-twitter-x"></i></span>
+                                            <input type="url" class="form-control" id="twitterUrl" name="twitter_url" placeholder="https://twitter.com/yourcompany">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="linkedinUrl" class="form-label">LinkedIn URL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-linkedin"></i></span>
+                                            <input type="url" class="form-control" id="linkedinUrl" name="linkedin_url" placeholder="https://linkedin.com/company/yourcompany">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="youtubeUrl" class="form-label">YouTube URL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-youtube"></i></span>
+                                            <input type="url" class="form-control" id="youtubeUrl" name="youtube_url" placeholder="https://youtube.com/@yourcompany">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="officeAddress" class="form-label">Office Address</label>
+                                        <textarea class="form-control" id="officeAddress" name="office_address" rows="3" placeholder="123 Main St&#10;Suite 100&#10;City, State 12345"></textarea>
+                                        <div class="form-text">Physical address for contact page</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="businessHours" class="form-label">Business Hours</label>
+                                        <textarea class="form-control" id="businessHours" name="business_hours" rows="3" placeholder="Monday - Friday: 9:00 AM - 5:00 PM&#10;Saturday: 10:00 AM - 2:00 PM&#10;Sunday: Closed"></textarea>
+                                        <div class="form-text">Operating hours for customer reference</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="whatsappNumber" class="form-label">WhatsApp Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-whatsapp"></i></span>
+                                            <input type="tel" class="form-control" id="whatsappNumber" name="whatsapp_number" placeholder="+1234567890">
+                                        </div>
+                                        <div class="form-text">Include country code (e.g., +1 for US)</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="alternatePhone" class="form-label">Alternate Phone</label>
+                                        <input type="tel" class="form-control" id="alternatePhone" name="alternate_phone" placeholder="(555) 123-4567">
+                                        <div class="form-text">Secondary contact number</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Contact Preferences</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="showSocialLinks" name="show_social_links" value="1" checked>
+                                                <label class="form-check-label" for="showSocialLinks">Display social media links</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="showAddress" name="show_address" value="1">
+                                                <label class="form-check-label" for="showAddress">Display office address</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="showBusinessHours" name="show_business_hours" value="1">
+                                                <label class="form-check-label" for="showBusinessHours">Display business hours</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="enableWhatsapp" name="enable_whatsapp" value="1">
+                                                <label class="form-check-label" for="enableWhatsapp">Enable WhatsApp contact</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-secondary me-2" id="prev5">
+                                        <i class="bi bi-arrow-left me-1"></i> Previous
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-lg" id="finalSubmit">
+                                        <i class="bi bi-check-circle me-2"></i>Create Scanner
+                                    </button>
+                                </div>
                             </div>
                         </form>
                         
