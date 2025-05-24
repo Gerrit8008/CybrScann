@@ -139,7 +139,7 @@
                     <a href="/client/reports" class="sidebar-link">
                         <i class="bi bi-file-earmark-text"></i> Scan Reports
                     </a>
-                    <a href="/preview/customize" class="sidebar-link active">
+                    <a href="/customize" class="sidebar-link active">
                         <i class="bi bi-plus-circle"></i> Create Scanner
                     </a>
                     <a href="/client/settings" class="sidebar-link">
@@ -586,10 +586,10 @@
                         }
                     }
                     
-                    console.log('Submitting data to /preview/customize:', formData);
+                    console.log('Submitting data to /customize:', formData);
                     
                     // Send the data to the server
-                    const response = await fetch('/preview/customize', {
+                    const response = await fetch('/customize', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

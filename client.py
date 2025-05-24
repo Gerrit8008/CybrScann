@@ -115,17 +115,33 @@ def dashboard(user):
             patch_client_db_scanner_functions()
             
             # Get client's scanners
-            client_scanners = get_scanners_by_client_id(client['id'])
-            logger.info(f"Found {len(client_scanners) if client_scanners else 0} scanners for client {client['id']}")
+            try:
+                client_scanners = get_scanners_by_client_id(client['id'])
+                logger.info(f"Found {len(client_scanners) if client_scanners else 0} scanners for client {client['id']}")
+                if client_scanners:
+                    logger.info(f"Scanner details: {[s.get('scanner_name', s.get('name', 'Unknown')) for s in client_scanners]}")
+            except Exception as e:
+                logger.error(f"Error fetching scanners for client {client['id']}: {e}")
+                client_scanners = []
             
             # Get comprehensive dashboard data - Pass client_id
-            dashboard_data = get_client_dashboard_data(client['id'])
+            try:
+                dashboard_data = get_client_dashboard_data(client['id'])
+            except Exception as e:
+                logger.error(f"Error fetching dashboard data for client {client['id']}: {e}")
+                dashboard_data = None
             
             if not dashboard_data:
                 # Fallback to basic data if comprehensive fetch fails
-                scanners = get_deployed_scanners_by_client_id(client['id'])
-                scan_history = get_scan_history_by_client_id(client['id'], limit=5)
-                total_scans = len(get_scan_history_by_client_id(client['id']))
+                try:
+                    scanners = get_deployed_scanners_by_client_id(client['id'])
+                    scan_history = get_scan_history_by_client_id(client['id'], limit=5)
+                    total_scans = len(get_scan_history_by_client_id(client['id']))
+                except Exception as e:
+                    logger.error(f"Error in fallback data fetch: {e}")
+                    scanners = {'scanners': []}
+                    scan_history = []
+                    total_scans = 0
                 
                 dashboard_data = {
                     'client': client,

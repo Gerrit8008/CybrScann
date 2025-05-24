@@ -562,11 +562,9 @@ def get_client_dashboard_data(client_id):
         
         # Get client info
         cursor.execute('''
-            SELECT c.*, cu.primary_color, cu.secondary_color, cu.logo_path,
-                   cu.default_scans, ds.subdomain, ds.deploy_status
+            SELECT c.*, cu.primary_color, cu.secondary_color, cu.logo_path
             FROM clients c
             LEFT JOIN customizations cu ON c.id = cu.client_id
-            LEFT JOIN deployed_scanners ds ON c.id = ds.client_id
             WHERE c.id = ? AND c.active = 1
         ''', (client_id,))
         
@@ -1768,11 +1766,11 @@ def get_scan_history_by_client_id(client_id, limit=None):
             columns = [column[1] for column in cursor.fetchall()]
             
             if 'client_id' in columns:
-                base_query = "SELECT * FROM scan_history WHERE client_id = ? ORDER BY timestamp DESC"
+                base_query = "SELECT * FROM scan_history WHERE client_id = ? ORDER BY created_at DESC"
                 params = [client_id]
             else:
                 # Fall back to scans table
-                base_query = "SELECT * FROM scans WHERE target LIKE ? ORDER BY timestamp DESC"
+                base_query = "SELECT * FROM scans WHERE target LIKE ? ORDER BY created_at DESC"
                 
                 # Get client domain
                 cursor.execute("SELECT business_domain FROM clients WHERE id = ?", (client_id,))
@@ -2493,14 +2491,14 @@ def get_scan_history_by_client_id(client_id, limit=None):
             columns = [column[1] for column in cursor.fetchall()]
             
             if 'client_id' in columns:
-                base_query = "SELECT * FROM scan_history WHERE client_id = ? ORDER BY timestamp DESC"
+                base_query = "SELECT * FROM scan_history WHERE client_id = ? ORDER BY created_at DESC"
                 params = [client_id]
             else:
                 # Try to join with clients table
                 base_query = """
                 SELECT sh.* FROM scan_history sh
-                JOIN clients c ON sh.target LIKE '%' || c.business_domain || '%'
-                WHERE c.id = ? ORDER BY sh.timestamp DESC
+                JOIN clients c ON sh.target_url LIKE '%' || c.business_domain || '%'
+                WHERE c.id = ? ORDER BY sh.created_at DESC
                 """
                 params = [client_id]
         
