@@ -116,6 +116,7 @@ def dashboard(user):
             
             # Get client's scanners
             client_scanners = get_scanners_by_client_id(client['id'])
+            logger.info(f"Found {len(client_scanners) if client_scanners else 0} scanners for client {client['id']}")
             
             # Get comprehensive dashboard data - Pass client_id
             dashboard_data = get_client_dashboard_data(client['id'])
@@ -152,7 +153,7 @@ def dashboard(user):
             'user': user,
             'client': dashboard_data['client'],
             'user_client': dashboard_data['client'],
-            'scanners': client_scanners if 'client_scanners' in locals() else dashboard_data['scanners'],
+            'scanners': client_scanners if client_scanners else dashboard_data.get('scanners', []),
             'scan_history': dashboard_data['scan_history'],
             'total_scans': stats.get('total_scans', 0),
             'client_stats': stats,
@@ -177,7 +178,7 @@ def dashboard(user):
         
         # IMPORTANT: Ensure the correct URL for the "Create New Scanner" button
         # Make sure the button in the client-dashboard.html has the correct href
-        # It should be: href="/preview/customize" instead of href="/customize"
+        # It should be: href="/customize"
         
         return render_template('client/client-dashboard.html', **template_vars)
         

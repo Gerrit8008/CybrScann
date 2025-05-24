@@ -254,15 +254,16 @@
                                         <div class="card payment-card h-100">
                                             <div class="card-header">
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="subscription" id="basicPlan" value="basic" checked>
-                                                    <label class="form-check-label fw-bold" for="basicPlan">Basic Plan</label>
+                                                    <input class="form-check-input" type="radio" name="subscription" id="starterPlan" value="starter" checked>
+                                                    <label class="form-check-label fw-bold" for="starterPlan">Starter Plan</label>
                                                 </div>
                                             </div>
                                             <div class="card-body">
-                                                <h5 class="text-center mb-3">$49/month</h5>
+                                                <h5 class="text-center mb-3">$99/month</h5>
                                                 <ul class="list-group list-group-flush">
-                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Up to 100 scans per month</li>
-                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Basic branding options</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Up to 25 client accounts</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>100 scans per month</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>White-label branding</li>
                                                     <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Email support</li>
                                                 </ul>
                                             </div>
@@ -272,17 +273,18 @@
                                         <div class="card payment-card h-100">
                                             <div class="card-header">
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="subscription" id="proPlan" value="pro">
-                                                    <label class="form-check-label fw-bold" for="proPlan">Professional Plan</label>
+                                                    <input class="form-check-input" type="radio" name="subscription" id="professionalPlan" value="professional">
+                                                    <label class="form-check-label fw-bold" for="professionalPlan">Professional Plan</label>
                                                 </div>
                                             </div>
                                             <div class="card-body">
-                                                <h5 class="text-center mb-3">$149/month</h5>
+                                                <h5 class="text-center mb-3">$249/month</h5>
                                                 <ul class="list-group list-group-flush">
-                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited scans</li>
-                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced branding options</li>
-                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Custom domain</li>
-                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Priority support</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Up to 100 client accounts</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>500 scans per month</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced white-labeling</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Priority phone support</li>
+                                                    <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>API access</li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -505,8 +507,8 @@
             const submitButton = document.getElementById('submitButton');
             
             // Initialize subscription selection display
-            const basicPlan = document.getElementById('basicPlan');
-            const proPlan = document.getElementById('proPlan');
+            const starterPlan = document.getElementById('starterPlan');
+            const professionalPlan = document.getElementById('professionalPlan');
             const selectedPlanDisplay = document.getElementById('selectedPlanDisplay');
             const selectedPriceDisplay = document.getElementById('selectedPriceDisplay');
             
@@ -773,17 +775,17 @@
             });
             
             // Subscription plan change handler
-            basicPlan.addEventListener('change', function() {
+            starterPlan.addEventListener('change', function() {
                 if (this.checked) {
-                    selectedPlanDisplay.textContent = 'Basic Plan';
-                    selectedPriceDisplay.textContent = '$49/month';
+                    selectedPlanDisplay.textContent = 'Starter Plan';
+                    selectedPriceDisplay.textContent = '$99/month';
                 }
             });
             
-            proPlan.addEventListener('change', function() {
+            professionalPlan.addEventListener('change', function() {
                 if (this.checked) {
                     selectedPlanDisplay.textContent = 'Professional Plan';
-                    selectedPriceDisplay.textContent = '$149/month';
+                    selectedPriceDisplay.textContent = '$249/month';
                 }
             });
             

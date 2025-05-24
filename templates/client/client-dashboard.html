@@ -548,7 +548,7 @@
                         <h5 class="mb-0">My Scanners</h5>
                         <div>
                             <a href="/client/scanners" class="btn btn-sm btn-outline-secondary me-2">View All</a>
-                            <a href="{{ url_for('client.scanner_create') }}" class="btn btn-sm btn-primary">Create New Scanner</a>
+                            <a href="/customize" class="btn btn-sm btn-primary">Create New Scanner</a>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -559,7 +559,7 @@
                                         <th>Scanner Name</th>
                                         <th>Domain</th>
                                         <th>Status</th>
-                                        <th>Last Scan</th>
+                                        <th>API/HTML</th>
                                         <th>Security Score</th>
                                         <th>Actions</th>
                                     </tr>
@@ -587,7 +587,16 @@
                                                     {{ scanner['deploy_status']|title }}
                                                 </span>
                                             </td>
-                                            <td>{{ scanner['last_scan']|default('Never', true) }}</td>
+                                            <td>
+                                                <div class="btn-group-vertical" role="group">
+                                                    <a href="/api/scanner/{{ scanner.get('scanner_id', scanner.get('subdomain', '')) }}" target="_blank" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="API Endpoint">
+                                                        <i class="bi bi-code-slash me-1"></i>API
+                                                    </a>
+                                                    <a href="/scanner/{{ scanner.get('scanner_id', scanner.get('subdomain', '')) }}/embed" target="_blank" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="HTML Embed">
+                                                        <i class="bi bi-file-code me-1"></i>HTML
+                                                    </a>
+                                                </div>
+                                            </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="progress me-2" style="width: 60px; height: 8px;">
@@ -629,7 +638,7 @@
                                                 <div class="text-muted">
                                                     <i class="bi bi-search fs-3 d-block mb-3"></i>
                                                     No scanners found. 
-                                                    <a href="/preview/customize" class="text-primary">Create your first scanner</a>
+                                                    <a href="/customize" class="text-primary">Create your first scanner</a>
                                                 </div>
                                             </td>
                                         </tr>
