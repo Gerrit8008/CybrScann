@@ -46,7 +46,7 @@ def create_scanner_for_client(client_id, scanner_data, created_by_user_id):
             client_id, scanner_id, scanner_name, description, domain,
             api_key, primary_color, secondary_color, logo_url,
             contact_email, contact_phone, email_subject, email_intro,
-            scan_types, 'active', created_by_user_id, 
+            scan_types, 'deployed', created_by_user_id, 
             datetime.now().isoformat(), datetime.now().isoformat()
         ))
         
@@ -111,6 +111,13 @@ def get_scanners_by_client_id(client_id):
             cursor.execute('SELECT COUNT(*) FROM scan_history WHERE scanner_id = ?', (scanner['scanner_id'],))
             scan_count = cursor.fetchone()[0]
             scanner['scan_count'] = scan_count
+            
+            # Add fields expected by the template (for both dict and tuple cases)
+            scanner['scanner_name'] = scanner.get('name', scanner.get('scanner_name', 'Unknown Scanner'))
+            scanner['subdomain'] = scanner.get('scanner_id', 'unknown')
+            scanner['deploy_status'] = scanner.get('status', 'inactive')
+            scanner['last_scan'] = scanner.get('last_scan', 'Never')
+            scanner['security_score'] = scanner.get('security_score', 85)
             
             scanners.append(scanner)
         
