@@ -24,7 +24,14 @@ def debug_client_branding():
             print(f"Client ID: {client[0]}, User ID: {client[1]}, Business: {client[2]}, Email: {client[3]}")
         
         print("\n🎨 Checking customizations table...")
-        cursor.execute('SELECT client_id, primary_color, secondary_color, logo_path, favicon_path FROM customizations ORDER BY last_updated DESC LIMIT 5')
+        # First check table structure
+        cursor.execute("PRAGMA table_info(customizations)")
+        columns = cursor.fetchall()
+        print("Customizations table columns:")
+        for col in columns:
+            print(f"  {col[1]} ({col[2]})")
+        
+        cursor.execute('SELECT client_id, primary_color, secondary_color, logo_path, favicon_path FROM customizations LIMIT 5')
         customizations = cursor.fetchall()
         
         for custom in customizations:

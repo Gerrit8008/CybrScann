@@ -49,7 +49,7 @@ def init_db():
     logging.info("Database initialized successfully")
 
 def save_scan_results(scan_data):
-    """Save scan results to database"""
+    """Save scan results to database with enhanced client tracking"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -70,6 +70,10 @@ def save_scan_results(scan_data):
             timestamp
         ))
 
+        # Also save to client_scanner.db if client_id is available
+        if scan_data.get('client_id'):
+            save_client_scan_record(scan_data)
+
         conn.commit()
         scan_id = scan_data.get('scan_id')
         conn.close()
@@ -82,6 +86,79 @@ def save_scan_results(scan_data):
         if 'conn' in locals():
             conn.close()
         return None
+
+def save_client_scan_record(scan_data):
+    """Save scan record to client database for tracking"""
+    try:
+        conn = sqlite3.connect('client_scanner.db')
+        cursor = conn.cursor()
+        
+        # Extract client information from scan data
+        client_id = scan_data.get('client_id')
+        scanner_id = scan_data.get('scanner_id', 'unknown')
+        
+        # Extract lead/user information
+        name = scan_data.get('name', '')
+        email = scan_data.get('email', '')
+        company = scan_data.get('company', '')
+        phone = scan_data.get('phone', '')
+        target = scan_data.get('target', '')
+        
+        # Calculate overall security score
+        security_score = 75  # Default
+        if 'risk_assessment' in scan_data and 'overall_score' in scan_data['risk_assessment']:
+            security_score = scan_data['risk_assessment']['overall_score']
+        
+        # Get company size (estimate based on email domain or default)
+        company_size = scan_data.get('company_size')
+        if not company_size:
+            # Simple heuristic based on email domain
+            if email:
+                domain = email.split('@')[-1].lower()
+                if domain in ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com']:
+                    company_size = 'Small'
+                elif company and len(company) > 20:
+                    company_size = 'Large'
+                else:
+                    company_size = 'Medium'
+            else:
+                company_size = 'Unknown'
+        
+        timestamp = datetime.now().isoformat()
+        
+        # Insert into scan_history table
+        cursor.execute('''
+        INSERT INTO scan_history (
+            client_id, scanner_id, scan_id, target_url, scan_type, status, 
+            lead_name, lead_email, lead_phone, lead_company, company_size,
+            security_score, results, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            client_id,
+            scanner_id,
+            scan_data.get('scan_id'),
+            target,
+            'comprehensive',
+            'completed',
+            name,
+            email,
+            phone, 
+            company,
+            company_size,
+            security_score,
+            json.dumps(scan_data),
+            timestamp
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        logging.info(f"Client scan record saved for client {client_id}")
+        
+    except Exception as e:
+        logging.error(f"Error saving client scan record: {e}")
+        if 'conn' in locals():
+            conn.close()
 
 def get_scan_results(scan_id):
     """Retrieve scan results from database"""
