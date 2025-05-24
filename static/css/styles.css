@@ -1,8 +1,9 @@
 /* Global Variables */
 :root {
-    --primary-color: #02054c;
-    --primary-dark: #010339;
-    --secondary-color: #61c608;
+    --primary-color: #1a237e;
+    --primary-dark: #0d1669;
+    --secondary-color: #00bcd4;
+    --accent-green: #76ff03;
     --critical-color: #721c24;
     --high-color: #dc3545;
     --medium-color: #fd7e14;
@@ -11,6 +12,9 @@
     --card-bg: #fff;
     --text-color: #333;
     --border-color: #dee2e6;
+    --gradient-1: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    --gradient-2: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+    --gradient-green: linear-gradient(135deg, #76ff03 0%, #64dd17 100%);
 }
 
 /* Severity colors */
