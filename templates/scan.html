@@ -605,13 +605,61 @@
 <div class="card mb-4 fade-in">
     <div class="card-header">
         <i class="bi bi-search"></i>
-        <h2 class="mb-0">What We Scan</h2>
+        <h2 class="mb-0">What We Scan & Why It Matters</h2>
     </div>
     <div class="card-body">
-        <div class="alert alert-primary mb-4">
+        <!-- Critical Threat Landscape -->
+        <div class="alert alert-danger mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>The Cost of Being Vulnerable:</strong>
+                    <p class="mb-1">The average data breach costs businesses $4.45 million globally. 95% of successful cyber attacks exploit known vulnerabilities that could have been prevented.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="bg-white rounded p-3">
+                        <div class="fs-2 fw-bold text-danger">$4.45M</div>
+                        <div class="small text-muted">Average breach cost</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Industry Impact Stats -->
+        <div class="row mb-4">
+            <div class="col-md-4 text-center mb-3">
+                <div class="card border-warning">
+                    <div class="card-body py-3">
+                        <i class="bi bi-clock text-warning fs-1 mb-2"></i>
+                        <h4 class="text-warning mb-1">277 Days</h4>
+                        <p class="mb-0 small">Average time to identify a breach</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <div class="card border-danger">
+                    <div class="card-body py-3">
+                        <i class="bi bi-shield-x text-danger fs-1 mb-2"></i>
+                        <h4 class="text-danger mb-1">43%</h4>
+                        <p class="mb-0 small">Of attacks target small businesses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <div class="card border-success">
+                    <div class="card-body py-3">
+                        <i class="bi bi-shield-check text-success fs-1 mb-2"></i>
+                        <h4 class="text-success mb-1">80%</h4>
+                        <p class="mb-0 small">Of breaches are preventable</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-success mb-4">
             <i class="bi bi-info-circle-fill me-2"></i>
-            <strong>Comprehensive Security Assessment:</strong>
-            <p class="mb-0">Our multi-layered security scan examines your organization's digital footprint across all major vulnerability areas, providing a complete view of your security posture.</p>
+            <strong>Your Proactive Defense Strategy:</strong>
+            <p class="mb-0">Our comprehensive security scan examines your organization's digital footprint across all major vulnerability areas, helping you identify and fix security gaps before attackers exploit them.</p>
         </div>
         
         <div class="row">
@@ -619,33 +667,38 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100 finding">
                     <div class="card-header bg-light">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle me-3">
-                                <i class="bi bi-hdd-network"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle me-3">
+                                    <i class="bi bi-hdd-network"></i>
+                                </div>
+                                <h4 class="mb-0">Network Security</h4>
                             </div>
-                            <h4 class="mb-0">Network Security</h4>
+                            <span class="badge bg-danger">74% of breaches</span>
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">We analyze your network infrastructure to identify potential entry points for attackers.</p>
+                        <div class="alert alert-warning py-2 mb-3">
+                            <small><i class="bi bi-exclamation-triangle me-2"></i><strong>Risk:</strong> Network vulnerabilities are the entry point for 74% of successful breaches</small>
+                        </div>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>Open Port Detection</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We identify exposed services on your network that could be exploited by attackers.</p>
+                        <p class="text-muted small ms-4 mb-3">Exposed ports are like unlocked doors - we find them before attackers do. <span class="text-danger fw-bold">Each open port increases breach risk by 23%.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>Gateway Security Analysis</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We examine your network gateways to ensure they're properly configured and protected.</p>
+                        <p class="text-muted small ms-4 mb-3">Misconfigured gateways allow lateral movement within networks. <span class="text-danger fw-bold">85% of major breaches involve lateral movement.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>Firewall Configuration Check</strong>
                         </div>
-                        <p class="text-muted small ms-4">We verify your firewall settings to ensure unauthorized access is properly blocked.</p>
+                        <p class="text-muted small ms-4">Weak firewall rules let attackers bypass perimeter defenses. <span class="text-danger fw-bold">Proper firewall config reduces risk by 60%.</span></p>
                     </div>
                 </div>
             </div>
@@ -654,33 +707,38 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100 finding">
                     <div class="card-header bg-light">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle me-3">
-                                <i class="bi bi-globe"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle me-3">
+                                    <i class="bi bi-globe"></i>
+                                </div>
+                                <h4 class="mb-0">Web Security</h4>
                             </div>
-                            <h4 class="mb-0">Web Security</h4>
+                            <span class="badge bg-danger">39% of attacks</span>
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">We examine your web presence to identify vulnerabilities that could lead to compromises.</p>
+                        <div class="alert alert-warning py-2 mb-3">
+                            <small><i class="bi bi-exclamation-triangle me-2"></i><strong>Risk:</strong> Web applications are targeted in 39% of cyber attacks, with average costs of $3.86M per breach</small>
+                        </div>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>SSL/TLS Certificate Analysis</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We verify that your encryption is up-to-date and properly configured.</p>
+                        <p class="text-muted small ms-4 mb-3">Weak encryption exposes data in transit. <span class="text-danger fw-bold">67% of companies have expired or weak certificates.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>Security Headers Assessment</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We check for HTTP security headers that protect against common web attacks.</p>
+                        <p class="text-muted small ms-4 mb-3">Missing security headers enable XSS and injection attacks. <span class="text-danger fw-bold">Only 15% of websites implement proper headers.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>CMS Vulnerability Detection</strong>
                         </div>
-                        <p class="text-muted small ms-4">We identify outdated content management systems with known security flaws.</p>
+                        <p class="text-muted small ms-4">Outdated CMS platforms are hacker favorites. <span class="text-danger fw-bold">90% of WordPress sites have vulnerable plugins.</span></p>
                     </div>
                 </div>
             </div>
@@ -689,33 +747,38 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100 finding">
                     <div class="card-header bg-light">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle me-3">
-                                <i class="bi bi-envelope"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle me-3">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <h4 class="mb-0">Email Security</h4>
                             </div>
-                            <h4 class="mb-0">Email Security</h4>
+                            <span class="badge bg-danger">91% phishing</span>
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">We analyze your email configuration to prevent spoofing and phishing attacks.</p>
+                        <div class="alert alert-warning py-2 mb-3">
+                            <small><i class="bi bi-exclamation-triangle me-2"></i><strong>Risk:</strong> 91% of cyber attacks start with phishing emails. Business email compromise costs average $5.01M</small>
+                        </div>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>SPF Record Verification</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We check if you've properly specified which servers can send email on your behalf.</p>
+                        <p class="text-muted small ms-4 mb-3">Prevents email spoofing attacks that damage your reputation. <span class="text-danger fw-bold">87% of companies lack proper SPF records.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>DKIM Implementation Check</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We verify if your emails are cryptographically signed to prove authenticity.</p>
+                        <p class="text-muted small ms-4 mb-3">Cryptographic signatures prevent email tampering. <span class="text-danger fw-bold">Only 45% of domains use DKIM properly.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>DMARC Policy Analysis</strong>
                         </div>
-                        <p class="text-muted small ms-4">We examine how your domain handles emails that fail authentication checks.</p>
+                        <p class="text-muted small ms-4">Blocks fraudulent emails claiming to be from your domain. <span class="text-danger fw-bold">DMARC reduces phishing by 90%.</span></p>
                     </div>
                 </div>
             </div>
@@ -724,33 +787,38 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100 finding">
                     <div class="card-header bg-light">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle me-3">
-                                <i class="bi bi-shield-lock"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle me-3">
+                                    <i class="bi bi-shield-lock"></i>
+                                </div>
+                                <h4 class="mb-0">System Security</h4>
                             </div>
-                            <h4 class="mb-0">System Security</h4>
+                            <span class="badge bg-danger">60% unpatched</span>
                         </div>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">We examine your system configuration to identify security weaknesses.</p>
+                        <div class="alert alert-warning py-2 mb-3">
+                            <small><i class="bi bi-exclamation-triangle me-2"></i><strong>Risk:</strong> 60% of breaches involve unpatched vulnerabilities. System compromises average $4.88M in damages</small>
+                        </div>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>OS Update Verification</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We check if your systems have critical security patches installed.</p>
+                        <p class="text-muted small ms-4 mb-3">Unpatched systems are prime targets for attackers. <span class="text-danger fw-bold">86% of vulnerabilities have patches available for 180+ days.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>Firewall Status Check</strong>
                         </div>
-                        <p class="text-muted small ms-4 mb-3">We verify your firewall is active and properly configured.</p>
+                        <p class="text-muted small ms-4 mb-3">Inactive firewalls leave systems exposed to direct attacks. <span class="text-danger fw-bold">Proper firewalls block 75% of attack attempts.</span></p>
                         
                         <div class="d-flex align-items-center mb-2">
                             <span class="status-indicator status-good me-2"></span>
                             <strong>Security Policy Analysis</strong>
                         </div>
-                        <p class="text-muted small ms-4">We review your security settings for potential weaknesses.</p>
+                        <p class="text-muted small ms-4">Weak security policies enable privilege escalation attacks. <span class="text-danger fw-bold">Misconfiguration causes 23% of breaches.</span></p>
                     </div>
                 </div>
             </div>
@@ -851,12 +919,61 @@
             </div>
         </div>
         
+        <!-- Real-World Impact Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Why Every Business Needs This Assessment</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="text-danger"><i class="bi bi-graph-down me-2"></i>The Cost of Inaction</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i><strong>Financial Impact:</strong> Small businesses lose an average of $200,000 per cyber attack</li>
+                                    <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i><strong>Downtime Cost:</strong> IT outages cost businesses $5,600 per minute</li>
+                                    <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i><strong>Reputation Damage:</strong> 83% of customers won't do business with breached companies</li>
+                                    <li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i><strong>Business Closure:</strong> 60% of small businesses close within 6 months of a cyber attack</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-success"><i class="bi bi-shield-check me-2"></i>The Value of Prevention</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Early Detection:</strong> Finding vulnerabilities before attackers saves 95% of breach costs</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Compliance Benefits:</strong> Proactive security helps meet regulatory requirements</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Customer Trust:</strong> Security-conscious businesses gain 47% more customer trust</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Insurance Savings:</strong> Security assessments can reduce cyber insurance premiums by 20-40%</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <i class="bi bi-lightbulb me-2"></i>
+                                    <strong>Smart Investment:</strong> Security assessments typically cost 0.1% of what a breach would cost your business
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="bg-white rounded p-2">
+                                        <div class="fw-bold text-primary">10x - 100x ROI</div>
+                                        <div class="small text-muted">Prevention vs. Recovery</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Start Scan Button -->
         <div class="text-center mt-4">
-            <a href="/scan" class="btn btn-primary btn-lg">
+            <a href="/scan" class="btn btn-primary btn-lg pulse-animation">
                 <i class="bi bi-shield-check me-2"></i>Start Your Security Scan Now
             </a>
             <p class="text-muted mt-2">Comprehensive assessment takes approximately 5-10 minutes</p>
+            <p class="small text-success"><i class="bi bi-lock-fill me-1"></i>100% Secure & Confidential | <i class="bi bi-envelope-check me-1"></i>Results Sent Directly to You</p>
         </div>
     </div>
 </div>
