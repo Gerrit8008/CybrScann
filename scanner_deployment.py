@@ -187,6 +187,7 @@ def generate_scanner_html(deployment_dir, scanner_uid, scanner_data, api_key):
             business_name=scanner_data.get('business_name', 'Security Services'),
             primary_color=scanner_data.get('primary_color', '#02054c'),
             secondary_color=scanner_data.get('secondary_color', '#35a310'),
+            button_color=scanner_data.get('button_color', '#d96c33'),
             logo_url=scanner_data.get('logo_url', ''),
             contact_email=scanner_data.get('contact_email', 'support@example.com'),
             scan_types=scanner_data.get('scan_types', ['port_scan', 'ssl_check']),
@@ -278,7 +279,7 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .scanner-submit-btn {{
-    background: linear-gradient(135deg, {scanner_data.get('primary_color', '#02054c')}, {scanner_data.get('secondary_color', '#35a310')});
+    background: {scanner_data.get('button_color', '#d96c33')};
     border: none;
     border-radius: 8px;
     padding: 1rem 2rem;
@@ -291,6 +292,7 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .scanner-submit-btn:hover {{
+    background: {scanner_data.get('primary_color', '#02054c')};
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }}
