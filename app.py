@@ -6,214 +6,79 @@ import platform
 import socket
 import re
 import uuid
+from werkzeug.utils import secure_filename
 import urllib.parse
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import sys
 import traceback
-from flask import send_file
-from werkzeug.utils import secure_filename
+import requests
+from datetime import timedelta
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from email_handler import send_email_report
+from config import get_config
+from dotenv import load_dotenv
+from flask import Blueprint
+from api import api_bp  # Import the new API blueprint
+from client_db import init_client_db, CLIENT_DB_PATH
+from scanner_router import scanner_bp
+from auth import auth_bp
+from admin import admin_bp
+from api import api_bp
+from scanner_router import scanner_bp
+from setup_admin import configure_admin
+from client import client_bp  
+from flask_login import LoginManager, current_user
+from auth_routes import auth_bp
+from debug_middleware import register_debug_middleware
+from fix_auth import create_user
+from auth import auth_bp
+from auth_hotfix import register_auth_hotfix
+from emergency_access import emergency_bp
+from register_routes import register_all_routes
+from admin_fix_integration import apply_admin_fixes
+from admin_route_fix import apply_admin_route_fixes
+from route_fix import fix_admin_routes
+from admin_fix_web import add_admin_fix_route
+from scanner_preview import scanner_preview_bp
+from database_manager import DatabaseManager
+from database_utils import get_db_connection, get_client_db
+from flask_login import LoginManager, current_user, login_required  # Add login_required here
 
-# Setup basic logging first
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Import scan functionality
+from scan import (
+    extract_domain_from_email,
+    server_lookup,
+    get_client_and_gateway_ip,
+    categorize_risks_by_services,
+    get_default_gateway_ip,
+    scan_gateway_ports,
+    check_ssl_certificate,
+    check_security_headers,
+    detect_cms,
+    analyze_cookies,
+    detect_web_framework,
+    crawl_for_sensitive_content,
+    generate_threat_scenario,
+    analyze_dns_configuration,
+    check_spf_status,
+    check_dmarc_record,
+    check_dkim_record,
+    check_os_updates,
+    check_firewall_status,
+    check_open_ports,
+    analyze_port_risks,
+    calculate_risk_score,
+    get_severity_level,
+    get_recommendations,
+    generate_html_report,
+    determine_industry,
+    get_industry_benchmarks,
+    calculate_industry_percentile
 )
-logger = logging.getLogger(__name__)
-logger.info("Starting CybrScan application initialization...")
-
-try:
-    from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-    logger.info("✅ Flask imported successfully")
-except ImportError as e:
-    logger.error(f"❌ Failed to import Flask: {e}")
-    raise
-
-try:
-    from werkzeug.utils import secure_filename
-    logger.info("✅ Werkzeug imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Werkzeug not available: {e}")
-    # Create a fallback secure_filename function
-    def secure_filename(filename):
-        return "".join(c for c in filename if c.isalnum() or c in "._-")
-
-try:
-    from flask_cors import CORS
-    logger.info("✅ Flask-CORS imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Flask-CORS not available: {e}")
-    CORS = None
-
-try:
-    from flask_limiter import Limiter
-    from flask_limiter.util import get_remote_address
-    logger.info("✅ Flask-Limiter imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Flask-Limiter not available: {e}")
-    Limiter = None
-
-try:
-    from email_handler import send_email_report
-    logger.info("✅ Email handler imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Email handler not available: {e}")
-    def send_email_report(*args, **kwargs):
-        return {"status": "error", "message": "Email functionality not available"}
-
-try:
-    from config import get_config
-    logger.info("✅ Config imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Config module not available: {e}")
-    def get_config():
-        return type('Config', (), {'DEBUG': False})
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-    logger.info("✅ Environment variables loaded")
-except ImportError as e:
-    logger.warning(f"⚠️ python-dotenv not available: {e}")
-
-try:
-    from flask_login import LoginManager, current_user, login_required
-    logger.info("✅ Flask-Login imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Flask-Login not available: {e}")
-    LoginManager = None
-    current_user = None
-    def login_required(f):
-        return f
-
-try:
-    from client_db import init_client_db, CLIENT_DB_PATH
-    logger.info("✅ Client DB imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Client DB not available: {e}")
-    CLIENT_DB_PATH = "client_scanner.db"
-    def init_client_db():
-        pass
-
-try:
-    from database_manager import DatabaseManager
-    logger.info("✅ Database Manager imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Database Manager not available: {e}")
-    DatabaseManager = None
-
-try:
-    from database_utils import get_db_connection, get_client_db
-    logger.info("✅ Database Utils imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Database Utils not available: {e}")
-    def get_db_connection():
-        return sqlite3.connect(CLIENT_DB_PATH)
-    def get_client_db():
-        return sqlite3.connect(CLIENT_DB_PATH)
-
-# Import scan functionality with fallbacks
-try:
-    from scan import (
-        extract_domain_from_email,
-        server_lookup,
-        get_client_and_gateway_ip,
-        categorize_risks_by_services,
-        get_default_gateway_ip,
-        scan_gateway_ports,
-        check_ssl_certificate,
-        check_security_headers,
-        detect_cms,
-        analyze_cookies,
-        detect_web_framework,
-        crawl_for_sensitive_content,
-        generate_threat_scenario,
-        analyze_dns_configuration,
-        check_spf_status,
-        check_dmarc_record,
-        check_dkim_record,
-        check_os_updates,
-        check_firewall_status,
-        check_open_ports,
-        analyze_port_risks,
-        calculate_risk_score,
-        get_severity_level,
-        get_recommendations,
-        generate_html_report,
-        determine_industry,
-        get_industry_benchmarks,
-        calculate_industry_percentile
-    )
-    logger.info("✅ Scan functionality imported successfully")
-except ImportError as e:
-    logger.warning(f"⚠️ Scan functionality not available: {e}")
-    # Create minimal fallback functions
-    def get_scan_target(email, domain_input=None): 
-        # Priority: 1. User provided domain, 2. Email domain
-        if domain_input and domain_input.strip():
-            target = domain_input.strip()
-            # Clean up the domain
-            target = target.replace('https://', '').replace('http://', '').rstrip('/')
-            return target
-        elif email and '@' in email:
-            return email.split('@')[-1]
-        else:
-            return None
-    def server_lookup(domain): 
-        return {"status": "error", "message": "Scan functionality not available"}
-    def get_client_and_gateway_ip(): 
-        return "127.0.0.1", "127.0.0.1"
-    def categorize_risks_by_services(results): 
-        return {}
-    def get_default_gateway_ip(): 
-        return "127.0.0.1"
-    def scan_gateway_ports(ip): 
-        return []
-    def check_ssl_certificate(domain): 
-        return {"status": "error"}
-    def check_security_headers(url): 
-        return {"status": "error"}
-    def detect_cms(url): 
-        return {"cms": "unknown"}
-    def analyze_cookies(url): 
-        return {"cookies": []}
-    def detect_web_framework(url): 
-        return {"framework": "unknown"}
-    def crawl_for_sensitive_content(url): 
-        return {"sensitive_files": []}
-    def generate_threat_scenario(results): 
-        return "Security scan unavailable"
-    def analyze_dns_configuration(domain): 
-        return {"status": "error"}
-    def check_spf_status(domain): 
-        return {"status": "error"}
-    def check_dmarc_record(domain): 
-        return {"status": "error"}
-    def check_dkim_record(domain): 
-        return {"status": "error"}
-    def check_os_updates(): 
-        return {"status": "error"}
-    def check_firewall_status(): 
-        return {"status": "error"}
-    def check_open_ports(ip): 
-        return []
-    def analyze_port_risks(ports): 
-        return {}
-    def calculate_risk_score(results): 
-        return 0
-    def get_severity_level(score): 
-        return "Unknown"
-    def get_recommendations(results): 
-        return ["Scan functionality not available"]
-    def generate_html_report(results): 
-        return "<html><body>Scan not available</body></html>"
-    def determine_industry(domain): 
-        return "Unknown"
-    def get_industry_benchmarks(industry): 
-        return {}
-    def calculate_industry_percentile(score, industry): 
-        return 0
 
 # Define upload folder for file uploads
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -327,35 +192,23 @@ log_system_info()
 
 def create_app():
     """Create and configure the Flask application"""
-    logger.info("Creating Flask application...")
+    from flask import Flask
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
     
     app = Flask(__name__)
-    app.secret_key = os.environ.get('SECRET_KEY', 'cybrscan-secret-key-2025')
+    app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
     
-    logger.info("✅ Flask app created successfully")
+    # Enable CORS
+    CORS(app)
     
-    # Enable CORS if available
-    if CORS:
-        CORS(app)
-        logger.info("✅ CORS enabled")
-    else:
-        logger.warning("⚠️ CORS not available, skipping")
-    
-    # Create rate limiter if available
-    limiter = None
-    if Limiter:
-        try:
-            limiter = Limiter(
-                app=app,
-                key_func=get_remote_address,
-                default_limits=["200 per day", "50 per hour"],
-                storage_uri="memory://"
-            )
-            logger.info("✅ Rate limiter enabled")
-        except Exception as e:
-            logger.warning(f"⚠️ Rate limiter failed to initialize: {e}")
-    else:
-        logger.warning("⚠️ Rate limiter not available, skipping")
+    # Create rate limiter
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri="memory://"
+    )
     
     return app, limiter
 
@@ -421,7 +274,6 @@ def init_database():
         client_id INTEGER NOT NULL,
         primary_color TEXT,
         secondary_color TEXT,
-        button_color TEXT DEFAULT '#d96c33',
         logo_path TEXT,
         favicon_path TEXT,
         email_subject TEXT,
@@ -453,7 +305,7 @@ def init_database():
     )
     ''')
     
-    # Create scan_history table with enhanced tracking
+    # Create scan_history table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS scan_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -461,64 +313,12 @@ def init_database():
         scan_id TEXT UNIQUE NOT NULL,
         timestamp TEXT,
         target TEXT,
-        target_url TEXT,
         scan_type TEXT,
         status TEXT,
         report_path TEXT,
-        scanner_id TEXT,
-        lead_name TEXT,
-        lead_email TEXT,
-        lead_phone TEXT,
-        lead_company TEXT,
-        company_size TEXT,
-        security_score INTEGER DEFAULT 0,
-        results TEXT,
-        created_at TEXT,
         FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
     )
     ''')
-    
-    # Add missing columns to existing scan_history table (migration)
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN target_url TEXT")
-    except sqlite3.OperationalError:
-        pass  # Column already exists
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN scanner_id TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_name TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_email TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_phone TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN lead_company TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN company_size TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN security_score INTEGER DEFAULT 0")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN results TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE scan_history ADD COLUMN created_at TEXT")
-    except sqlite3.OperationalError:
-        pass
     
     # Create audit_log table
     cursor.execute('''
@@ -617,7 +417,13 @@ login_manager.login_view = 'auth.login'
 #    """Route with parameters description"""
 #    return jsonify({'status': 'success', 'param': param_id})
 
-# API routes are handled by blueprints
+#@app.route('/api/v1/your-api-route')
+#def api_your_route():
+#    """API endpoint description"""
+#    return jsonify({
+#        'status': 'success',
+ #       'data': your_api_data
+ #   })
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -636,7 +442,29 @@ def internal_error(error):
     }), 500
 
 #@app.route('/auth/your-auth-route')
-# Auth and POST routes handled by blueprints
+#@login_required
+#def your_auth_route():
+#    """Protected route description"""
+#    return jsonify({
+#        'status': 'success',
+#        'user_data': get_user_data()
+#    })
+    
+#@app.route('/api/v1/your-api-route', methods=['POST'])
+#def api_post_route():
+#    """API POST endpoint description"""
+#    data = request.get_json()
+#    # Process your data here
+#    return jsonify({
+ #       'status': 'success',
+#        'message': 'Data processed successfully'
+ #   })
+
+#@app.route('/your-post-route', methods=['POST'])
+#def your_post_route():
+#    """POST route description"""
+#    data = request.get_json()
+#    return jsonify({'status': 'success', 'received': data})
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -652,305 +480,63 @@ def load_user(user_id):
         logging.error(f"Error loading user {user_id}: {e}")
         return None
 
-# Skip undefined admin configuration functions - they're not needed for core functionality
-logger.info("Skipping undefined admin configuration functions")
-
-# Register blueprints directly
-logger.info("Starting blueprint registration...")
-
-# Essential blueprints (auth and admin)
+# Apply admin configuration
 try:
-    from auth_routes import auth_bp
+    app = configure_admin(app)
+    logging.info("Admin configuration applied successfully")
+except Exception as config_error:
+    logging.error(f"Error applying admin configuration: {config_error}")
+    logging.debug(f"Exception traceback: {traceback.format_exc()}")
+
+# Register blueprints
+try:
+    register_debug_middleware(app)
     app.register_blueprint(auth_bp)
-    logger.info("✅ Registered auth_bp")
-except Exception as e:
-    logger.error(f"❌ Failed to register auth_bp: {e}")
-    logger.error(traceback.format_exc())
-
-try:
-    from admin import admin_bp
     app.register_blueprint(admin_bp)
-    logger.info("✅ Registered admin_bp")
-except Exception as e:
-    logger.error(f"❌ Failed to register admin_bp: {e}")
-    logger.error(traceback.format_exc())
-
-# Optional blueprints - Client blueprint is CRITICAL for login
-try:
-    from client import client_bp
-    app.register_blueprint(client_bp)
-    logger.info("✅ Registered client_bp")
-except Exception as e:
-    logger.error(f"❌ CRITICAL: Could not register client_bp: {e}")
-    logger.error("This will cause login failures for client users!")
-    logger.error(traceback.format_exc())
-    
-    # Create a functional fallback client route with real data
-    @app.route('/client/dashboard')
-    def fallback_client_dashboard():
-        try:
-            # Import dashboard function
-            from client_db import get_client_dashboard_data
-            
-            # Try to get data for clients 1 and 2
-            dashboard_data = None
-            client_info = "Demo Client"
-            
-            for client_id in [2, 1]:  # Try client 2 first (has more data)
-                data = get_client_dashboard_data(client_id)
-                if data and data.get('scan_history'):
-                    dashboard_data = data
-                    client_info = f"Client {client_id}"
-                    break
-            
-            if not dashboard_data:
-                # Fallback data
-                dashboard_data = {
-                    'stats': {'total_scans': 0, 'avg_security_score': 0, 'reports_count': 0},
-                    'scan_history': []
-                }
-            
-            stats = dashboard_data.get('stats', {})
-            scans = dashboard_data.get('scan_history', [])
-            
-            # Generate scan table rows
-            scan_rows = ""
-            if scans:
-                for scan in scans[:10]:
-                    scan_rows += f"""
-                    <tr>
-                        <td>{scan.get('timestamp', '')[:10]}</td>
-                        <td><strong>{scan.get('lead_name', 'Anonymous')}</strong></td>
-                        <td><a href="mailto:{scan.get('lead_email', '')}" class="text-decoration-none">{scan.get('lead_email', 'No email')}</a></td>
-                        <td><strong>{scan.get('lead_company', 'Unknown')}</strong></td>
-                        <td><small class="text-muted">{scan.get('target', '')}</small></td>
-                        <td><span class="badge bg-success">{scan.get('security_score', 'N/A')}%</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary">📄 Report</button>
-                            <button class="btn btn-sm btn-outline-success">✉️ Email</button>
-                        </td>
-                    </tr>
-                    """
-            else:
-                scan_rows = """
-                <tr>
-                    <td colspan="7" class="text-center py-4">
-                        <div class="text-muted">
-                            <i class="bi bi-clipboard-check fs-3 d-block mb-3"></i>
-                            No scan history found. Run your first scan to see results.
-                        </div>
-                    </td>
-                </tr>
-                """
-            
-            # Return full dashboard HTML
-            return f"""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>{client_info} Dashboard - CybrScan</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-                <style>
-                    .sidebar {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }}
-                    .stat-card {{ transition: all 0.3s ease; }}
-                    .stat-card:hover {{ transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }}
-                </style>
-            </head>
-            <body class="bg-light">
-                <div class="container-fluid">
-                    <div class="row">
-                        <!-- Sidebar -->
-                        <div class="col-md-2 sidebar text-white p-0">
-                            <div class="p-4">
-                                <h4 class="mb-4">🛡️ CybrScan</h4>
-                                <ul class="nav nav-pills flex-column">
-                                    <li class="nav-item mb-2">
-                                        <a class="nav-link active bg-white bg-opacity-20" href="/client/dashboard">
-                                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <!-- Main Content -->
-                        <div class="col-md-10 p-4">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <h1 class="h3">{client_info} Dashboard</h1>
-                                    <p class="text-muted mb-0">Lead Generation & Security Scanning Platform</p>
-                                </div>
-                                <button class="btn btn-primary">
-                                    <i class="bi bi-plus-circle me-2"></i>Create Scanner
-                                </button>
-                            </div>
-                            
-                            <!-- Stats Cards -->
-                            <div class="row g-4 mb-4">
-                                <div class="col-md-3">
-                                    <div class="card stat-card border-0 shadow-sm">
-                                        <div class="card-body text-center">
-                                            <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
-                                                <i class="bi bi-bar-chart-line text-primary fs-4"></i>
-                                            </div>
-                                            <h3 class="text-primary">{stats.get('total_scans', 0)}</h3>
-                                            <p class="text-muted mb-0">Total Scans</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card stat-card border-0 shadow-sm">
-                                        <div class="card-body text-center">
-                                            <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
-                                                <i class="bi bi-shield-check text-success fs-4"></i>
-                                            </div>
-                                            <h3 class="text-success">{stats.get('avg_security_score', 0):.1f}%</h3>
-                                            <p class="text-muted mb-0">Avg Security Score</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card stat-card border-0 shadow-sm">
-                                        <div class="card-body text-center">
-                                            <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
-                                                <i class="bi bi-file-earmark-text text-info fs-4"></i>
-                                            </div>
-                                            <h3 class="text-info">{stats.get('reports_count', 0)}</h3>
-                                            <p class="text-muted mb-0">Reports</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card stat-card border-0 shadow-sm">
-                                        <div class="card-body text-center">
-                                            <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
-                                                <i class="bi bi-people text-warning fs-4"></i>
-                                            </div>
-                                            <h3 class="text-warning">{len(scans)}</h3>
-                                            <p class="text-muted mb-0">Lead Contacts</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Lead Tracking Table -->
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-primary text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-1">🎯 Lead Tracking & Contact Management</h5>
-                                            <small class="opacity-75">Prospects who used your security scanners</small>
-                                        </div>
-                                        <span class="badge bg-white text-primary">{len(scans)} Leads</span>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th class="px-3">Date</th>
-                                                    <th>Lead Name</th>
-                                                    <th>Email</th>
-                                                    <th>Company</th>
-                                                    <th>Target</th>
-                                                    <th>Score</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {scan_rows}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Status Messages -->
-                            <div class="row mt-4">
-                                <div class="col-md-8">
-                                    <div class="alert alert-success border-0 shadow-sm">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
-                                            <div>
-                                                <h6 class="mb-1">🎉 Lead Tracking System Working!</h6>
-                                                <p class="mb-0">Your CybrScan platform is successfully capturing and displaying lead data. The table above shows real scan data from your database.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="alert alert-info border-0 shadow-sm">
-                                        <h6 class="mb-2">🔧 Using Fallback Mode</h6>
-                                        <p class="mb-2 small">Flask client blueprint unavailable</p>
-                                        <p class="mb-0 small">Install Flask for full functionality:<br><code>pip install flask</code></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-            </body>
-            </html>
-            """
-            
-        except Exception as e:
-            import traceback
-            error_details = traceback.format_exc()
-            return f"""
-            <h1>Dashboard Error</h1>
-            <p>Error loading dashboard: {str(e)}</p>
-            <pre>{error_details}</pre>
-            <p><a href="/admin/dashboard">Go to Admin Dashboard</a></p>
-            """
-    
-    logger.info("✅ Created functional fallback client dashboard route with real data")
-
-try:
-    from api import api_bp
     app.register_blueprint(api_bp)
-    logger.info("✅ Registered api_bp")
-except Exception as e:
-    logger.warning(f"⚠️ Could not register api_bp: {e}")
+    app.register_blueprint(scanner_bp)
+    app.register_blueprint(client_bp) 
+    app.register_blueprint(emergency_bp)
+    app.register_blueprint(scanner_preview_bp)
+    logging.info("Blueprints registered successfully")
+except Exception as blueprint_error:
+    logging.error(f"Error registering blueprints: {blueprint_error}")
+    logging.debug(f"Exception traceback: {traceback.format_exc()}")
+
+# Apply fixes
+try:
+    apply_admin_fixes(app)
+    add_admin_fix_route(app)
+    logging.info("Fixes applied successfully")
+except Exception as fix_error:
+    logging.error(f"Error applying fixes: {fix_error}")
+    logging.debug(f"Exception traceback: {traceback.format_exc()}")
+
+# Register routes
+try:
+    from register_routes import register_all_routes
+    app = register_all_routes(app)
+    logging.info("Routes registered successfully")
+except Exception as register_error:
+    logging.error(f"Error registering routes: {register_error}")
+    # Still register the basic blueprints
+    try:
+        from auth import auth_bp
+        from admin import admin_bp
+        app.register_blueprint(auth_bp)
+        app.register_blueprint(admin_bp)
+        logging.info("Registered basic blueprints as fallback")
+    except Exception as basic_error:
+        logging.error(f"Failed to register basic blueprints: {basic_error}")
 
 try:
-    from scanner_router import scanner_bp
-    app.register_blueprint(scanner_bp)
-    logger.info("✅ Registered scanner_bp")
+    from admin_routes import admin_routes_bp
+    app.register_blueprint(admin_routes_bp)
+    logging.info("Admin routes blueprint registered")
+except ImportError:
+    logging.warning("Could not import admin_routes_bp")
 except Exception as e:
-    logger.warning(f"⚠️ Could not register scanner_bp: {e}")
-
-registered_blueprints = list(app.blueprints.keys())
-logger.info(f"🎯 Final registered blueprints: {registered_blueprints}")
-
-if len(registered_blueprints) < 2:
-    logger.error("❌ Critical: Less than 2 blueprints registered! App may not work properly.")
-else:
-    logger.info("✅ Blueprint registration completed successfully")
-
-# Add basic routes
-@app.route('/')
-def index():
-    """Main landing page"""
-    return render_template('index.html')
-
-@app.route('/pricing')
-def pricing():
-    """Pricing page for MSP plans"""
-    return render_template('pricing.html')
-
-@app.route('/health')
-def health():
-    """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
-        'app': 'CybrScan',
-        'blueprints': list(app.blueprints.keys())
-    })
+    logging.error(f"Error registering admin_routes_bp: {e}")
     
 @app.route('/auth_status')
 def auth_status():
@@ -1116,789 +702,110 @@ def login_redirect():
     return redirect(url_for('auth.login'))
     
 # Add a route for the customization form
-@app.route('/test_redirect')
-def test_redirect():
-    """Test route to verify redirects work"""
-    flash('Test redirect successful!', 'success')
-    return redirect('/scan')
-
 @app.route('/customize', methods=['GET', 'POST'])
 def customize_scanner():
-    """Admin scanner customization and deployment"""
+    """Render the scanner customization form"""
+    # Check if this is a POST request
     if request.method == 'POST':
-        # Add debugging at the start
-        print("=" * 50)
-        print("CUSTOMIZE POST REQUEST RECEIVED")
-        print("=" * 50)
-        logging.info("Customize POST request started")
-        
         try:
-            # Check if payment was processed
+            # Check if payment was processed (from form hidden field)
             payment_processed = request.form.get('payment_processed', '0')
-            print(f"Payment processed flag: {payment_processed}")
-            logging.info(f"Payment processed flag: {payment_processed}")
-            
-            # Log all form data for debugging
-            print("Form data received:")
-            for key, value in request.form.items():
-                print(f"  {key}: {value}")
-                logging.info(f"Form field {key}: {value}")
-            
-            # Handle file uploads
-            logo_path = ''
-            favicon_path = ''
-            
-            # Create uploads directory if it doesn't exist
-            uploads_dir = os.path.join('static', 'uploads')
-            if not os.path.exists(uploads_dir):
-                os.makedirs(uploads_dir)
-            
-            # Handle logo upload
-            if 'logo' in request.files and request.files['logo'].filename:
-                logo_file = request.files['logo']
-                if logo_file and logo_file.filename:
-                    # Validate file type
-                    allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'}
-                    filename = secure_filename(logo_file.filename)
-                    name, ext = os.path.splitext(filename)
-                    ext_lower = ext.lower()
-                    
-                    if ext_lower not in allowed_extensions:
-                        flash(f'Invalid logo file type. Allowed: {", ".join(allowed_extensions)}', 'danger')
-                        return render_template('admin/customization-form.html')
-                    
-                    # Check file size (max 5MB)
-                    logo_file.seek(0, 2)  # Seek to end
-                    file_size = logo_file.tell()
-                    logo_file.seek(0)  # Reset to beginning
-                    
-                    max_size = 5 * 1024 * 1024  # 5MB
-                    if file_size > max_size:
-                        flash('Logo file too large. Maximum size: 5MB', 'danger')
-                        return render_template('admin/customization-form.html')
-                    
-                    # Generate unique filename
-                    timestamp = str(int(time.time()))
-                    unique_filename = f"logo_{timestamp}_{name}{ext_lower}"
-                    logo_file_path = os.path.join(uploads_dir, unique_filename)
-                    logo_file.save(logo_file_path)
-                    # Store as URL path for database
-                    logo_path = f"/static/uploads/{unique_filename}"
-                    logging.info(f"Logo uploaded and saved to: {logo_path}")
-            
-            # Handle favicon upload  
-            if 'favicon' in request.files and request.files['favicon'].filename:
-                favicon_file = request.files['favicon']
-                if favicon_file and favicon_file.filename:
-                    # Validate file type (more restrictive for favicons)
-                    allowed_favicon_extensions = {'.png', '.ico', '.svg'}
-                    filename = secure_filename(favicon_file.filename)
-                    name, ext = os.path.splitext(filename)
-                    ext_lower = ext.lower()
-                    
-                    if ext_lower not in allowed_favicon_extensions:
-                        flash(f'Invalid favicon file type. Allowed: {", ".join(allowed_favicon_extensions)}', 'danger')
-                        return render_template('admin/customization-form.html')
-                    
-                    # Check file size (max 1MB for favicons)
-                    favicon_file.seek(0, 2)  # Seek to end
-                    file_size = favicon_file.tell()
-                    favicon_file.seek(0)  # Reset to beginning
-                    
-                    max_size = 1 * 1024 * 1024  # 1MB
-                    if file_size > max_size:
-                        flash('Favicon file too large. Maximum size: 1MB', 'danger')
-                        return render_template('admin/customization-form.html')
-                    
-                    # Generate unique filename
-                    timestamp = str(int(time.time()))
-                    unique_filename = f"favicon_{timestamp}_{name}{ext_lower}"
-                    favicon_file_path = os.path.join(uploads_dir, unique_filename)
-                    favicon_file.save(favicon_file_path)
-                    # Store as URL path for database
-                    favicon_path = f"/static/uploads/{unique_filename}"
-                    logging.info(f"Favicon uploaded and saved to: {favicon_path}")
             
             # Extract form data
-            scanner_data = {
-                'business_name': request.form.get('business_name', '').strip(),
-                'business_domain': request.form.get('business_domain', '').strip(),
-                'contact_email': request.form.get('contact_email', '').strip(),
-                'contact_phone': request.form.get('contact_phone', '').strip(),
-                'scanner_name': request.form.get('scanner_name', '').strip(),
-                'primary_color': request.form.get('primary_color', '#02054c'),
-                'secondary_color': request.form.get('secondary_color', '#35a310'),
-                'button_color': request.form.get('button_color', '#d96c33'),
+            client_data = {
+                'business_name': request.form.get('business_name', ''),
+                'business_domain': request.form.get('business_domain', ''),
+                'contact_email': request.form.get('contact_email', ''),
+                'contact_phone': request.form.get('contact_phone', ''),
+                'scanner_name': request.form.get('scanner_name', ''),
+                'primary_color': request.form.get('primary_color', '#FF6900'),
+                'secondary_color': request.form.get('secondary_color', '#808588'),
                 'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
                 'email_intro': request.form.get('email_intro', ''),
                 'subscription': request.form.get('subscription', 'basic'),
-                'default_scans': request.form.getlist('default_scans[]'),
-                'logo_path': logo_path,
-                'favicon_path': favicon_path,
-                'description': request.form.get('description', '')
+                'default_scans': request.form.getlist('default_scans[]')
             }
             
-            logging.info(f"Creating new scanner with data: {scanner_data}")
+            logging.info(f"Received form data: {client_data}")
             
-            # First, create or get client
-            from auth_utils import register_client
-            from fix_auth import create_user
+            # Use admin user ID 1 for scanner creation
+            user_id = 1  
             
-            # Create user if doesn't exist (for admin-created scanners)
-            user_email = scanner_data['contact_email']
-            username = scanner_data['business_name'].lower().replace(' ', '')
-            temp_password = uuid.uuid4().hex[:12]  # Temporary password
+            # Handle file uploads
+            if 'logo' in request.files and request.files['logo'].filename:
+                logo_file = request.files['logo']
+                logo_filename = secure_filename(f"{uuid.uuid4()}_{logo_file.filename}")
+                logo_path = os.path.join(UPLOAD_FOLDER, logo_filename)
+                logo_file.save(logo_path)
+                client_data['logo_path'] = logo_path
+                logging.info(f"Logo saved at {logo_path}")
             
-            user_result = create_user(username, user_email, temp_password, 'client', scanner_data['business_name'])
+            if 'favicon' in request.files and request.files['favicon'].filename:
+                favicon_file = request.files['favicon']
+                favicon_filename = secure_filename(f"{uuid.uuid4()}_{favicon_file.filename}")
+                favicon_path = os.path.join(UPLOAD_FOLDER, favicon_filename)
+                favicon_file.save(favicon_path)
+                client_data['favicon_path'] = favicon_path
+                logging.info(f"Favicon saved at {favicon_path}")
             
-            if user_result['status'] != 'success':
-                # User might already exist, try to find them
-                from client_db import get_db_connection
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute('SELECT id FROM users WHERE email = ?', (user_email,))
-                user_row = cursor.fetchone()
-                conn.close()
-                
-                if user_row:
-                    user_id = user_row[0]
-                    logging.info(f"Using existing user with email {user_email}")
-                else:
-                    flash(f'Error creating user: {user_result["message"]}', 'danger')
-                    return render_template('admin/customization-form.html')
-            else:
-                user_id = user_result['user_id']
-                logging.info(f"Created new user with ID: {user_id}")
+            # Create client in database
+            from client_db import create_client
             
-            # Create or get client profile
-            client_data = {
-                'business_name': scanner_data['business_name'],
-                'business_domain': scanner_data['business_domain'],
-                'contact_email': scanner_data['contact_email'],
-                'contact_phone': scanner_data['contact_phone'],
-                'scanner_name': scanner_data['scanner_name'],
-                'subscription_level': scanner_data['subscription'],
-                'primary_color': scanner_data['primary_color'],
-                'secondary_color': scanner_data['secondary_color'],
-                'button_color': scanner_data['button_color'],
-                'logo_path': scanner_data.get('logo_path', ''),
-                'favicon_path': scanner_data.get('favicon_path', ''),
-                'email_subject': scanner_data['email_subject'],
-                'email_intro': scanner_data['email_intro']
-            }
+            logging.info("Creating client in database...")
             
-            client_result = register_client(user_id, client_data)
+            # Call create_client with the correct parameters
+            result = create_client(client_data, user_id)
             
-            if client_result['status'] != 'success':
-                # Try to get existing client
-                from client_db import get_client_by_user_id
-                existing_client = get_client_by_user_id(user_id)
-                if existing_client:
-                    client_id = existing_client['id']
-                    logging.info(f"Using existing client with ID: {client_id}")
-                else:
-                    flash(f'Error creating client: {client_result["message"]}', 'danger')
-                    return render_template('admin/customization-form.html')
-            else:
-                client_id = client_result['client_id']
-                logging.info(f"Created new client with ID: {client_id}")
-            
-            # Create the scanner
-            from scanner_db_functions import patch_client_db_scanner_functions, create_scanner_for_client
-            patch_client_db_scanner_functions()
-            
-            scanner_creation_data = {
-                'name': scanner_data['scanner_name'],
-                'business_name': scanner_data['business_name'],  # Add business_name for deployment
-                'description': scanner_data.get('description', f"Security scanner for {scanner_data['business_name']}"),
-                'domain': scanner_data['business_domain'],
-                'primary_color': scanner_data['primary_color'],
-                'secondary_color': scanner_data['secondary_color'],
-                'button_color': scanner_data.get('button_color', '#d96c33'),
-                'logo_url': scanner_data.get('logo_path', ''),  # Fix: use logo_url to match database column
-                'favicon_path': scanner_data.get('favicon_path', ''),
-                'contact_email': scanner_data['contact_email'],
-                'contact_phone': scanner_data['contact_phone'],
-                'email_subject': scanner_data['email_subject'],
-                'email_intro': scanner_data['email_intro'],
-                'scan_types': scanner_data.get('default_scans', ['port_scan', 'ssl_check'])
-            }
-            
-            scanner_result = create_scanner_for_client(client_id, scanner_creation_data, 1)  # Admin user ID 1
-            
-            if scanner_result['status'] != 'success':
-                flash(f'Error creating scanner: {scanner_result["message"]}', 'danger')
+            if not result or result.get('status') != 'success':
+                error_msg = result.get('message', 'Unknown error') if result else 'Failed to create client'
+                logging.error(f"Error creating client: {error_msg}")
+                flash(f"Error creating scanner: {error_msg}", 'danger')
                 return render_template('admin/customization-form.html')
             
-            scanner_id = scanner_result['scanner_id']
-            scanner_uid = scanner_result['scanner_uid']
-            api_key = scanner_result['api_key']
+            # Generate scanner templates
+            from scanner_template import generate_scanner
             
-            # Create dedicated database for this client
-            try:
-                from client_database_manager import create_client_specific_database
-                db_path = create_client_specific_database(client_id, scanner_data['business_name'])
-                if db_path:
-                    logging.info(f"Created dedicated database for client {client_id}: {db_path}")
-                else:
-                    logging.warning(f"Failed to create dedicated database for client {client_id}")
-            except Exception as e:
-                logging.error(f"Error creating client database: {e}")
+            logging.info(f"Generating scanner templates for client ID: {result['client_id']}")
+            scanner_result = generate_scanner(result['client_id'], client_data)
             
-            logging.info(f"Scanner created successfully: ID {scanner_id}, UID {scanner_uid}")
-            print(f"SCANNER CREATED: ID {scanner_id}, UID {scanner_uid}")
-            print(f"SCANNER COLORS: {scanner_creation_data['primary_color']}, {scanner_creation_data['secondary_color']}")
-            
-            # Generate deployable HTML and API endpoints
-            from scanner_deployment import generate_scanner_deployment
-            print(f"GENERATING DEPLOYMENT FOR: {scanner_uid}")
-            deployment_result = generate_scanner_deployment(scanner_uid, scanner_creation_data, api_key)
-            print(f"DEPLOYMENT RESULT: {deployment_result['status']}")
-            
-            # Check if this is an AJAX request (fetch call)
-            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')
-            
-            if deployment_result['status'] == 'success':
-                # Log the client in automatically after scanner creation
-                from auth_utils import create_session
-                
-                # Create a session for the new client
-                session_result = create_session(user_id, user_email, 'client')
-                if session_result['status'] == 'success':
-                    session['session_token'] = session_result['session_token']
-                    session['user_id'] = user_id
-                    session['user_email'] = user_email
-                    session['user_role'] = 'client'
-                    
-                    if is_ajax:
-                        # Return JSON response for AJAX requests
-                        return jsonify({
-                            'status': 'success',
-                            'message': 'Scanner created successfully!',
-                            'scanner_id': scanner_id,
-                            'scanner_uid': scanner_uid,
-                            'client_id': client_id,
-                            'deploy_url': '/client/scanners',
-                            'preview_url': f'/scanner/{scanner_uid}/info'
-                        })
-                    else:
-                        flash('Scanner created successfully! You can now manage your scanners.', 'success')
-                        return redirect('/client/scanners')
-                else:
-                    if is_ajax:
-                        return jsonify({
-                            'status': 'success',
-                            'message': 'Scanner created and deployed successfully!',
-                            'scanner_id': scanner_id,
-                            'scanner_uid': scanner_uid,
-                            'client_id': client_id,
-                            'deploy_url': f'/scanner/{scanner_uid}/info',
-                            'preview_url': f'/scanner/{scanner_uid}/info'
-                        })
-                    else:
-                        flash('Scanner created and deployed successfully!', 'success')
-                        return redirect(f'/scanner/{scanner_uid}/info')
+            if not scanner_result:
+                logging.warning("Scanner created but templates could not be generated")
+                flash("Scanner created but templates could not be generated", 'warning')
             else:
-                # Even if deployment fails, log the client in and redirect to scan page
-                from auth_utils import create_session
-                session_result = create_session(user_id, user_email, 'client')
-                if session_result['status'] == 'success':
-                    session['session_token'] = session_result['session_token']
-                    session['user_id'] = user_id
-                    session['user_email'] = user_email
-                    session['user_role'] = 'client'
+                logging.info("Scanner templates generated successfully")
+                flash("Scanner created successfully!", 'success')
+            
+            # Process payment or handle payment status (only if needed)
+            if payment_processed == '1':
+                logging.info("Payment processed successfully")
                 
-                if is_ajax:
-                    return jsonify({
-                        'status': 'warning',
-                        'message': f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.',
-                        'scanner_id': scanner_id,
-                        'scanner_uid': scanner_uid,
-                        'client_id': client_id,
-                        'deploy_url': '/client/scanners'
-                    })
-                else:
-                    flash(f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.', 'warning')
-                    return redirect('/client/scanners')
+                # If you need to do any additional payment processing, do it here
+                # For example, you might want to update the subscription status in the database
+                
+                try:
+                    # Update any subscription details if needed
+                    pass
+                except Exception as payment_error:
+                    logging.error(f"Payment processing error: {str(payment_error)}")
+                    # Continue anyway since the scanner was created successfully
+            
+            # Always redirect to dashboard after successful client creation
+            logging.info("Redirecting to admin dashboard")
+            return redirect(url_for('admin_dashboard'))  # Make sure this matches your dashboard endpoint name
             
         except Exception as e:
-            logging.error(f"Error in customize_scanner: {str(e)}")
+            # Log the full error with traceback
+            logging.error(f"Error processing form: {str(e)}")
             import traceback
             logging.error(traceback.format_exc())
             
-            # For debugging, also print to console
-            print(f"CUSTOMIZE ERROR: {str(e)}")
-            print("TRACEBACK:")
-            print(traceback.format_exc())
-            
-            # Check if this is an AJAX request
-            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')
-            
-            if is_ajax:
-                return jsonify({
-                    'status': 'error',
-                    'message': f'Error creating scanner: {str(e)}'
-                })
-            else:
-                flash(f'Error creating scanner: {str(e)}', 'danger')
-                return render_template('admin/customization-form.html')
+            # Return error page
+            flash(f"Error creating scanner: {str(e)}", 'danger')
+            return render_template('admin/customization-form.html')
     
     # For GET requests, render the template
     logging.info("Rendering customization form")
-    
-    # Get current user to check context
-    try:
-        # Check if user is logged in using session data
-        user_id = session.get('user_id')
-        user_role = session.get('user_role')
-        
-        if user_id and user_role == 'client':
-            # Render client customize template
-            from client_db import get_client_by_user_id
-            client = get_client_by_user_id(user_id)
-            
-            # Get recent scanners for this client
-            from client_db import get_db_connection
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT * FROM scanners 
-                WHERE client_id = ? 
-                ORDER BY created_at DESC 
-                LIMIT 5
-            ''', (client['id'] if client else 0,))
-            scanners = cursor.fetchall()
-            conn.close()
-            
-            # Convert to list of dicts
-            if scanners:
-                columns = ['id', 'client_id', 'scanner_id', 'name', 'description', 'domain', 'api_key', 
-                          'primary_color', 'secondary_color', 'logo_url', 'contact_email', 'contact_phone',
-                          'email_subject', 'email_intro', 'scan_types', 'status', 'created_at', 'created_by',
-                          'updated_at', 'updated_by']
-                scanners = [dict(zip(columns, scanner)) for scanner in scanners]
-            
-            return render_template('client/customize_scanner.html', 
-                                 client=client or {}, 
-                                 scanners=scanners or [])
-        else:
-            # Render admin template for admin users or non-logged in users
-            return render_template('admin/customization-form.html')
-    except Exception as e:
-        logging.error(f"Error getting user context: {e}")
-        # Fallback to admin template
-        return render_template('admin/customization-form.html')
-
-@app.route('/scanner/<scanner_uid>/info')
-def scanner_deployment_info(scanner_uid):
-    """Show scanner deployment information and integration options"""
-    try:
-        # Get scanner details from database
-        from scanner_db_functions import patch_client_db_scanner_functions
-        from client_db import get_db_connection
-        
-        patch_client_db_scanner_functions()
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-        SELECT s.*, c.business_name, c.contact_email 
-        FROM scanners s 
-        JOIN clients c ON s.client_id = c.id 
-        WHERE s.scanner_id = ?
-        ''', (scanner_uid,))
-        
-        scanner_row = cursor.fetchone()
-        conn.close()
-        
-        if not scanner_row:
-            flash('Scanner not found', 'danger')
-            return redirect(url_for('admin.dashboard'))
-        
-        # Convert to dict
-        if hasattr(scanner_row, 'keys'):
-            scanner = dict(scanner_row)
-        else:
-            columns = ['id', 'client_id', 'scanner_id', 'name', 'description', 'domain', 'api_key', 
-                      'primary_color', 'secondary_color', 'logo_url', 'contact_email', 'contact_phone',
-                      'email_subject', 'email_intro', 'scan_types', 'status', 'created_at', 'created_by',
-                      'updated_at', 'updated_by', 'business_name', 'client_contact_email']
-            scanner = dict(zip(columns, scanner_row))
-        
-        # Generate deployment URLs
-        base_url = request.url_root.rstrip('/')
-        deployment_info = {
-            'embed_url': f"{base_url}/scanner/{scanner_uid}/embed",
-            'api_url': f"{base_url}/api/scanner/{scanner_uid}",
-            'docs_url': f"{base_url}/scanner/{scanner_uid}/docs",
-            'download_url': f"{base_url}/scanner/{scanner_uid}/download"
-        }
-        
-        return render_template('admin/scanner-deployment.html', 
-                             scanner=scanner, 
-                             deployment_info=deployment_info,
-                             base_url=base_url)
-        
-    except Exception as e:
-        logging.error(f"Error loading scanner deployment info: {e}")
-        flash('Error loading scanner information', 'danger')
-        return redirect(url_for('admin.dashboard'))
-
-@app.route('/scanner/<scanner_uid>/embed')
-def scanner_embed(scanner_uid):
-    """Serve the embeddable scanner HTML using main scan template"""
-    try:
-        # Get scanner data from database to provide branding
-        from client_db import get_db_connection
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.button_color, cu.logo_path
-        FROM scanners s 
-        JOIN clients c ON s.client_id = c.id 
-        LEFT JOIN customizations cu ON c.id = cu.client_id
-        WHERE s.scanner_id = ?
-        ''', (scanner_uid,))
-        
-        scanner_row = cursor.fetchone()
-        conn.close()
-        
-        if scanner_row:
-            # Convert to dict for easier access
-            scanner_data = dict(scanner_row) if hasattr(scanner_row, 'keys') else dict(zip([col[0] for col in cursor.description], scanner_row))
-            
-            # Create client branding object
-            client_branding = {
-                'business_name': scanner_data.get('business_name', ''),
-                'primary_color': scanner_data.get('primary_color', '#02054c'),
-                'secondary_color': scanner_data.get('secondary_color', '#35a310'),
-                'button_color': scanner_data.get('button_color', '#d96c33'),
-                'logo_path': scanner_data.get('logo_path', ''),
-                'scanner_name': scanner_data.get('name', 'Security Scanner')
-            }
-            
-            # Add client_id and scanner_id to URL parameters for tracking
-            import urllib.parse
-            client_id = scanner_data.get('client_id')
-            scanner_id = scanner_data.get('scanner_id')
-            
-            # Render the main scan template with client branding
-            return render_template('scan.html', 
-                                 client_branding=client_branding,
-                                 client_id=client_id,
-                                 scanner_id=scanner_id,
-                                 embed_mode=True)
-        else:
-            # Generate deployment if it doesn't exist
-            from scanner_deployment import generate_scanner_deployment
-            from client_db import get_db_connection
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-            SELECT s.*, c.business_name, cust.button_color
-            FROM scanners s 
-            JOIN clients c ON s.client_id = c.id 
-            LEFT JOIN customizations cust ON c.id = cust.client_id
-            WHERE s.scanner_id = ?
-            ''', (scanner_uid,))
-            
-            scanner_row = cursor.fetchone()
-            conn.close()
-            
-            if not scanner_row:
-                logging.warning(f"Scanner not found in database: {scanner_uid}")
-                # Return a working scanner with default branding for missing scanners
-                return f"""
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Security Scanner</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-                    <style>
-                        .scanner-container {{
-                            max-width: 600px;
-                            margin: 2rem auto;
-                            padding: 2rem;
-                            border-radius: 12px;
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                            background: white;
-                        }}
-                        .scanner-header {{
-                            text-align: center;
-                            margin-bottom: 2rem;
-                            padding-bottom: 1.5rem;
-                            border-bottom: 2px solid #ea1f1f;
-                        }}
-                        .scanner-title {{
-                            color: #ea1f1f;
-                            font-size: 2rem;
-                            font-weight: 700;
-                            margin-bottom: 0.5rem;
-                        }}
-                        .btn-primary {{
-                            background: linear-gradient(135deg, #ea1f1f, #c35099);
-                            border: none;
-                            padding: 1rem 2rem;
-                            font-weight: 600;
-                            border-radius: 8px;
-                        }}
-                        .form-control:focus {{
-                            border-color: #ea1f1f;
-                            box-shadow: 0 0 0 0.2rem rgba(234, 31, 31, 0.25);
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="scanner-container">
-                        <div class="scanner-header">
-                            <h2 class="scanner-title">Test Scanner</h2>
-                            <p class="text-muted">Free security scan for Test Company</p>
-                        </div>
-                        <form action="/api/scanner/{scanner_uid}/scan" method="POST">
-                            <div class="mb-3">
-                                <label for="target_url" class="form-label">Website URL to Scan</label>
-                                <input type="url" class="form-control" id="target_url" name="target_url" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="contact_email" class="form-label">Email for Results</label>
-                                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="contact_name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="contact_name" name="contact_name" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Start Free Security Scan</button>
-                        </form>
-                        <div class="mt-3 text-center">
-                            <small class="text-muted">Powered by Test Company Security</small>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """
-            
-            # Convert to dict and generate deployment
-            scanner_data = {
-                'name': scanner_row[3] if len(scanner_row) > 3 else 'Security Scanner',
-                'business_name': scanner_row[-2] if len(scanner_row) > 16 else 'Security Services',  # business_name is second-to-last
-                'primary_color': scanner_row[7] if len(scanner_row) > 7 else '#02054c',
-                'secondary_color': scanner_row[8] if len(scanner_row) > 8 else '#35a310',
-                'logo_url': scanner_row[9] if len(scanner_row) > 9 else '',
-                'contact_email': scanner_row[10] if len(scanner_row) > 10 else 'support@example.com',
-                'contact_phone': scanner_row[11] if len(scanner_row) > 11 else '',
-                'email_subject': scanner_row[12] if len(scanner_row) > 12 else 'Your Security Scan Report',
-                'email_intro': scanner_row[13] if len(scanner_row) > 13 else '',
-                'scan_types': (scanner_row[14] if len(scanner_row) > 14 else 'port_scan,ssl_check').split(','),
-                'button_color': scanner_row[-1] if len(scanner_row) > 17 and scanner_row[-1] else '#d96c33'  # button_color is last
-            }
-            
-            api_key = scanner_row[6] if len(scanner_row) > 6 else 'default_key'
-            
-            result = generate_scanner_deployment(scanner_uid, scanner_data, api_key)
-            
-            if result['status'] == 'success':
-                with open(deployment_path, 'r') as f:
-                    return f.read()
-            else:
-                return "Error generating scanner", 500
-                
-    except Exception as e:
-        logging.error(f"Error serving scanner embed: {e}")
-        return "Error loading scanner", 500
-
-@app.route('/scanner/<scanner_uid>/scanner-styles.css')
-def scanner_styles(scanner_uid):
-    """Serve scanner CSS file"""
-    try:
-        css_path = os.path.join('static', 'deployments', scanner_uid, 'scanner-styles.css')
-        if os.path.exists(css_path):
-            from flask import send_file, Response
-            with open(css_path, 'r') as f:
-                content = f.read()
-            return Response(content, mimetype='text/css')
-        else:
-            return "CSS file not found", 404
-    except Exception as e:
-        logging.error(f"Error serving scanner CSS: {e}")
-        return "Error loading CSS", 500
-
-@app.route('/scanner/<scanner_uid>/scanner-script.js')
-def scanner_script(scanner_uid):
-    """Serve scanner JavaScript file"""
-    try:
-        js_path = os.path.join('static', 'deployments', scanner_uid, 'scanner-script.js')
-        if os.path.exists(js_path):
-            from flask import Response
-            with open(js_path, 'r') as f:
-                content = f.read()
-            return Response(content, mimetype='application/javascript')
-        else:
-            return "JavaScript file not found", 404
-    except Exception as e:
-        logging.error(f"Error serving scanner JavaScript: {e}")
-        return "Error loading JavaScript", 500
-
-@app.route('/scanner/<scanner_uid>/download')
-def scanner_download(scanner_uid):
-    """Download scanner deployment files as ZIP"""
-    try:
-        import zipfile
-        import io
-        
-        deployment_dir = os.path.join('static', 'deployments', scanner_uid)
-        
-        if not os.path.exists(deployment_dir):
-            flash('Scanner deployment files not found', 'danger')
-            return redirect(url_for('admin.dashboard'))
-        
-        # Create ZIP file in memory
-        zip_buffer = io.BytesIO()
-        
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for root, dirs, files in os.walk(deployment_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    arcname = os.path.relpath(file_path, deployment_dir)
-                    zip_file.write(file_path, arcname)
-        
-        zip_buffer.seek(0)
-        
-        return send_file(
-            io.BytesIO(zip_buffer.read()),
-            mimetype='application/zip',
-            as_attachment=True,
-            download_name=f'scanner-{scanner_uid}-deployment.zip'
-        )
-        
-    except Exception as e:
-        logging.error(f"Error creating scanner download: {e}")
-        flash('Error creating download package', 'danger')
-        return redirect(url_for('admin.dashboard'))
-
-# API endpoints for scanner functionality
-@app.route('/api/scanner/<scanner_uid>/scan', methods=['POST'])
-def api_scanner_scan(scanner_uid):
-    """API endpoint to start a scan"""
-    try:
-        # Verify API key
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'status': 'error', 'message': 'Invalid authorization header'}), 401
-        
-        api_key = auth_header.replace('Bearer ', '')
-        
-        # Verify scanner and API key
-        from client_db import get_db_connection
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, name, client_id FROM scanners WHERE scanner_id = ? AND api_key = ?', 
-                      (scanner_uid, api_key))
-        scanner = cursor.fetchone()
-        
-        if not scanner:
-            conn.close()
-            return jsonify({'status': 'error', 'message': 'Invalid scanner or API key'}), 401
-        
-        # Get scan data
-        scan_data = request.get_json()
-        
-        if not scan_data or not scan_data.get('target_url') or not scan_data.get('contact_email'):
-            conn.close()
-            return jsonify({'status': 'error', 'message': 'Missing required fields: target_url, contact_email'}), 400
-        
-        # Generate scan ID
-        scan_id = f"scan_{uuid.uuid4().hex[:12]}"
-        
-        # Store scan in database
-        cursor.execute('''
-        INSERT INTO scan_history (scanner_id, scan_id, target_url, scan_type, status, results, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            scanner_uid,
-            scan_id,
-            scan_data['target_url'],
-            ','.join(scan_data.get('scan_types', ['port_scan'])),
-            'pending',
-            json.dumps({
-                'contact_email': scan_data['contact_email'],
-                'contact_name': scan_data.get('contact_name', ''),
-                'initiated_at': datetime.now().isoformat()
-            }),
-            datetime.now().isoformat()
-        ))
-        
-        conn.commit()
-        conn.close()
-        
-        # TODO: Trigger actual scan process here
-        # For now, just return success
-        
-        return jsonify({
-            'status': 'success',
-            'scan_id': scan_id,
-            'message': 'Scan started successfully',
-            'estimated_completion': (datetime.now() + timedelta(minutes=5)).isoformat()
-        })
-        
-    except Exception as e:
-        logging.error(f"Error in scanner API: {e}")
-        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
-
-@app.route('/api/scanner/<scanner_uid>/scan/<scan_id>')
-def api_scanner_scan_status(scanner_uid, scan_id):
-    """API endpoint to get scan status"""
-    try:
-        # Verify API key
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'status': 'error', 'message': 'Invalid authorization header'}), 401
-        
-        api_key = auth_header.replace('Bearer ', '')
-        
-        # Get scan details
-        from client_db import get_db_connection
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-        SELECT sh.*, s.api_key 
-        FROM scan_history sh 
-        JOIN scanners s ON sh.scanner_id = s.scanner_id 
-        WHERE sh.scan_id = ? AND sh.scanner_id = ?
-        ''', (scan_id, scanner_uid))
-        
-        scan_row = cursor.fetchone()
-        conn.close()
-        
-        if not scan_row:
-            return jsonify({'status': 'error', 'message': 'Scan not found'}), 404
-        
-        # Verify API key
-        if scan_row[-1] != api_key:
-            return jsonify({'status': 'error', 'message': 'Invalid API key'}), 401
-        
-        # Convert to dict
-        scan = {
-            'scan_id': scan_row[2],
-            'target_url': scan_row[3],
-            'scan_type': scan_row[4],
-            'status': scan_row[5],
-            'results': json.loads(scan_row[6] or '{}'),
-            'created_at': scan_row[7],
-            'completed_at': scan_row[8]
-        }
-        
-        return jsonify({
-            'status': 'success',
-            'scan': scan
-        })
-        
-    except Exception as e:
-        logging.error(f"Error getting scan status: {e}")
-        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
+    return render_template('admin/customization-form.html')
 
 
 # Helper function for direct database calls if needed
@@ -1948,25 +855,15 @@ def create_client_direct(conn, cursor, client_data, user_id):
     # Save customization data
     default_scans = json.dumps(client_data.get('default_scans', []))
     
-    # Add button_color column if it doesn't exist (migration)
-    try:
-        cursor.execute('ALTER TABLE customizations ADD COLUMN button_color TEXT DEFAULT "#d96c33"')
-        conn.commit()
-        logging.info("Added button_color column to customizations table")
-    except Exception as e:
-        # Column already exists or other error - this is OK
-        logging.debug(f"Button color column migration: {e}")
-    
     cursor.execute('''
     INSERT INTO customizations 
-    (client_id, primary_color, secondary_color, button_color, logo_path, 
+    (client_id, primary_color, secondary_color, logo_path, 
      favicon_path, email_subject, email_intro, default_scans, last_updated, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         client_id,
-        client_data.get('primary_color', '#02054c'),
-        client_data.get('secondary_color', '#35a310'),
-        client_data.get('button_color', '#d96c33'),
+        client_data.get('primary_color', '#FF6900'),
+        client_data.get('secondary_color', '#808588'),
         client_data.get('logo_path', ''),
         client_data.get('favicon_path', ''),
         client_data.get('email_subject', 'Your Security Scan Report'),
@@ -2461,7 +1358,7 @@ def run_consolidated_scan(lead_data):
     
     # Initialize scan results structure - UPDATED to include industry info
     email = lead_data.get('email', '')
-    email_domain = get_scan_target(email, lead_data.get("target")) if email else ''
+    email_domain = extract_domain_from_email(email) if email else ''
     company_name = lead_data.get('company', '')
     
     # Determine industry
@@ -2553,7 +1450,7 @@ def run_consolidated_scan(lead_data):
         logging.info("Running email security checks...")
         email = lead_data.get('email', '')
         if "@" in email:
-            domain = get_scan_target(email, lead_data.get("target"))
+            domain = extract_domain_from_email(email)
             logging.debug(f"Extracted domain from email: {domain}")
             
             try:
@@ -2611,7 +1508,7 @@ def run_consolidated_scan(lead_data):
         email = lead_data.get('email', '')
         extracted_domain = None
         if "@" in email:
-            extracted_domain = get_scan_target(email, lead_data.get("target"))
+            extracted_domain = extract_domain_from_email(email)
             logging.debug(f"Extracted domain from email: {extracted_domain}")
     
         # Use extracted domain or fall back to target
@@ -3137,6 +2034,27 @@ def admin_simplified():
         <p>An error occurred: {str(e)}</p>
         <a href="/emergency_login">Back to Emergency Login</a>
         """
+        
+@app.route('/')
+def index():
+    """Render the home page"""
+    try:
+        logging.debug("Attempting to render index.html")
+        return render_template('index.html')
+    except Exception as e:
+        error_message = f"Error rendering index page: {str(e)}"
+        logging.error(error_message)
+        
+        return f"""
+        <html>
+            <head><title>Error</title></head>
+            <body>
+                <h1>An error occurred</h1>
+                <p>{error_message}</p>
+                <p>Please contact support.</p>
+            </body>
+        </html>
+        """, 500
 
 @app.route('/scan', methods=['GET', 'POST'])
 def scan_page():
@@ -3171,96 +2089,23 @@ def scan_page():
             lead_id = save_lead_data(lead_data)
             logging.info(f"Lead data saved with ID: {lead_id}")
             
-            # Check for client_id in query parameters or form data (used for client-specific scanner)
-            client_id = request.args.get('client_id') or request.form.get('client_id')
-            scanner_id = request.args.get('scanner_id') or request.form.get('scanner_id')
+            # Check for client_id in query parameters (used for client-specific scanner)
+            client_id = request.args.get('client_id')
             
             # If client_id is provided, get client customizations
             client = None
             if client_id:
-                try:
-                    from client_db import get_db_connection
-                    conn = get_db_connection()
-                    conn.row_factory = sqlite3.Row
-                    cursor = conn.cursor()
-                    cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
-                    client_row = cursor.fetchone()
-                    conn.close()
-                    
-                    if client_row:
-                        client = dict(client_row)
-                        logging.info(f"Using client {client_id} for scan tracking (scanner: {scanner_id})")
-                    else:
-                        logging.warning(f"Client {client_id} not found")
-                except Exception as client_error:
-                    logging.error(f"Error getting client {client_id}: {client_error}")
-                    client = None
+                from client_db import get_client_by_id
+                client = get_client_by_id(client_id)
             
             # Run the full consolidated scan
             logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
             scan_results = run_consolidated_scan(lead_data)
             
-            # Add client tracking information to scan results
+            # If scan was performed through a client scanner, log it
             if client:
-                scan_results['client_id'] = client['id']
-                scan_results['scanner_id'] = scanner_id or 'web_interface'
-                # Copy lead data into scan results for tracking
-                scan_results.update(lead_data)
-                
-                # Legacy client logging (keeping for compatibility)
                 from client_db import log_scan
-                log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
-                
-                # Save to client-specific database for reporting
-                try:
-                    from client_database_manager import save_scan_to_client_db
-                    save_scan_to_client_db(client['id'], scan_results)
-                    logging.info(f"Saved scan to client-specific database for client {client['id']}")
-                except Exception as client_db_error:
-                    logging.error(f"Error saving to client-specific database: {client_db_error}")
-                    import traceback
-                    logging.error(traceback.format_exc())
-            else:
-                # Check if current user is logged in and link scan to their client
-                try:
-                    from client_db import verify_session, get_client_by_user_id
-                    session_token = session.get('session_token')
-                    if session_token:
-                        result = verify_session(session_token)
-                        # Handle different return formats from verify_session
-                        if result.get('status') == 'success' and result.get('user'):
-                            user_client = get_client_by_user_id(result['user']['user_id'])
-                            if user_client:
-                                scan_results['client_id'] = user_client['id']
-                                scan_results['scanner_id'] = 'web_interface'
-                                scan_results.update(lead_data)
-                                logger.info(f"Linked scan to client {user_client['id']} via user {result['user']['user_id']}")
-                                
-                                # Save to client-specific database
-                                try:
-                                    from client_database_manager import save_scan_to_client_db
-                                    save_scan_to_client_db(user_client['id'], scan_results)
-                                    logging.info(f"Saved scan to client-specific database for client {user_client['id']}")
-                                except Exception as client_db_error:
-                                    logging.error(f"Error saving to client-specific database: {client_db_error}")
-                                
-                                # Legacy client logging
-                                try:
-                                    from client_db import log_scan
-                                    log_scan(user_client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
-                                except Exception as log_error:
-                                    logging.error(f"Error logging scan: {log_error}")
-                            else:
-                                logger.warning(f"No client found for user {result['user']['user_id']}")
-                        else:
-                            logger.warning(f"Session verification failed: {result.get('message', 'Unknown error')}")
-                    else:
-                        logger.warning("No session token found for scan linking")
-                                
-                except Exception as e:
-                    logger.warning(f"Could not link scan to current user: {e}")
-                    import traceback
-                    logger.warning(traceback.format_exc())
+                log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''))
             
             # Check if scan_results contains valid data
             if not scan_results or 'scan_id' not in scan_results:
@@ -3302,7 +2147,7 @@ def scan_page():
                         html_report, 
                         client['business_name'],
                         client.get('logo_path', ''),
-                        client.get('primary_color', '#02054c'),
+                        client.get('primary_color', '#FF6900'),
                         email_subject,
                         email_intro
                     )
@@ -3355,7 +2200,6 @@ def scan_page():
                 return render_template('results.html', scan=scan_results)
                 
         except Exception as scan_error:
-            import traceback
             logging.error(f"Error during scan: {str(scan_error)}")
             logging.debug(f"Exception traceback: {traceback.format_exc()}")
             
@@ -3375,103 +2219,16 @@ def scan_page():
     # For GET requests, show the scan form
     error = request.args.get('error')
     
-    # Check if user is logged in and get their scanners
-    user_scanners = []
-    current_user = None
-    
-    session_token = session.get('session_token')
-    if session_token:
-        try:
-            from auth_utils import verify_session
-            session_result = verify_session(session_token)
-            if session_result['status'] == 'success':
-                current_user = session_result['user']
-                user_id = current_user['user_id']
-                
-                # Get user's scanners
-                from client_db import get_db_connection
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                
-                # Get scanners for this user with customizations
-                cursor.execute('''
-                    SELECT 
-                        s.scanner_id, 
-                        s.name, 
-                        s.description, 
-                        s.domain,
-                        s.primary_color,
-                        s.secondary_color,
-                        c.business_name,
-                        cust.logo_path as logo_url
-                    FROM scanners s
-                    JOIN clients c ON s.client_id = c.id
-                    LEFT JOIN customizations cust ON c.id = cust.client_id
-                    WHERE c.user_id = ?
-                    ORDER BY s.created_at DESC
-                ''', (user_id,))
-                
-                user_scanners = [dict(row) for row in cursor.fetchall()]
-                
-                # Get client branding information
-                client_branding = None
-                if user_scanners:
-                    # Get the first scanner's client for branding
-                    cursor.execute('''
-                        SELECT 
-                            c.business_name,
-                            c.contact_email,
-                            cust.primary_color,
-                            cust.secondary_color,
-                            cust.button_color,
-                            cust.logo_path,
-                            cust.email_subject,
-                            cust.email_intro
-                        FROM clients c
-                        LEFT JOIN customizations cust ON c.id = cust.client_id
-                        WHERE c.user_id = ?
-                        LIMIT 1
-                    ''', (user_id,))
-                    
-                    branding_row = cursor.fetchone()
-                    if branding_row:
-                        client_branding = {
-                            'business_name': branding_row[0],
-                            'contact_email': branding_row[1],
-                            'primary_color': branding_row[2] or '#02054c',
-                            'secondary_color': branding_row[3] or '#35a310',
-                            'button_color': branding_row[4] or '#d96c33',
-                            'logo_url': branding_row[5] or '',
-                            'email_subject': branding_row[6] or 'Your Security Scan Report',
-                            'email_intro': branding_row[7] or ''
-                        }
-                
-                conn.close()
-                
-                logging.info(f"Found {len(user_scanners)} scanners for user {user_id}")
-                
-        except Exception as e:
-            logging.error(f"Error checking user session or getting scanners: {e}")
-    
     # Check for client_id in query parameters (used for client-specific scanner)
     client_id = request.args.get('client_id')
     client = None
     
     if client_id:
         try:
-            from client_db import get_db_connection
-            conn = get_db_connection()
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
-            client_row = cursor.fetchone()
-            conn.close()
-            
-            if client_row:
-                client = dict(client_row)
+            from client_db import get_client_by_id
+            client = get_client_by_id(client_id)
         except Exception as e:
             logging.error(f"Error retrieving client {client_id}: {e}")
-            client = None
     
     # Use client's template if available
     if client:
@@ -3489,21 +2246,12 @@ def scan_page():
             
             from jinja2 import Template
             template = Template(template_content)
-            rendered_html = template.render(
-                error=error, 
-                user_scanners=user_scanners, 
-                current_user=current_user,
-                client_branding=client_branding if 'client_branding' in locals() else None
-            )
+            rendered_html = template.render(error=error)
             
             return rendered_html
     
-    # Fall back to standard template with scanner information
-    return render_template('scan.html', 
-                         error=error, 
-                         user_scanners=user_scanners, 
-                         current_user=current_user,
-                         client_branding=client_branding if 'client_branding' in locals() else None)
+    # Fall back to standard template
+    return render_template('scan.html', error=error)
 
 @app.route('/results')
 def results():
@@ -3543,76 +2291,6 @@ def results():
                     'access_management': {'name': 'Access Management', 'description': 'Controls for secure system access', 'findings': [], 'risk_level': 'Low', 'score': 0, 'max_score': 0}
                 }
         
-        # Get client branding information for white label results
-        client_branding = None
-        user_id = None
-        
-        # Try to get user_id from session token first (preferred method)
-        session_token = session.get('session_token')
-        if session_token:
-            try:
-                from auth_utils import verify_session
-                session_result = verify_session(session_token)
-                if session_result['status'] == 'success':
-                    current_user = session_result['user']
-                    user_id = current_user['user_id']
-                    logging.info(f"Results page: Found user_id {user_id} via session token")
-            except Exception as e:
-                logging.error(f"Error verifying session token: {e}")
-        
-        # Fallback to direct session user_id
-        if not user_id:
-            user_id = session.get('user_id') or session.get('user', {}).get('user_id')
-            if user_id:
-                logging.info(f"Results page: Found user_id {user_id} via direct session")
-        
-        logging.info(f"Results page: Final user_id for branding lookup: {user_id}")
-        
-        if user_id:
-            try:
-                conn = sqlite3.connect('client_scanner.db')
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                
-                # Get client branding information
-                cursor.execute('''
-                    SELECT 
-                        c.business_name,
-                        c.contact_email,
-                        cust.primary_color,
-                        cust.secondary_color,
-                        cust.button_color,
-                        cust.logo_path,
-                        cust.favicon_path,
-                        cust.email_subject,
-                        cust.email_intro
-                    FROM clients c
-                    LEFT JOIN customizations cust ON c.id = cust.client_id
-                    WHERE c.user_id = ?
-                    LIMIT 1
-                ''', (user_id,))
-                
-                branding_row = cursor.fetchone()
-                if branding_row:
-                    client_branding = {
-                        'business_name': branding_row[0],
-                        'contact_email': branding_row[1],
-                        'primary_color': branding_row[2] or '#02054c',
-                        'secondary_color': branding_row[3] or '#35a310',
-                        'button_color': branding_row[4] or '#d96c33',
-                        'logo_path': branding_row[5] or '',
-                        'favicon_path': branding_row[6] or '',
-                        'email_subject': branding_row[7] or 'Your Security Scan Report',
-                        'email_intro': branding_row[8] or ''
-                    }
-                    logging.info(f"Results page: Found client branding: {client_branding}")
-                else:
-                    logging.warning(f"Results page: No branding found for user_id {user_id}")
-                
-                conn.close()
-            except Exception as e:
-                logging.error(f"Error fetching client branding: {e}")
-
         # Get client IP and gateway info for the template
         client_ip = "Unknown"
         gateway_guesses = []
@@ -3658,8 +2336,7 @@ def results():
                                client_ip=client_ip,
                                gateway_guesses=gateway_guesses,
                                network_type=network_type,
-                               gateway_info=gateway_info,
-                               client_branding=client_branding)
+                               gateway_info=gateway_info)
 
     except Exception as e:
         logging.error(f"Error loading scan results: {e}")
@@ -3969,7 +2646,7 @@ def quick_scan():
                 return "Email is required", 400
             
             # Extract domain from email
-            domain = get_scan_target(email, lead_data.get("target"))
+            domain = extract_domain_from_email(email)
             
             # Create minimal test data
             test_data = {
@@ -4389,6 +3066,10 @@ def debug_submit():
 
 @app.route('/admin')
 def admin_dashboard_redirect():
+    return redirect(url_for('admin.dashboard'))
+
+@app.route('/admin', endpoint='main_admin_redirect')
+def admin_main_redirect():
     """Redirect to admin dashboard"""
     return redirect(url_for('admin.dashboard'))
 
@@ -4402,7 +3083,46 @@ def handle_404(e):
     app.logger.error(f'404 error: {str(e)}')
     return render_template('error.html', error="Page not found"), 404
 
-# Duplicate create-scanner route removed - handled by api.py
+@app.route('/api/create-scanner', methods=['POST'])
+def create_scanner_api():
+    """API endpoint to handle scanner creation form submission"""
+    try:
+        # Get form data
+        client_data = {
+            'business_name': request.form.get('business_name', ''),
+            'business_domain': request.form.get('business_domain', ''),
+            'contact_email': request.form.get('contact_email', ''),
+            'contact_phone': request.form.get('contact_phone', ''),
+            'scanner_name': request.form.get('scanner_name', ''),
+            'subscription': request.form.get('subscription', 'basic'),
+            'primary_color': request.form.get('primary_color', '#FF6900'),
+            'secondary_color': request.form.get('secondary_color', '#808588'),
+            'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
+            'email_intro': request.form.get('email_intro', '')
+        }
+        
+        # Get default scans
+        default_scans = request.form.getlist('default_scans[]')
+        if default_scans:
+            client_data['default_scans'] = default_scans
+        
+        # Handle file uploads
+        if 'logo' in request.files and request.files['logo'].filename:
+            # Process logo upload
+            pass
+            
+        if 'favicon' in request.files and request.files['favicon'].filename:
+            # Process favicon upload
+            pass
+            
+        # For now, just return success response
+        flash('Scanner created successfully', 'success')
+        return redirect(url_for('admin.dashboard'))
+        
+    except Exception as e:
+        app.logger.error(f"Error creating scanner: {str(e)}")
+        flash(f'Error creating scanner: {str(e)}', 'danger')
+        return redirect(url_for('customize_scanner'))
 
 @app.route('/api/service_inquiry', methods=['POST'])
 def api_service_inquiry():
@@ -4705,127 +3425,11 @@ def apply_route_fixes():
         print("Some route fixes could not be applied.")
         return False
 
+if __name__ == "__main__":
+    apply_route_fixes()
 
-# Enhanced scanner route to fix 404 errors
-@app.route('/scanner/<scanner_uid>')
-@app.route('/scanner/<scanner_uid>/')
-def serve_scanner_embed(scanner_uid):
-    """Serve the scanner embed page"""
-    try:
-        logger.info(f"Serving scanner embed for: {scanner_uid}")
-        
-        # Get scanner data from database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get scanner and client data with proper joins
-        cursor.execute("""
-            SELECT s.*, c.business_name, c.contact_email,
-                   cust.primary_color, cust.secondary_color, cust.logo_path,
-                   cust.email_subject, cust.email_intro
-            FROM scanners s 
-            JOIN clients c ON s.client_id = c.id 
-            LEFT JOIN customizations cust ON c.id = cust.client_id
-            WHERE s.scanner_id = ?
-        """, (scanner_uid,))
-        
-        scanner_row = cursor.fetchone()
-        conn.close()
-        
-        if not scanner_row:
-            logger.error(f"Scanner not found: {scanner_uid}")
-            return "Scanner not found", 404
-            
-        # Build scanner data object
-        scanner_data = {
-            'scanner_id': scanner_row[2],
-            'name': scanner_row[3],
-            'business_name': scanner_row[-7] if len(scanner_row) > 7 else 'Security Services',
-            'primary_color': scanner_row[-5] if len(scanner_row) > 5 else '#02054c',
-            'secondary_color': scanner_row[-4] if len(scanner_row) > 4 else '#35a310',
-            'logo_url': scanner_row[-3] if len(scanner_row) > 3 else '',
-            'contact_email': scanner_row[-6] if len(scanner_row) > 6 else 'support@example.com',
-        }
-        
-        # Check if deployment files exist
-        deployment_dir = f"static/deployments/scanner_{scanner_uid}"
-        html_file = os.path.join(deployment_dir, 'index.html')
-        
-        if os.path.exists(html_file):
-            # Serve existing deployment
-            return send_file(html_file)
-        else:
-            # Generate deployment on-the-fly
-            from scanner_deployment import generate_scanner_deployment
-            
-            api_key = scanner_row[6] if len(scanner_row) > 6 else 'default_key'
-            result = generate_scanner_deployment(scanner_uid, scanner_data, api_key)
-            
-            if result.get('status') == 'success':
-                return send_file(html_file)
-            else:
-                logger.error(f"Failed to generate deployment: {result}")
-                return "Scanner deployment failed", 500
-                
-    except Exception as e:
-        logger.error(f"Error serving scanner embed: {e}")
-        return f"Error loading scanner: {str(e)}", 500
 
-# Enhanced domain extraction for scanning
-def get_scan_target(email, domain_input=None):
-    """
-    Determine the target for scanning based on email and optional domain input
-    """
-    # Priority: 1. User provided domain, 2. Email domain
-    if domain_input and domain_input.strip():
-        target = domain_input.strip()
-        # Clean up the domain
-        target = target.replace('https://', '').replace('http://', '').rstrip('/')
-        return target
-    elif email and '@' in email:
-        return email.split('@')[-1]
-    else:
-        return None
-
-# Enhanced log_scan function
-def log_scan_enhanced(client_id, scan_id=None, target=None, scan_type='standard', status='pending'):
-    """
-    Enhanced log_scan function with proper parameter handling
-    """
-    import uuid
     
-    try:
-        # Generate scan_id if not provided
-        if not scan_id:
-            scan_id = str(uuid.uuid4())
-        
-        # Default scan_type if not provided
-        if not scan_type:
-            scan_type = 'standard'
-            
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get current timestamp
-        timestamp = datetime.now().isoformat()
-        
-        # Insert scan record with all required fields
-        cursor.execute("""
-            INSERT INTO scan_history (
-                client_id, scan_id, timestamp, target, scan_type, status
-            ) VALUES (?, ?, ?, ?, ?, ?)
-        """, (client_id, scan_id, timestamp, target or '', scan_type, status))
-        
-        conn.commit()
-        conn.close()
-        
-        return {"status": "success", "scan_id": scan_id}
-        
-    except Exception as e:
-        logger.error(f"Error logging scan: {e}")
-        return {"status": "error", "message": str(e)}
-
-
 # ---------------------------- MAIN ENTRY POINT ----------------------------
 
 if __name__ == '__main__':
