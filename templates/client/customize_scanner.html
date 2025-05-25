@@ -208,7 +208,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-3">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <label for="primaryColor" class="form-label">Primary Color</label>
                                             <div class="input-group">
                                                 <input type="color" class="form-control form-control-color" id="primaryColor" value="#02054c">
@@ -216,11 +216,19 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <label for="secondaryColor" class="form-label">Secondary Color</label>
                                             <div class="input-group">
                                                 <input type="color" class="form-control form-control-color" id="secondaryColor" value="#35a310">
                                                 <input type="text" class="form-control" id="secondaryColorHex" value="#35a310">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <label for="buttonColor" class="form-label">Button Color</label>
+                                            <div class="input-group">
+                                                <input type="color" class="form-control form-control-color" id="buttonColor" value="#d96c33">
+                                                <input type="text" class="form-control" id="buttonColorHex" value="#d96c33">
                                             </div>
                                         </div>
                                     </div>
@@ -433,6 +441,16 @@
                     this.updateLivePreview();
                 });
                 
+                document.getElementById('buttonColor').addEventListener('input', (e) => {
+                    document.getElementById('buttonColorHex').value = e.target.value;
+                    this.updateLivePreview();
+                });
+                
+                document.getElementById('buttonColorHex').addEventListener('input', (e) => {
+                    document.getElementById('buttonColor').value = e.target.value;
+                    this.updateLivePreview();
+                });
+                
                 // Logo upload
                 document.getElementById('logoUpload').addEventListener('change', (e) => {
                     this.handleLogoUpload(e);
@@ -467,16 +485,18 @@
             updateLivePreview() {
                 const primaryColor = document.getElementById('primaryColor').value;
                 const secondaryColor = document.getElementById('secondaryColor').value;
+                const buttonColor = document.getElementById('buttonColor').value;
                 const scannerName = document.getElementById('scannerName').value;
                 const businessDomain = document.getElementById('businessDomain').value;
                 
                 // Update CSS variables
                 document.documentElement.style.setProperty('--primary-color', primaryColor);
                 document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+                document.documentElement.style.setProperty('--button-color', buttonColor);
                 
                 // Update preview colors
                 document.querySelector('.scanner-preview').style.backgroundColor = secondaryColor;
-                document.querySelector('.preview-button').style.backgroundColor = primaryColor;
+                document.querySelector('.preview-button').style.backgroundColor = buttonColor;
                 
                 // Update scanner name
                 if (!document.getElementById('logoUpload').files[0]) {
@@ -560,6 +580,7 @@
                     contactPhone: document.getElementById('contactPhone')?.value || '',
                     primaryColor: document.getElementById('primaryColor').value,
                     secondaryColor: document.getElementById('secondaryColor').value,
+                    buttonColor: document.getElementById('buttonColor').value,
                     emailSubject: document.getElementById('emailSubject').value,
                     emailIntro: document.getElementById('emailIntro').value,
                     defaultScans: [],
