@@ -1314,6 +1314,7 @@ def customize_scanner():
                 'domain': scanner_data['business_domain'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
+                'button_color': scanner_data.get('button_color', '#d96c33'),
                 'logo_url': scanner_data.get('logo_path', ''),  # Fix: use logo_url to match database column
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'contact_email': scanner_data['contact_email'],
@@ -1511,9 +1512,10 @@ def scanner_embed(scanner_uid):
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute('''
-            SELECT s.*, c.business_name 
+            SELECT s.*, c.business_name, cust.button_color
             FROM scanners s 
             JOIN clients c ON s.client_id = c.id 
+            LEFT JOIN customizations cust ON c.id = cust.client_id
             WHERE s.scanner_id = ?
             ''', (scanner_uid,))
             
@@ -1597,7 +1599,7 @@ def scanner_embed(scanner_uid):
             # Convert to dict and generate deployment
             scanner_data = {
                 'name': scanner_row[3] if len(scanner_row) > 3 else 'Security Scanner',
-                'business_name': scanner_row[-1] if len(scanner_row) > 15 else 'Security Services',
+                'business_name': scanner_row[-2] if len(scanner_row) > 16 else 'Security Services',  # business_name is second-to-last
                 'primary_color': scanner_row[7] if len(scanner_row) > 7 else '#02054c',
                 'secondary_color': scanner_row[8] if len(scanner_row) > 8 else '#35a310',
                 'logo_url': scanner_row[9] if len(scanner_row) > 9 else '',
@@ -1605,7 +1607,8 @@ def scanner_embed(scanner_uid):
                 'contact_phone': scanner_row[11] if len(scanner_row) > 11 else '',
                 'email_subject': scanner_row[12] if len(scanner_row) > 12 else 'Your Security Scan Report',
                 'email_intro': scanner_row[13] if len(scanner_row) > 13 else '',
-                'scan_types': (scanner_row[14] if len(scanner_row) > 14 else 'port_scan,ssl_check').split(',')
+                'scan_types': (scanner_row[14] if len(scanner_row) > 14 else 'port_scan,ssl_check').split(','),
+                'button_color': scanner_row[-1] if len(scanner_row) > 17 and scanner_row[-1] else '#d96c33'  # button_color is last
             }
             
             api_key = scanner_row[6] if len(scanner_row) > 6 else 'default_key'
