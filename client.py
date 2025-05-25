@@ -112,6 +112,9 @@ def dashboard(user):
             }
         else:
             # Normal flow - get real data for existing client
+            # Initialize client_scanners to ensure it's always defined
+            client_scanners = []
+            
             # Import scanner functions
             from scanner_db_functions import patch_client_db_scanner_functions, get_scanners_by_client_id
             patch_client_db_scanner_functions()

@@ -748,13 +748,47 @@ def customize_scanner():
                 client_data['favicon_path'] = favicon_path
                 logging.info(f"Favicon saved at {favicon_path}")
             
-            # Create client in database
-            from client_db import create_client
+            # First create a user if one doesn't exist
+            from auth_utils import create_user
+            from client_db import create_client, get_db_connection
+            
+            # Check if user is logged in, if not create a new user
+            user_id = session.get('user_id')
+            if not user_id:
+                logging.info("Creating new user for customize form...")
+                # Generate username from business name
+                username = client_data['business_name'].lower().replace(' ', '_').replace('-', '_')[:20]
+                # Generate temporary password
+                import secrets
+                temp_password = secrets.token_urlsafe(12)
+                
+                user_result = create_user(
+                    username=username,
+                    email=client_data['contact_email'],
+                    password=temp_password,
+                    role='client',
+                    full_name=client_data['business_name']
+                )
+                
+                if user_result['status'] != 'success':
+                    logging.error(f"Error creating user: {user_result['message']}")
+                    flash(f"Error creating account: {user_result['message']}", 'danger')
+                    return render_template('admin/customization-form.html')
+                
+                user_id = user_result['user_id']
+                logging.info(f"Created new user with ID: {user_id}")
+            else:
+                logging.info(f"Using existing user ID: {user_id}")
             
             logging.info("Creating client in database...")
             
-            # Call create_client with the correct parameters
-            result = create_client(client_data, user_id)
+            # Get database connection and call create_client with the correct parameters
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            try:
+                result = create_client(conn, cursor, client_data, user_id)
+            finally:
+                conn.close()
             
             if not result or result.get('status') != 'success':
                 error_msg = result.get('message', 'Unknown error') if result else 'Failed to create client'
