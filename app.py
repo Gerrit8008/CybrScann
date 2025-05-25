@@ -412,6 +412,7 @@ def init_database():
         client_id INTEGER NOT NULL,
         primary_color TEXT,
         secondary_color TEXT,
+        button_color TEXT DEFAULT '#d96c33',
         logo_path TEXT,
         favicon_path TEXT,
         email_subject TEXT,
@@ -1218,6 +1219,7 @@ def customize_scanner():
                 'scanner_name': request.form.get('scanner_name', '').strip(),
                 'primary_color': request.form.get('primary_color', '#02054c'),
                 'secondary_color': request.form.get('secondary_color', '#35a310'),
+                'button_color': request.form.get('button_color', '#d96c33'),
                 'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
                 'email_intro': request.form.get('email_intro', ''),
                 'subscription': request.form.get('subscription', 'basic'),
@@ -1269,6 +1271,7 @@ def customize_scanner():
                 'subscription_level': scanner_data['subscription'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
+                'button_color': scanner_data['button_color'],
                 'logo_path': scanner_data.get('logo_path', ''),
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'email_subject': scanner_data['email_subject'],
@@ -1456,7 +1459,7 @@ def scanner_embed(scanner_uid):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
-        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.logo_path
+        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.button_color, cu.logo_path
         FROM scanners s 
         JOIN clients c ON s.client_id = c.id 
         LEFT JOIN customizations cu ON c.id = cu.client_id
@@ -1475,6 +1478,7 @@ def scanner_embed(scanner_uid):
                 'business_name': scanner_data.get('business_name', ''),
                 'primary_color': scanner_data.get('primary_color', '#02054c'),
                 'secondary_color': scanner_data.get('secondary_color', '#35a310'),
+                'button_color': scanner_data.get('button_color', '#d96c33'),
                 'logo_path': scanner_data.get('logo_path', ''),
                 'scanner_name': scanner_data.get('name', 'Security Scanner')
             }
@@ -1847,15 +1851,25 @@ def create_client_direct(conn, cursor, client_data, user_id):
     # Save customization data
     default_scans = json.dumps(client_data.get('default_scans', []))
     
+    # Add button_color column if it doesn't exist (migration)
+    try:
+        cursor.execute('ALTER TABLE customizations ADD COLUMN button_color TEXT DEFAULT "#d96c33"')
+        conn.commit()
+        logging.info("Added button_color column to customizations table")
+    except Exception as e:
+        # Column already exists or other error - this is OK
+        logging.debug(f"Button color column migration: {e}")
+    
     cursor.execute('''
     INSERT INTO customizations 
-    (client_id, primary_color, secondary_color, logo_path, 
+    (client_id, primary_color, secondary_color, button_color, logo_path, 
      favicon_path, email_subject, email_intro, default_scans, last_updated, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         client_id,
         client_data.get('primary_color', '#02054c'),
         client_data.get('secondary_color', '#35a310'),
+        client_data.get('button_color', '#d96c33'),
         client_data.get('logo_path', ''),
         client_data.get('favicon_path', ''),
         client_data.get('email_subject', 'Your Security Scan Report'),
@@ -3312,6 +3326,7 @@ def scan_page():
                             c.contact_email,
                             cust.primary_color,
                             cust.secondary_color,
+                            cust.button_color,
                             cust.logo_path,
                             cust.email_subject,
                             cust.email_intro
@@ -3328,9 +3343,10 @@ def scan_page():
                             'contact_email': branding_row[1],
                             'primary_color': branding_row[2] or '#02054c',
                             'secondary_color': branding_row[3] or '#35a310',
-                            'logo_url': branding_row[4] or '',
-                            'email_subject': branding_row[5] or 'Your Security Scan Report',
-                            'email_intro': branding_row[6] or ''
+                            'button_color': branding_row[4] or '#d96c33',
+                            'logo_url': branding_row[5] or '',
+                            'email_subject': branding_row[6] or 'Your Security Scan Report',
+                            'email_intro': branding_row[7] or ''
                         }
                 
                 conn.close()
@@ -3468,6 +3484,7 @@ def results():
                         c.contact_email,
                         cust.primary_color,
                         cust.secondary_color,
+                        cust.button_color,
                         cust.logo_path,
                         cust.favicon_path,
                         cust.email_subject,
@@ -3485,10 +3502,11 @@ def results():
                         'contact_email': branding_row[1],
                         'primary_color': branding_row[2] or '#02054c',
                         'secondary_color': branding_row[3] or '#35a310',
-                        'logo_path': branding_row[4] or '',
-                        'favicon_path': branding_row[5] or '',
-                        'email_subject': branding_row[6] or 'Your Security Scan Report',
-                        'email_intro': branding_row[7] or ''
+                        'button_color': branding_row[4] or '#d96c33',
+                        'logo_path': branding_row[5] or '',
+                        'favicon_path': branding_row[6] or '',
+                        'email_subject': branding_row[7] or 'Your Security Scan Report',
+                        'email_intro': branding_row[8] or ''
                     }
                     logging.info(f"Results page: Found client branding: {client_branding}")
                 else:
