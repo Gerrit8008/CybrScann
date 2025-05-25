@@ -92,19 +92,9 @@
                 <label class="form-check-label text-white" for="toggleExplanations">Show Explanations</label>
             </div>
             {% if client_branding and (client_branding.logo_url or client_branding.logo_path) %}
-                <img src="{{ client_branding.logo_url or client_branding.logo_path }}" alt="{{ client_branding.business_name }} Logo" class="logo" 
-                     style="max-height: 60px; max-width: 200px; object-fit: contain;"
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div class="logo-fallback" style="display: none; color: white; font-size: 1.5rem; font-weight: bold;">
-                    {{ client_branding.business_name[:2].upper() if client_branding.business_name else 'SR' }}
-                </div>
+                <img src="{{ client_branding.logo_url or client_branding.logo_path }}" alt="{{ client_branding.business_name }} Logo" class="logo" onerror="this.style.display='none';">
             {% else %}
-                <img src="/static/images/logo.png" alt="Company Logo" class="logo" 
-                     style="max-height: 60px; max-width: 200px; object-fit: contain;"
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div class="logo-fallback" style="display: none; color: white; font-size: 1.5rem; font-weight: bold;">
-                    SR
-                </div>
+                <img src="/static/images/logo.png" alt="Company Logo" class="logo" onerror="this.style.display='none';">
             {% endif %}
             {% if client_branding and client_branding.business_name %}
                 <h1>{{ client_branding.business_name }} Security Scan Results</h1>

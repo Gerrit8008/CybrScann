@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Security Scanner - Scanner Platform</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon.png.png">
+    <link rel="shortcut icon" href="/static/images/favicon.png.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
@@ -51,7 +55,7 @@
         }
         
         .scanner-preview {
-            background-color: var(--secondary-color, #808588);
+            background-color: var(--secondary-color, #35a310);
             color: white;
             padding: 1rem;
             display: flex;
@@ -72,7 +76,7 @@
         }
         
         .preview-button {
-            background-color: var(--primary-color, #FF6900);
+            background-color: var(--primary-color, #02054c);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
@@ -135,7 +139,7 @@
                     <a href="/client/reports" class="sidebar-link">
                         <i class="bi bi-file-earmark-text"></i> Scan Reports
                     </a>
-                    <a href="/preview/customize" class="sidebar-link active">
+                    <a href="/customize" class="sidebar-link active">
                         <i class="bi bi-plus-circle"></i> Create Scanner
                     </a>
                     <a href="/client/settings" class="sidebar-link">
@@ -207,16 +211,16 @@
                                         <div class="col-md-6">
                                             <label for="primaryColor" class="form-label">Primary Color</label>
                                             <div class="input-group">
-                                                <input type="color" class="form-control form-control-color" id="primaryColor" value="#FF6900">
-                                                <input type="text" class="form-control" id="primaryColorHex" value="#FF6900">
+                                                <input type="color" class="form-control form-control-color" id="primaryColor" value="#02054c">
+                                                <input type="text" class="form-control" id="primaryColorHex" value="#02054c">
                                             </div>
                                         </div>
                                         
                                         <div class="col-md-6">
                                             <label for="secondaryColor" class="form-label">Secondary Color</label>
                                             <div class="input-group">
-                                                <input type="color" class="form-control form-control-color" id="secondaryColor" value="#808588">
-                                                <input type="text" class="form-control" id="secondaryColorHex" value="#808588">
+                                                <input type="color" class="form-control form-control-color" id="secondaryColor" value="#35a310">
+                                                <input type="text" class="form-control" id="secondaryColorHex" value="#35a310">
                                             </div>
                                         </div>
                                     </div>
@@ -312,7 +316,7 @@
                             </div>
                             <div class="card-body p-0">
                                 <div class="live-preview-container">
-                                    <div class="scanner-preview" style="background-color: #808588;">
+                                    <div class="scanner-preview" style="background-color: #35a310;">
                                         <div id="previewLogo">
                                             <h4 class="mb-0">Security Scanner</h4>
                                         </div>
@@ -330,7 +334,7 @@
                                         </div>
                                         
                                         <div class="d-grid gap-2 mb-4">
-                                            <button type="button" class="preview-button btn-lg" style="background-color: #FF6900;">
+                                            <button type="button" class="preview-button btn-lg" style="background-color: #02054c;">
                                                 <i class="bi bi-play-circle me-2"></i>Start Security Scan
                                             </button>
                                         </div>
@@ -582,10 +586,10 @@
                         }
                     }
                     
-                    console.log('Submitting data to /preview/customize:', formData);
+                    console.log('Submitting data to /customize:', formData);
                     
                     // Send the data to the server
-                    const response = await fetch('/preview/customize', {
+                    const response = await fetch('/customize', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
