@@ -241,3 +241,6 @@
 2025-05-25 10:35:56,913 - root - INFO - Initializing database from schema.sql...
 2025-05-25 10:35:56,925 - root - INFO - Schema executed successfully
 2025-05-25 10:35:56,925 - root - INFO - Database initialization completed
+2025-05-25 10:51:43,923 - root - INFO - Initializing database from schema.sql...
+2025-05-25 10:51:43,935 - root - INFO - Schema executed successfully
+2025-05-25 10:51:43,935 - root - INFO - Database initialization completed
