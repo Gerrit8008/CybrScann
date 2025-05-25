@@ -98,6 +98,7 @@ def dashboard(user):
             # Set default data for the dashboard
             scanners = []
             scan_history = []
+            client_scanners = []  # Initialize client_scanners for this code path too
             dashboard_data = {
                 'client': client,
                 'stats': {

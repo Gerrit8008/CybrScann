@@ -738,7 +738,8 @@ def customize_scanner():
             
             # First create a user if one doesn't exist
             from auth_utils import create_user
-            from client_db import create_client, get_db_connection
+            from client_db import get_db_connection
+            import client_db
             
             # Check if user is logged in, if not create a new user
             user_id = session.get('user_id')
@@ -774,7 +775,12 @@ def customize_scanner():
             conn = get_db_connection()
             cursor = conn.cursor()
             try:
-                result = create_client(conn, cursor, client_data, user_id)
+                # Debug the function call
+                import inspect
+                logging.info(f"Available create_client functions: {[name for name in dir(client_db) if 'create_client' in name]}")
+                
+                # Try to call the function directly from the module
+                result = client_db.create_client(conn, cursor, client_data, user_id)
             finally:
                 conn.close()
             
