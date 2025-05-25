@@ -974,6 +974,275 @@ def scanner_create(user):
     except Exception as e:
         logger.error(f"Error creating scanner: {str(e)}")
         flash('An error occurred while creating the scanner', 'danger')
+
+# =============================================================================
+# SCANNER MANAGEMENT ROUTES - View Details, Edit, Statistics
+# =============================================================================
+
+@client_bp.route('/scanners/<int:scanner_id>/view')
+@client_required
+def scanner_view_details(user, scanner_id):
+    """View detailed information about a specific scanner"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        if not client:
+            flash('Please complete your profile first', 'warning')
+            return redirect(url_for('client.profile'))
+        
+        # Get scanner details
+        from scanner_db_functions import get_scanner_by_id
+        scanner = get_scanner_by_id(scanner_id)
+        
+        if not scanner:
+            flash('Scanner not found', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        # Verify ownership
+        if scanner.get('client_id') != client['id']:
+            flash('You do not have permission to view this scanner', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        # Get scanner usage statistics
+        from client_db import get_scanner_stats
+        stats = get_scanner_stats(scanner_id)
+        
+        # Get recent scans for this scanner
+        from client_db import get_client_dashboard_data
+        dashboard_data = get_client_dashboard_data(client['id'])
+        recent_scans = []
+        
+        if dashboard_data and dashboard_data.get('scan_history'):
+            # Filter scans for this specific scanner
+            for scan in dashboard_data['scan_history']:
+                if scan.get('scanner_id') == scanner_id or scan.get('scanner_name') == scanner.get('name'):
+                    recent_scans.append(scan)
+        
+        # Get deployment information
+        scanner_url = f"/scan?scanner_id={scanner_id}"
+        embed_code = f'''<iframe src="{request.host_url}scan?scanner_id={scanner_id}&embed=1" 
+                         width="100%" height="600" frameborder="0"></iframe>'''
+        api_endpoint = f"{request.host_url}api/scan"
+        
+        return render_template('client/scanner-view.html',
+            user=user,
+            client=client,
+            scanner=scanner,
+            stats=stats,
+            recent_scans=recent_scans[:10],  # Show last 10 scans
+            scanner_url=scanner_url,
+            embed_code=embed_code,
+            api_endpoint=api_endpoint
+        )
+        
+    except Exception as e:
+        logger.error(f"Error viewing scanner details: {str(e)}")
+        flash('An error occurred while loading scanner details', 'danger')
+        return redirect(url_for('client.scanners'))
+
+@client_bp.route('/scanners/<int:scanner_id>/edit', methods=['GET', 'POST'])
+@client_required
+def scanner_edit(user, scanner_id):
+    """Edit scanner configuration and appearance"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        if not client:
+            flash('Please complete your profile first', 'warning')
+            return redirect(url_for('client.profile'))
+        
+        # Get scanner details
+        from scanner_db_functions import get_scanner_by_id, update_scanner_config
+        scanner = get_scanner_by_id(scanner_id)
+        
+        if not scanner:
+            flash('Scanner not found', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        # Verify ownership
+        if scanner.get('client_id') != client['id']:
+            flash('You do not have permission to edit this scanner', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        if request.method == 'POST':
+            # Get form data for scanner updates
+            update_data = {
+                'name': request.form.get('scanner_name', scanner.get('name', '')).strip(),
+                'description': request.form.get('description', scanner.get('description', '')).strip(),
+                'primary_color': request.form.get('primary_color', scanner.get('primary_color', '#02054c')),
+                'secondary_color': request.form.get('secondary_color', scanner.get('secondary_color', '#35a310')),
+                'logo_url': request.form.get('logo_url', scanner.get('logo_url', '')),
+                'contact_email': request.form.get('contact_email', scanner.get('contact_email', '')),
+                'contact_phone': request.form.get('contact_phone', scanner.get('contact_phone', '')),
+                'email_subject': request.form.get('email_subject', scanner.get('email_subject', 'Your Security Scan Report')),
+                'email_intro': request.form.get('email_intro', scanner.get('email_intro', '')),
+                'welcome_message': request.form.get('welcome_message', scanner.get('welcome_message', '')),
+                'custom_css': request.form.get('custom_css', scanner.get('custom_css', '')),
+                'footer_text': request.form.get('footer_text', scanner.get('footer_text', '')),
+                'company_tagline': request.form.get('company_tagline', scanner.get('company_tagline', '')),
+                'cta_text': request.form.get('cta_text', scanner.get('cta_text', 'Start Security Scan')),
+                'auto_redirect': 1 if request.form.get('auto_redirect') else 0,
+                'tracking_enabled': 1 if request.form.get('tracking_enabled') else 0,
+                'social_facebook': request.form.get('social_facebook', scanner.get('social_facebook', '')),
+                'social_twitter': request.form.get('social_twitter', scanner.get('social_twitter', '')),
+                'social_linkedin': request.form.get('social_linkedin', scanner.get('social_linkedin', '')),
+                'business_hours': request.form.get('business_hours', scanner.get('business_hours', '')),
+                'office_address': request.form.get('office_address', scanner.get('office_address', '')),
+                'whatsapp_number': request.form.get('whatsapp_number', scanner.get('whatsapp_number', ''))
+            }
+            
+            # Validation
+            if not update_data['name']:
+                flash('Scanner name is required', 'danger')
+                return render_template('client/scanner-edit.html', user=user, client=client, scanner=scanner)
+            
+            # Handle file upload for logo
+            if 'logo_file' in request.files:
+                logo_file = request.files['logo_file']
+                if logo_file and logo_file.filename:
+                    # Save uploaded logo
+                    from werkzeug.utils import secure_filename
+                    import os
+                    
+                    filename = secure_filename(logo_file.filename)
+                    upload_dir = os.path.join('static', 'uploads')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Create unique filename
+                    import time
+                    unique_filename = f"logo_{int(time.time())}_{filename}"
+                    filepath = os.path.join(upload_dir, unique_filename)
+                    
+                    logo_file.save(filepath)
+                    update_data['logo_url'] = f"/static/uploads/{unique_filename}"
+            
+            # Update scanner in database
+            success = update_scanner_config(scanner_id, update_data)
+            
+            if success:
+                flash('Scanner updated successfully!', 'success')
+                return redirect(url_for('client.scanner_view_details', scanner_id=scanner_id))
+            else:
+                flash('Failed to update scanner. Please try again.', 'danger')
+        
+        return render_template('client/scanner-edit.html',
+            user=user,
+            client=client,
+            scanner=scanner
+        )
+        
+    except Exception as e:
+        logger.error(f"Error editing scanner: {str(e)}")
+        flash('An error occurred while editing the scanner', 'danger')
+        return redirect(url_for('client.scanners'))
+
+@client_bp.route('/scanners/<int:scanner_id>/stats')
+@client_required
+def scanner_statistics(user, scanner_id):
+    """View detailed statistics for a specific scanner"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        if not client:
+            flash('Please complete your profile first', 'warning')
+            return redirect(url_for('client.profile'))
+        
+        # Get scanner details
+        from scanner_db_functions import get_scanner_by_id
+        scanner = get_scanner_by_id(scanner_id)
+        
+        if not scanner:
+            flash('Scanner not found', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        # Verify ownership
+        if scanner.get('client_id') != client['id']:
+            flash('You do not have permission to view statistics for this scanner', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        # Get comprehensive statistics
+        from client_db import get_client_dashboard_data
+        dashboard_data = get_client_dashboard_data(client['id'])
+        
+        # Filter data for this specific scanner
+        scanner_scans = []
+        total_scans = 0
+        total_score = 0
+        risk_distribution = {'Low': 0, 'Medium': 0, 'High': 0}
+        monthly_scans = {}
+        lead_sources = {}
+        company_sizes = {}
+        
+        if dashboard_data and dashboard_data.get('scan_history'):
+            for scan in dashboard_data['scan_history']:
+                if scan.get('scanner_id') == scanner_id or scan.get('scanner_name') == scanner.get('name'):
+                    scanner_scans.append(scan)
+                    total_scans += 1
+                    
+                    # Calculate statistics
+                    score = scan.get('security_score', 0)
+                    if score:
+                        total_score += score
+                    
+                    # Risk distribution
+                    risk = scan.get('risk_level', 'Medium')
+                    risk_distribution[risk] = risk_distribution.get(risk, 0) + 1
+                    
+                    # Monthly distribution
+                    timestamp = scan.get('timestamp', '')
+                    if timestamp:
+                        month = timestamp[:7]  # YYYY-MM
+                        monthly_scans[month] = monthly_scans.get(month, 0) + 1
+                    
+                    # Lead sources (company domains)
+                    target = scan.get('target', '')
+                    if target:
+                        lead_sources[target] = lead_sources.get(target, 0) + 1
+                    
+                    # Company sizes
+                    company_size = scan.get('company_size', 'Unknown')
+                    company_sizes[company_size] = company_sizes.get(company_size, 0) + 1
+        
+        # Calculate averages and trends
+        avg_security_score = (total_score / total_scans) if total_scans > 0 else 0
+        
+        # Get recent 30 days activity
+        from datetime import datetime, timedelta
+        thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
+        recent_scans = [s for s in scanner_scans if s.get('timestamp', '') > thirty_days_ago]
+        
+        # Prepare chart data
+        monthly_labels = sorted(monthly_scans.keys())[-6:]  # Last 6 months
+        monthly_values = [monthly_scans.get(month, 0) for month in monthly_labels]
+        
+        # Top performing targets
+        top_targets = sorted(lead_sources.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        statistics = {
+            'total_scans': total_scans,
+            'avg_security_score': round(avg_security_score, 1),
+            'recent_scans_30d': len(recent_scans),
+            'risk_distribution': risk_distribution,
+            'monthly_scans': dict(zip(monthly_labels, monthly_values)),
+            'top_targets': top_targets,
+            'company_sizes': company_sizes,
+            'unique_companies': len(set(s.get('lead_company', '') for s in scanner_scans if s.get('lead_company'))),
+            'conversion_rate': round((len([s for s in scanner_scans if s.get('lead_email')]) / total_scans * 100), 1) if total_scans > 0 else 0
+        }
+        
+        return render_template('client/scanner-stats.html',
+            user=user,
+            client=client,
+            scanner=scanner,
+            statistics=statistics,
+            recent_scans=scanner_scans[:20]  # Show last 20 scans
+        )
+        
+    except Exception as e:
+        logger.error(f"Error viewing scanner statistics: {str(e)}")
+        flash('An error occurred while loading scanner statistics', 'danger')
+        return redirect(url_for('client.scanners'))
+
 @client_bp.route('/debug-dashboard')
 @client_required
 def debug_dashboard(user):

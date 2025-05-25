@@ -1302,7 +1302,7 @@ def customize_scanner():
                 'domain': scanner_data['business_domain'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
-                'logo_path': scanner_data.get('logo_path', ''),
+                'logo_url': scanner_data.get('logo_path', ''),  # Fix: use logo_url to match database column
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'contact_email': scanner_data['contact_email'],
                 'contact_phone': scanner_data['contact_phone'],
