@@ -27,22 +27,19 @@ from client_db import init_client_db, CLIENT_DB_PATH
 from scanner_router import scanner_bp
 from auth import auth_bp
 from admin import admin_bp
-from api import api_bp
-from scanner_router import scanner_bp
 from setup_admin import configure_admin
 from client import client_bp  
 from flask_login import LoginManager, current_user
-from auth_routes import auth_bp
 from debug_middleware import register_debug_middleware
 from fix_auth import create_user
-from auth import auth_bp
 from auth_hotfix import register_auth_hotfix
 from emergency_access import emergency_bp
 from register_routes import register_all_routes
-from admin_fix_integration import apply_admin_fixes
-from admin_route_fix import apply_admin_route_fixes
-from route_fix import fix_admin_routes
-from admin_fix_web import add_admin_fix_route
+# Commented out to avoid route conflicts - blueprints handle routes directly
+# from admin_fix_integration import apply_admin_fixes
+# from admin_route_fix import apply_admin_route_fixes
+# from route_fix import fix_admin_routes
+# from admin_fix_web import add_admin_fix_route
 from scanner_preview import scanner_preview_bp
 from database_manager import DatabaseManager
 from database_utils import get_db_connection, get_client_db
@@ -503,11 +500,11 @@ except Exception as blueprint_error:
     logging.error(f"Error registering blueprints: {blueprint_error}")
     logging.debug(f"Exception traceback: {traceback.format_exc()}")
 
-# Apply fixes
+# Apply fixes - commented out to avoid route conflicts
 try:
-    apply_admin_fixes(app)
-    add_admin_fix_route(app)
-    logging.info("Fixes applied successfully")
+    # apply_admin_fixes(app)
+    # add_admin_fix_route(app)
+    logging.info("Skipping route fixes to avoid conflicts")
 except Exception as fix_error:
     logging.error(f"Error applying fixes: {fix_error}")
     logging.debug(f"Exception traceback: {traceback.format_exc()}")
@@ -519,22 +516,13 @@ try:
     logging.info("Routes registered successfully")
 except Exception as register_error:
     logging.error(f"Error registering routes: {register_error}")
-    # Still register the basic blueprints
-    try:
-        from auth import auth_bp
-        from admin import admin_bp
-        app.register_blueprint(auth_bp)
-        app.register_blueprint(admin_bp)
-        logging.info("Registered basic blueprints as fallback")
-    except Exception as basic_error:
-        logging.error(f"Failed to register basic blueprints: {basic_error}")
+    # Blueprints are already registered above, no need to re-register
 
 try:
-    from admin_routes import admin_routes_bp
-    app.register_blueprint(admin_routes_bp)
-    logging.info("Admin routes blueprint registered")
-except ImportError:
-    logging.warning("Could not import admin_routes_bp")
+    # Note: admin_routes_bp conflicts with admin_bp, so we'll skip it
+    # from admin_routes import admin_routes_bp
+    # app.register_blueprint(admin_routes_bp)
+    logging.info("Skipping conflicting admin_routes_bp to avoid route conflicts")
 except Exception as e:
     logging.error(f"Error registering admin_routes_bp: {e}")
     
@@ -3447,9 +3435,10 @@ def apply_route_fixes():
     from auth_fix import fix_auth_routes
     auth_fixed = fix_auth_routes(app)
     
-    # Apply admin routes fix
-    from route_fix import fix_admin_routes
-    admin_fixed = fix_admin_routes(app)
+    # Apply admin routes fix - commented out to avoid conflicts
+    # from route_fix import fix_admin_routes
+    # admin_fixed = fix_admin_routes(app)
+    admin_fixed = True  # Skip this to avoid conflicts
     
     # Report results
     if auth_fixed and admin_fixed:
