@@ -208,3 +208,33 @@
 2025-05-24 19:54:39,941 - root - INFO - Database initialization completed
 2025-05-24 19:54:39,961 - client_database_manager - WARNING - Recreating database for client 5 - missing scans table
 2025-05-24 19:54:40,016 - client_database_manager - INFO - Created dedicated database for client 5 (Client 6 Test Company): /home/ggrun/CybrScan_1/client_databases/client_5_scans.db
+2025-05-25 09:53:35,678 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:53:35,690 - root - INFO - Schema executed successfully
+2025-05-25 09:53:35,691 - root - INFO - Database initialization completed
+2025-05-25 09:53:46,599 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:53:46,612 - root - INFO - Schema executed successfully
+2025-05-25 09:53:46,612 - root - INFO - Database initialization completed
+2025-05-25 09:54:01,954 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:54:01,964 - root - INFO - Schema executed successfully
+2025-05-25 09:54:01,964 - root - INFO - Database initialization completed
+2025-05-25 09:54:11,298 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:54:11,308 - root - INFO - Schema executed successfully
+2025-05-25 09:54:11,309 - root - INFO - Database initialization completed
+2025-05-25 09:54:36,459 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:54:36,468 - root - INFO - Schema executed successfully
+2025-05-25 09:54:36,469 - root - INFO - Database initialization completed
+2025-05-25 09:56:44,360 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:56:44,369 - root - INFO - Schema executed successfully
+2025-05-25 09:56:44,369 - root - INFO - Database initialization completed
+2025-05-25 09:57:32,828 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:57:32,842 - root - INFO - Schema executed successfully
+2025-05-25 09:57:32,842 - root - INFO - Database initialization completed
+2025-05-25 09:58:17,821 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:58:17,834 - root - INFO - Schema executed successfully
+2025-05-25 09:58:17,834 - root - INFO - Database initialization completed
+2025-05-25 09:59:52,713 - root - INFO - Initializing database from schema.sql...
+2025-05-25 09:59:52,726 - root - INFO - Schema executed successfully
+2025-05-25 09:59:52,727 - root - INFO - Database initialization completed
+2025-05-25 10:00:31,860 - root - INFO - Initializing database from schema.sql...
+2025-05-25 10:00:31,872 - root - INFO - Schema executed successfully
+2025-05-25 10:00:31,872 - root - INFO - Database initialization completed
