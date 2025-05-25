@@ -1355,6 +1355,9 @@ def customize_scanner():
             deployment_result = generate_scanner_deployment(scanner_uid, scanner_creation_data, api_key)
             print(f"DEPLOYMENT RESULT: {deployment_result['status']}")
             
+            # Check if this is an AJAX request (fetch call)
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')
+            
             if deployment_result['status'] == 'success':
                 # Log the client in automatically after scanner creation
                 from auth_utils import create_session
@@ -1366,14 +1369,35 @@ def customize_scanner():
                     session['user_id'] = user_id
                     session['user_email'] = user_email
                     session['user_role'] = 'client'
-                    flash('Scanner created successfully! You can now manage your scanners.', 'success')
                     
-                    # Redirect to client scanners page where they can see their new scanner
-                    return redirect('/client/scanners')
+                    if is_ajax:
+                        # Return JSON response for AJAX requests
+                        return jsonify({
+                            'status': 'success',
+                            'message': 'Scanner created successfully!',
+                            'scanner_id': scanner_id,
+                            'scanner_uid': scanner_uid,
+                            'client_id': client_id,
+                            'deploy_url': '/client/scanners',
+                            'preview_url': f'/scanner/{scanner_uid}/info'
+                        })
+                    else:
+                        flash('Scanner created successfully! You can now manage your scanners.', 'success')
+                        return redirect('/client/scanners')
                 else:
-                    flash('Scanner created and deployed successfully!', 'success')
-                    # Redirect to scanner deployment page showing integration options  
-                    return redirect(f'/scanner/{scanner_uid}/info')
+                    if is_ajax:
+                        return jsonify({
+                            'status': 'success',
+                            'message': 'Scanner created and deployed successfully!',
+                            'scanner_id': scanner_id,
+                            'scanner_uid': scanner_uid,
+                            'client_id': client_id,
+                            'deploy_url': f'/scanner/{scanner_uid}/info',
+                            'preview_url': f'/scanner/{scanner_uid}/info'
+                        })
+                    else:
+                        flash('Scanner created and deployed successfully!', 'success')
+                        return redirect(f'/scanner/{scanner_uid}/info')
             else:
                 # Even if deployment fails, log the client in and redirect to scan page
                 from auth_utils import create_session
@@ -1384,8 +1408,18 @@ def customize_scanner():
                     session['user_email'] = user_email
                     session['user_role'] = 'client'
                 
-                flash(f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.', 'warning')
-                return redirect('/client/scanners')
+                if is_ajax:
+                    return jsonify({
+                        'status': 'warning',
+                        'message': f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.',
+                        'scanner_id': scanner_id,
+                        'scanner_uid': scanner_uid,
+                        'client_id': client_id,
+                        'deploy_url': '/client/scanners'
+                    })
+                else:
+                    flash(f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.', 'warning')
+                    return redirect('/client/scanners')
             
         except Exception as e:
             logging.error(f"Error in customize_scanner: {str(e)}")
@@ -1397,12 +1431,63 @@ def customize_scanner():
             print("TRACEBACK:")
             print(traceback.format_exc())
             
-            flash(f'Error creating scanner: {str(e)}', 'danger')
-            return render_template('admin/customization-form.html')
+            # Check if this is an AJAX request
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')
+            
+            if is_ajax:
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Error creating scanner: {str(e)}'
+                })
+            else:
+                flash(f'Error creating scanner: {str(e)}', 'danger')
+                return render_template('admin/customization-form.html')
     
     # For GET requests, render the template
     logging.info("Rendering customization form")
-    return render_template('admin/customization-form.html')
+    
+    # Get current user to check context
+    try:
+        # Check if user is logged in using session data
+        user_id = session.get('user_id')
+        user_role = session.get('user_role')
+        
+        if user_id and user_role == 'client':
+            # Render client customize template
+            from client_db import get_client_by_user_id
+            client = get_client_by_user_id(user_id)
+            
+            # Get recent scanners for this client
+            from client_db import get_db_connection
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM scanners 
+                WHERE client_id = ? 
+                ORDER BY created_at DESC 
+                LIMIT 5
+            ''', (client['id'] if client else 0,))
+            scanners = cursor.fetchall()
+            conn.close()
+            
+            # Convert to list of dicts
+            if scanners:
+                columns = ['id', 'client_id', 'scanner_id', 'name', 'description', 'domain', 'api_key', 
+                          'primary_color', 'secondary_color', 'logo_url', 'contact_email', 'contact_phone',
+                          'email_subject', 'email_intro', 'scan_types', 'status', 'created_at', 'created_by',
+                          'updated_at', 'updated_by']
+                scanners = [dict(zip(columns, scanner)) for scanner in scanners]
+            
+            return render_template('client/customize_scanner.html', 
+                                 client=client or {}, 
+                                 scanners=scanners or [])
+        else:
+            # Render admin template for admin users or non-logged in users
+            return render_template('admin/customization-form.html')
+    except Exception as e:
+        logging.error(f"Error getting user context: {e}")
+        # Fallback to admin template
+        return render_template('admin/customization-form.html')
 
 @app.route('/scanner/<scanner_uid>/info')
 def scanner_deployment_info(scanner_uid):
