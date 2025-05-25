@@ -55,7 +55,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="primary_color" class="form-label">Primary Color</label>
                                             <div class="input-group">
@@ -64,9 +64,10 @@
                                                 <input type="text" class="form-control" value="{{ scanner.primary_color or '#007bff' }}" 
                                                        readonly>
                                             </div>
+                                            <div class="form-text">Headers and backgrounds</div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="secondary_color" class="form-label">Secondary Color</label>
                                             <div class="input-group">
@@ -75,6 +76,19 @@
                                                 <input type="text" class="form-control" value="{{ scanner.secondary_color or '#6c757d' }}" 
                                                        readonly>
                                             </div>
+                                            <div class="form-text">Links and accents</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="button_color" class="form-label">Button Color</label>
+                                            <div class="input-group">
+                                                <input type="color" class="form-control form-control-color" id="button_color" 
+                                                       name="button_color" value="{{ scanner.button_color or '#d96c33' }}">
+                                                <input type="text" class="form-control" value="{{ scanner.button_color or '#d96c33' }}" 
+                                                       readonly>
+                                            </div>
+                                            <div class="form-text">Action buttons and CTAs</div>
                                         </div>
                                     </div>
                                 </div>
@@ -261,7 +275,7 @@
                                     <h6 id="preview-welcome">{{ scanner.welcome_message or 'Welcome to our cybersecurity scanner.' }}</h6>
                                     <div class="mt-3">
                                         <button type="button" class="btn" id="preview-cta" 
-                                                style="background-color: {{ scanner.primary_color or '#007bff' }}; color: white;">
+                                                style="background-color: {{ scanner.button_color or '#d96c33' }}; color: white;">
                                             {{ scanner.cta_text or 'Start Security Scan' }}
                                         </button>
                                     </div>
@@ -301,6 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('secondary_color').addEventListener('input', function() {
         const color = this.value;
         this.nextElementSibling.value = color;
+    });
+
+    document.getElementById('button_color').addEventListener('input', function() {
+        const color = this.value;
+        this.nextElementSibling.value = color;
+        const ctaBtn = document.getElementById('preview-cta');
+        ctaBtn.style.backgroundColor = color;
     });
 
     // Text input preview updates

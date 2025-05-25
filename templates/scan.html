@@ -28,12 +28,13 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, {{ client_branding.primary_color }}, {{ client_branding.secondary_color }});
-            border-color: {{ client_branding.primary_color }};
+            background: {{ client_branding.button_color or '#d96c33' }};
+            border-color: {{ client_branding.button_color or '#d96c33' }};
         }
         
         .btn-primary:hover {
-            background: linear-gradient(135deg, {{ client_branding.secondary_color }}, {{ client_branding.primary_color }});
+            background: {{ client_branding.primary_color }};
+            border-color: {{ client_branding.primary_color }};
         }
         
         .card-header {

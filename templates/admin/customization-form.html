@@ -186,19 +186,29 @@
                                 </div>
                                 
                                 <div class="row mb-4">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="primaryColor" class="form-label">Primary Color</label>
                                         <div class="input-group">
                                             <input type="color" class="form-control form-control-color" id="primaryColor" name="primary_color" value="#02054c">
                                             <input type="text" class="form-control" id="primaryColorHex" value="#02054c">
                                         </div>
+                                        <div class="form-text">Main brand color for headers and backgrounds</div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="secondaryColor" class="form-label">Secondary Color</label>
                                         <div class="input-group">
                                             <input type="color" class="form-control form-control-color" id="secondaryColor" name="secondary_color" value="#35a310">
                                             <input type="text" class="form-control" id="secondaryColorHex" value="#35a310">
                                         </div>
+                                        <div class="form-text">Accent color for links and highlights</div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="buttonColor" class="form-label">Button Color</label>
+                                        <div class="input-group">
+                                            <input type="color" class="form-control form-control-color" id="buttonColor" name="button_color" value="#d96c33">
+                                            <input type="text" class="form-control" id="buttonColorHex" value="#d96c33">
+                                        </div>
+                                        <div class="form-text">Color for action buttons and CTAs</div>
                                     </div>
                                 </div>
                                 
@@ -937,8 +947,10 @@
             // Color picker functionality
             const primaryColor = document.getElementById('primaryColor');
             const secondaryColor = document.getElementById('secondaryColor');
+            const buttonColor = document.getElementById('buttonColor');
             const primaryColorHex = document.getElementById('primaryColorHex');
             const secondaryColorHex = document.getElementById('secondaryColorHex');
+            const buttonColorHex = document.getElementById('buttonColorHex');
             
             // Update hex input when color picker changes
             primaryColor.addEventListener('input', function() {
@@ -949,6 +961,10 @@
                 secondaryColorHex.value = this.value;
             });
             
+            buttonColor.addEventListener('input', function() {
+                buttonColorHex.value = this.value;
+            });
+            
             // Update color picker when hex input changes
             primaryColorHex.addEventListener('input', function() {
                 primaryColor.value = this.value;
@@ -956,6 +972,10 @@
             
             secondaryColorHex.addEventListener('input', function() {
                 secondaryColor.value = this.value;
+            });
+            
+            buttonColorHex.addEventListener('input', function() {
+                buttonColor.value = this.value;
             });
             
             // Form submission handler - UPDATED to fix redirect issues
