@@ -128,7 +128,7 @@ def authenticate_user(username_or_email, password, ip_address=None, user_agent=N
             "username": user['username'],
             "email": user['email'],
             "role": user['role'],
-            "full_name": user.get('full_name'),
+            "full_name": user['full_name'] if 'full_name' in user.keys() else None,
             "session_token": session_token
         }
         
@@ -138,6 +138,73 @@ def authenticate_user(username_or_email, password, ip_address=None, user_agent=N
     except Exception as e:
         logger.error(f"Authentication error: {e}")
         return {"status": "error", "message": f"Authentication failed: {str(e)}"}
+
+def create_session(user_id, user_email, role, ip_address=None, user_agent=None):
+    """
+    Create a session for a user without password authentication
+    
+    Args:
+        user_id (int): User ID
+        user_email (str): User email
+        role (str): User role
+        ip_address (str, optional): Client IP address
+        user_agent (str, optional): Client user agent
+        
+    Returns:
+        dict: Session creation result
+    """
+    try:
+        # Connect to database
+        conn = sqlite3.connect(CLIENT_DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get user details
+        cursor.execute('SELECT * FROM users WHERE id = ? AND active = 1', (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            conn.close()
+            return {"status": "error", "message": "User not found"}
+        
+        # Create a session token
+        session_token = secrets.token_hex(32)
+        created_at = datetime.now().isoformat()
+        expires_at = (datetime.now() + timedelta(hours=24)).isoformat()
+        
+        # Store session in database
+        cursor.execute('''
+        INSERT INTO sessions (
+            user_id, session_token, created_at, expires_at, ip_address, user_agent
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user['id'], session_token, created_at, expires_at, ip_address, user_agent))
+        
+        # Update last login timestamp
+        cursor.execute('''
+        UPDATE users 
+        SET last_login = ? 
+        WHERE id = ?
+        ''', (created_at, user['id']))
+        
+        conn.commit()
+        
+        # Return success with user info
+        result = {
+            "status": "success",
+            "user_id": user['id'],
+            "username": user['username'],
+            "email": user['email'],
+            "role": user['role'],
+            "full_name": user['full_name'] if 'full_name' in user.keys() else None,
+            "session_token": session_token
+        }
+        
+        conn.close()
+        return result
+    
+    except Exception as e:
+        logger.error(f"Session creation error: {e}")
+        return {"status": "error", "message": f"Session creation failed: {str(e)}"}
 
 def verify_session(session_token):
     """
@@ -379,6 +446,33 @@ def register_client(user_id, business_data):
         ))
         
         client_id = cursor.lastrowid
+        
+        # Save customizations if provided
+        if any([
+            business_data.get('primary_color'),
+            business_data.get('secondary_color'),
+            business_data.get('logo_url'),
+            business_data.get('logo_path'),
+            business_data.get('favicon_path'),
+            business_data.get('email_subject'),
+            business_data.get('email_intro')
+        ]):
+            cursor.execute('''
+            INSERT INTO customizations (
+                client_id, primary_color, secondary_color, logo_path, favicon_path,
+                email_subject, email_intro, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                client_id,
+                business_data.get('primary_color', '#02054c'),
+                business_data.get('secondary_color', '#35a310'),
+                business_data.get('logo_path', '') or business_data.get('logo_url', ''),
+                business_data.get('favicon_path', ''),
+                business_data.get('email_subject', 'Your Security Scan Report'),
+                business_data.get('email_intro', ''),
+                now,
+                now
+            ))
         
         conn.commit()
         conn.close()
