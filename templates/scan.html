@@ -374,12 +374,15 @@
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="company-website" class="form-label required">Company Website</label>
+                                    <label for="company-website" class="form-label">Company Website <span class="text-muted">(Optional)</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">https://</span>
-                                        <input type="text" class="form-control" id="company-website" name="company_website" placeholder="www.example.com" required>
+                                        <input type="text" class="form-control" id="company-website" name="company_website" placeholder="www.example.com">
                                     </div>
-                                    <div class="form-text">This is the primary domain we'll scan for vulnerabilities.</div>
+                                    <div class="form-text">
+                                        <span id="domain-suggestion" class="text-primary" style="display: none;"></span>
+                                        <span class="text-muted">Leave blank to scan the domain from your email address automatically.</span>
+                                    </div>
                                 </div>
                                 
                                 <div class="text-end">
@@ -1051,9 +1054,19 @@
                 const companySize = document.getElementById('company-size');
                 const companyWebsite = document.getElementById('company-website');
                 
-                if (!industry.value || !companySize.value || !companyWebsite.value) {
+                if (!industry.value || !companySize.value) {
                     alert('Please fill in all required fields.');
                     return;
+                }
+                
+                // If no website provided, extract from email
+                if (!companyWebsite.value.trim()) {
+                    const email = document.getElementById('email').value;
+                    if (email && email.includes('@')) {
+                        const emailDomain = email.split('@')[1];
+                        companyWebsite.value = emailDomain;
+                        console.log('Auto-extracted domain from email:', emailDomain);
+                    }
                 }
                 
                 // Move to step 3
@@ -1235,6 +1248,29 @@
         
         // Add domain management
         function setupDomainManagement() {
+            // Email domain extraction
+            document.getElementById('email').addEventListener('blur', function() {
+                const email = this.value;
+                const companyWebsite = document.getElementById('company-website');
+                const domainSuggestion = document.getElementById('domain-suggestion');
+                
+                if (email && email.includes('@') && !companyWebsite.value.trim()) {
+                    const emailDomain = email.split('@')[1];
+                    domainSuggestion.textContent = `💡 We'll scan ${emailDomain} (detected from your email)`;
+                    domainSuggestion.style.display = 'block';
+                } else {
+                    domainSuggestion.style.display = 'none';
+                }
+            });
+            
+            // Clear suggestion when user types in website field
+            document.getElementById('company-website').addEventListener('input', function() {
+                const domainSuggestion = document.getElementById('domain-suggestion');
+                if (this.value.trim()) {
+                    domainSuggestion.style.display = 'none';
+                }
+            });
+            
             // Add additional domain field
             document.getElementById('add-domain').addEventListener('click', function() {
                 const domainsContainer = document.getElementById('additional-domains');

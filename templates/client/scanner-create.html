@@ -272,6 +272,7 @@
         document.getElementById('scanner_name').addEventListener('input', function() {
             const previewName = document.querySelector('.scanner-name');
             previewName.textContent = this.value || 'Scanner Name';
+            updateLogoPreview();
         });
         
         document.getElementById('domain').addEventListener('input', function() {
@@ -283,8 +284,37 @@
         });
         
         document.getElementById('primary_color').addEventListener('input', function() {
+            updateLogoPreview();
+        });
+        
+        // Enhanced logo preview functionality
+        document.getElementById('logo_url').addEventListener('input', function() {
+            updateLogoPreview();
+        });
+        
+        function updateLogoPreview() {
+            const logoUrl = document.getElementById('logo_url').value;
+            const scannerName = document.getElementById('scanner_name').value || 'Scanner';
+            const primaryColor = document.getElementById('primary_color').value;
             const previewLogo = document.querySelector('.scanner-logo');
-            previewLogo.style.background = this.value;
+            
+            if (logoUrl && logoUrl.trim() !== '') {
+                // Show logo image
+                previewLogo.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-width: 35px; max-height: 35px; object-fit: contain; border-radius: 4px;" 
+                                         onerror="this.style.display='none'; this.parentNode.innerHTML='${scannerName.charAt(0).toUpperCase()}'; this.parentNode.style.background='${primaryColor}';">`;
+                previewLogo.style.background = 'transparent';
+                previewLogo.style.padding = '2px';
+            } else {
+                // Show letter logo
+                previewLogo.innerHTML = scannerName.charAt(0).toUpperCase();
+                previewLogo.style.background = primaryColor;
+                previewLogo.style.padding = '';
+            }
+        }
+        
+        // Initialize preview on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLogoPreview();
         });
     </script>
     
