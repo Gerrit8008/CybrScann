@@ -149,8 +149,17 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ Scan functionality not available: {e}")
     # Create minimal fallback functions
-    def get_scan_target(email, lead_data.get("target")): 
-        return email.split('@')[-1] if '@' in email else email
+    def get_scan_target(email, domain_input=None): 
+        # Priority: 1. User provided domain, 2. Email domain
+        if domain_input and domain_input.strip():
+            target = domain_input.strip()
+            # Clean up the domain
+            target = target.replace('https://', '').replace('http://', '').rstrip('/')
+            return target
+        elif email and '@' in email:
+            return email.split('@')[-1]
+        else:
+            return None
     def server_lookup(domain): 
         return {"status": "error", "message": "Scan functionality not available"}
     def get_client_and_gateway_ip(): 
@@ -4729,11 +4738,6 @@ def log_scan_enhanced(client_id, scan_id=None, target=None, scan_type='standard'
         return {"status": "error", "message": str(e)}
 
 
-if __name__ == "__main__":
-    apply_route_fixes()
-
-
-    
 # ---------------------------- MAIN ENTRY POINT ----------------------------
 
 if __name__ == '__main__':
