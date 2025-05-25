@@ -169,7 +169,8 @@
                         {% for category, message in messages %}
                             <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                                 {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
@@ -197,6 +198,11 @@
                                     <div class="mb-3">
                                         <label for="contactEmail" class="form-label">Contact Email</label>
                                         <input type="email" class="form-control" id="contactEmail" value="{{ client.contact_email or '' }}" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="contactPhone" class="form-label">Contact Phone</label>
+                                        <input type="tel" class="form-control" id="contactPhone" value="{{ client.contact_phone or '' }}">
                                     </div>
                                 </div>
                             </div>
@@ -577,7 +583,7 @@
                     scannerName: scannerName,
                     businessDomain: businessDomain,
                     contactEmail: contactEmail,
-                    contactPhone: document.getElementById('contactPhone')?.value || '',
+                    contactPhone: document.getElementById('contactPhone').value || '',
                     primaryColor: document.getElementById('primaryColor').value,
                     secondaryColor: document.getElementById('secondaryColor').value,
                     buttonColor: document.getElementById('buttonColor').value,
@@ -609,13 +615,39 @@
                     
                     console.log('Submitting data to /customize:', formData);
                     
+                    // Create FormData object for proper form submission
+                    const submitData = new FormData();
+                    
+                    // Add all form fields
+                    submitData.append('business_name', formData.scannerName);
+                    submitData.append('business_domain', formData.businessDomain);
+                    submitData.append('contact_email', formData.contactEmail);
+                    submitData.append('contact_phone', formData.contactPhone || '');
+                    submitData.append('scanner_name', formData.scannerName);
+                    submitData.append('primary_color', formData.primaryColor);
+                    submitData.append('secondary_color', formData.secondaryColor);
+                    submitData.append('button_color', formData.buttonColor);
+                    submitData.append('email_subject', formData.emailSubject);
+                    submitData.append('email_intro', formData.emailIntro);
+                    
+                    // Add scan types
+                    formData.defaultScans.forEach(scan => {
+                        submitData.append('default_scans[]', scan);
+                    });
+                    
+                    // Handle logo upload
+                    const logoInput = document.getElementById('logoUpload');
+                    if (logoInput.files && logoInput.files[0]) {
+                        submitData.append('logo', logoInput.files[0]);
+                    }
+                    
                     // Send the data to the server
                     const response = await fetch('/customize', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify(formData)
+                        body: submitData  // Send FormData, not JSON
                     });
                     
                     if (!response.ok) {
