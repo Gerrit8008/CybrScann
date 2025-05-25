@@ -3108,7 +3108,8 @@ def scan_page():
                 except Exception as client_db_error:
                     logging.error(f"Error saving to client-specific database: {client_db_error}")
                     import traceback
-                    logging.error(traceback.format_exc())            else:
+                    logging.error(traceback.format_exc())
+            else:
                 # Check if current user is logged in and link scan to their client
                 try:
                     from client_db import verify_session, get_client_by_user_id
@@ -3150,7 +3151,7 @@ def scan_page():
                     import traceback
                     logger.warning(traceback.format_exc())
             
-            \2
+            # Check if scan_results contains valid data
             if not scan_results or 'scan_id' not in scan_results:
                 logging.error("Scan did not return valid results")
                 return render_template('scan.html', error="Scan failed to return valid results. Please try again.")
