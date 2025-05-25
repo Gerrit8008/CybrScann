@@ -72,8 +72,17 @@ def generate_scanner_html(deployment_dir, scanner_uid, scanner_data, api_key):
 <body>
     <div class="scanner-container">
         <div class="scanner-header">
-            {% if logo_url %}
-            <img src="{{ logo_url }}" alt="{{ business_name }} Logo" class="scanner-logo">
+            {% if logo_url and logo_url.strip() %}
+            <img src="{{ logo_url }}" alt="{{ business_name }} Logo" class="scanner-logo"
+                 style="max-height: 50px; max-width: 180px; object-fit: contain; margin-bottom: 10px;"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div class="logo-fallback" style="display: none;">
+                <h3 style="color: var(--primary-color); margin-bottom: 10px;">{{ business_name[:2].upper() if business_name else 'SC' }}</h3>
+            </div>
+            {% else %}
+            <div class="logo-fallback">
+                <h3 style="color: var(--primary-color); margin-bottom: 10px;">{{ business_name[:2].upper() if business_name else 'SC' }}</h3>
+            </div>
             {% endif %}
             <h2 class="scanner-title">{{ scanner_name }}</h2>
             <p class="scanner-description">Free security scan for {{ business_name }}</p>
