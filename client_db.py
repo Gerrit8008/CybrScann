@@ -2219,7 +2219,7 @@ def get_client_stats(conn, client_id):
     }
 
 @with_transaction
-def log_scan(conn, client_id, scan_id, target):
+def log_scan(conn, client_id, scan_id, target, scan_type='security_scan'):
     """Log a scan in the scan history table"""
     cursor = conn.cursor()
     
@@ -2232,8 +2232,8 @@ def log_scan(conn, client_id, scan_id, target):
         client_id,
         scan_id,
         datetime.now().isoformat(),
-        target,
-        'security_scan',  # Default scan type
+        target or '',
+        scan_type,  # Use provided scan_type or default
         'completed'  # Assuming scan completed successfully
     ))
     

@@ -149,7 +149,7 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ Scan functionality not available: {e}")
     # Create minimal fallback functions
-    def extract_domain_from_email(email): 
+    def get_scan_target(email, lead_data.get("target")): 
         return email.split('@')[-1] if '@' in email else email
     def server_lookup(domain): 
         return {"status": "error", "message": "Scan functionality not available"}
@@ -2364,7 +2364,7 @@ def run_consolidated_scan(lead_data):
     
     # Initialize scan results structure - UPDATED to include industry info
     email = lead_data.get('email', '')
-    email_domain = extract_domain_from_email(email) if email else ''
+    email_domain = get_scan_target(email, lead_data.get("target")) if email else ''
     company_name = lead_data.get('company', '')
     
     # Determine industry
@@ -2456,7 +2456,7 @@ def run_consolidated_scan(lead_data):
         logging.info("Running email security checks...")
         email = lead_data.get('email', '')
         if "@" in email:
-            domain = extract_domain_from_email(email)
+            domain = get_scan_target(email, lead_data.get("target"))
             logging.debug(f"Extracted domain from email: {domain}")
             
             try:
@@ -2514,7 +2514,7 @@ def run_consolidated_scan(lead_data):
         email = lead_data.get('email', '')
         extracted_domain = None
         if "@" in email:
-            extracted_domain = extract_domain_from_email(email)
+            extracted_domain = get_scan_target(email, lead_data.get("target"))
             logging.debug(f"Extracted domain from email: {extracted_domain}")
     
         # Use extracted domain or fall back to target
@@ -3872,7 +3872,7 @@ def quick_scan():
                 return "Email is required", 400
             
             # Extract domain from email
-            domain = extract_domain_from_email(email)
+            domain = get_scan_target(email, lead_data.get("target"))
             
             # Create minimal test data
             test_data = {
@@ -4607,6 +4607,127 @@ def apply_route_fixes():
     else:
         print("Some route fixes could not be applied.")
         return False
+
+
+# Enhanced scanner route to fix 404 errors
+@app.route('/scanner/<scanner_uid>')
+@app.route('/scanner/<scanner_uid>/')
+def serve_scanner_embed(scanner_uid):
+    """Serve the scanner embed page"""
+    try:
+        logger.info(f"Serving scanner embed for: {scanner_uid}")
+        
+        # Get scanner data from database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get scanner and client data with proper joins
+        cursor.execute("""
+            SELECT s.*, c.business_name, c.contact_email,
+                   cust.primary_color, cust.secondary_color, cust.logo_path,
+                   cust.email_subject, cust.email_intro
+            FROM scanners s 
+            JOIN clients c ON s.client_id = c.id 
+            LEFT JOIN customizations cust ON c.id = cust.client_id
+            WHERE s.scanner_id = ?
+        """, (scanner_uid,))
+        
+        scanner_row = cursor.fetchone()
+        conn.close()
+        
+        if not scanner_row:
+            logger.error(f"Scanner not found: {scanner_uid}")
+            return "Scanner not found", 404
+            
+        # Build scanner data object
+        scanner_data = {
+            'scanner_id': scanner_row[2],
+            'name': scanner_row[3],
+            'business_name': scanner_row[-7] if len(scanner_row) > 7 else 'Security Services',
+            'primary_color': scanner_row[-5] if len(scanner_row) > 5 else '#02054c',
+            'secondary_color': scanner_row[-4] if len(scanner_row) > 4 else '#35a310',
+            'logo_url': scanner_row[-3] if len(scanner_row) > 3 else '',
+            'contact_email': scanner_row[-6] if len(scanner_row) > 6 else 'support@example.com',
+        }
+        
+        # Check if deployment files exist
+        deployment_dir = f"static/deployments/scanner_{scanner_uid}"
+        html_file = os.path.join(deployment_dir, 'index.html')
+        
+        if os.path.exists(html_file):
+            # Serve existing deployment
+            return send_file(html_file)
+        else:
+            # Generate deployment on-the-fly
+            from scanner_deployment import generate_scanner_deployment
+            
+            api_key = scanner_row[6] if len(scanner_row) > 6 else 'default_key'
+            result = generate_scanner_deployment(scanner_uid, scanner_data, api_key)
+            
+            if result.get('status') == 'success':
+                return send_file(html_file)
+            else:
+                logger.error(f"Failed to generate deployment: {result}")
+                return "Scanner deployment failed", 500
+                
+    except Exception as e:
+        logger.error(f"Error serving scanner embed: {e}")
+        return f"Error loading scanner: {str(e)}", 500
+
+# Enhanced domain extraction for scanning
+def get_scan_target(email, domain_input=None):
+    """
+    Determine the target for scanning based on email and optional domain input
+    """
+    # Priority: 1. User provided domain, 2. Email domain
+    if domain_input and domain_input.strip():
+        target = domain_input.strip()
+        # Clean up the domain
+        target = target.replace('https://', '').replace('http://', '').rstrip('/')
+        return target
+    elif email and '@' in email:
+        return email.split('@')[-1]
+    else:
+        return None
+
+# Enhanced log_scan function
+def log_scan_enhanced(client_id, scan_id=None, target=None, scan_type='standard', status='pending'):
+    """
+    Enhanced log_scan function with proper parameter handling
+    """
+    import uuid
+    
+    try:
+        # Generate scan_id if not provided
+        if not scan_id:
+            scan_id = str(uuid.uuid4())
+        
+        # Default scan_type if not provided
+        if not scan_type:
+            scan_type = 'standard'
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get current timestamp
+        timestamp = datetime.now().isoformat()
+        
+        # Insert scan record with all required fields
+        cursor.execute("""
+            INSERT INTO scan_history (
+                client_id, scan_id, timestamp, target, scan_type, status
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        """, (client_id, scan_id, timestamp, target or '', scan_type, status))
+        
+        conn.commit()
+        conn.close()
+        
+        return {"status": "success", "scan_id": scan_id}
+        
+    except Exception as e:
+        logger.error(f"Error logging scan: {e}")
+        return {"status": "error", "message": str(e)}
+
 
 if __name__ == "__main__":
     apply_route_fixes()
