@@ -993,6 +993,7 @@ def customize_scanner():
                 'scanner_name': request.form.get('scanner_name', '').strip(),
                 'primary_color': request.form.get('primary_color', '#02054c'),
                 'secondary_color': request.form.get('secondary_color', '#35a310'),
+                'button_color': request.form.get('button_color', request.form.get('primary_color', '#02054c')),
                 'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
                 'email_intro': request.form.get('email_intro', ''),
                 'subscription': request.form.get('subscription', 'basic'),
