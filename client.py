@@ -418,6 +418,10 @@ def scanner_view(user, scanner_id):
 @client_required
 def scanner_edit(user, scanner_id):
     """Edit scanner configuration"""
+    print(f"=== SCANNER EDIT ROUTE CALLED ===")
+    print(f"Method: {request.method}")
+    print(f"Scanner ID: {scanner_id}")
+    print(f"User: {user}")
     try:
         # Get client info
         client = get_client_by_user_id(user['user_id'])
