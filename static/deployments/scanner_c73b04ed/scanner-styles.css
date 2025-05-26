@@ -53,7 +53,7 @@
 }
 
 .scanner-submit-btn {
-    background: linear-gradient(135deg, #9b59b6, #e67e22);
+    background: linear-gradient(135deg, #ff6b35, #e67e22);
     border: none;
     border-radius: 8px;
     padding: 1rem 2rem;
@@ -66,6 +66,7 @@
 }
 
 .scanner-submit-btn:hover {
+    background: linear-gradient(135deg, #ff6b35dd, #e67e22dd);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
