@@ -3227,7 +3227,7 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
     }
     
     for key, db_field in custom_mapping.items():
-        if key in scanner_data:
+        if key in scanner_data and scanner_data[key] is not None:
             custom_fields.append(f"{db_field} = ?")
             custom_values.append(scanner_data[key])
     
@@ -3237,11 +3237,12 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
     #     custom_fields.append("default_scans = ?")
     #     custom_values.append(json.dumps(scanner_data['default_scans']))
     
-    # Always update updated_at and updated_by
-    custom_fields.append("updated_at = ?")
-    custom_values.append(datetime.now().isoformat())
-    custom_fields.append("updated_by = ?")
-    custom_values.append(user_id)
+    # Always update updated_at and updated_by (only if we have fields to update)
+    if custom_fields:
+        custom_fields.append("updated_at = ?")
+        custom_values.append(datetime.now().isoformat())
+        custom_fields.append("updated_by = ?")
+        custom_values.append(user_id)
     
     # Check if customization record exists
     cursor.execute('SELECT id FROM customizations WHERE client_id = ?', (client_id,))

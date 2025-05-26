@@ -1234,7 +1234,9 @@ def scanner_embed(scanner_uid):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
-        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.button_color, cu.logo_path, cu.favicon_path
+        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.button_color, cu.logo_path, cu.favicon_path,
+               cu.email_subject, cu.email_intro, cu.scanner_description, cu.cta_button_text, cu.company_tagline, 
+               cu.support_email, cu.custom_footer_text
         FROM scanners s 
         JOIN clients c ON s.client_id = c.id 
         LEFT JOIN customizations cu ON c.id = cu.client_id
@@ -1256,7 +1258,14 @@ def scanner_embed(scanner_uid):
                 'button_color': scanner_data.get('button_color', scanner_data.get('primary_color', '#02054c')),
                 'logo_path': scanner_data.get('logo_path', ''),
                 'favicon_path': scanner_data.get('favicon_path', ''),
-                'scanner_name': scanner_data.get('name', 'Security Scanner')
+                'scanner_name': scanner_data.get('name', 'Security Scanner'),
+                'email_subject': scanner_data.get('email_subject', 'Your Security Scan Report'),
+                'email_intro': scanner_data.get('email_intro', ''),
+                'scanner_description': scanner_data.get('scanner_description', ''),
+                'cta_button_text': scanner_data.get('cta_button_text', 'Start Security Scan'),
+                'company_tagline': scanner_data.get('company_tagline', ''),
+                'support_email': scanner_data.get('support_email', ''),
+                'custom_footer_text': scanner_data.get('custom_footer_text', '')
             }
             
             # Add client_id and scanner_id to URL parameters for tracking
