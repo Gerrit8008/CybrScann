@@ -275,6 +275,9 @@
                     <a href="/client/scanners" class="sidebar-link">
                         <i class="bi bi-shield-check"></i> My Scanners
                     </a>
+                    <a href="/client/statistics" class="sidebar-link">
+                        <i class="bi bi-graph-up"></i> Statistics
+                    </a>
                     <a href="/client/reports" class="sidebar-link">
                         <i class="bi bi-file-earmark-text"></i> Scan Reports
                     </a>
@@ -327,13 +330,15 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card quick-action-card h-100" onclick="document.getElementById('runScanBtn').click()">
-                            <div class="card-body text-center">
-                                <i class="bi bi-play-circle display-5 text-success mb-2"></i>
-                                <h6>Run Scan</h6>
-                                <p class="text-muted small mb-0">Start a security scan</p>
+                        <a href="/scan" class="text-decoration-none">
+                            <div class="card quick-action-card h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-play-circle display-5 text-success mb-2"></i>
+                                    <h6>Run Scan</h6>
+                                    <p class="text-muted small mb-0">Start a security scan</p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                     <div class="col-md-3">
                         <div class="card quick-action-card h-100" onclick="window.location.href='/client/reports'">
