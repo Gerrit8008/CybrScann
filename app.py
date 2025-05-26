@@ -1548,6 +1548,41 @@ def api_scanner_scan(scanner_uid):
         conn.commit()
         conn.close()
         
+        # Save to client-specific database for proper scan tracking
+        try:
+            from client_database_manager import save_scan_to_client_db
+            
+            # Create enhanced scan data for client database
+            enhanced_scan_data = {
+                'scan_id': scan_id,
+                'scanner_id': scanner_uid,
+                'timestamp': datetime.now().isoformat(),
+                'name': scan_data.get('contact_name', ''),
+                'email': scan_data['contact_email'],
+                'phone': '',
+                'company': '',
+                'company_size': 'Unknown',
+                'target_domain': scan_data['target_url'],
+                'target_url': scan_data['target_url'],
+                'security_score': 85,  # Default score - should be calculated from actual scan
+                'risk_level': 'Medium',
+                'scan_type': 'comprehensive',
+                'status': 'completed',
+                'vulnerabilities_found': 0,
+                'scan_results': json.dumps({
+                    'contact_email': scan_data['contact_email'],
+                    'contact_name': scan_data.get('contact_name', ''),
+                    'initiated_at': datetime.now().isoformat(),
+                    'scan_types': scan_data.get('scan_types', ['port_scan'])
+                })
+            }
+            
+            save_scan_to_client_db(scanner[2], enhanced_scan_data)  # scanner[2] is client_id
+            logging.info(f"Saved API scan to client-specific database: client_id={scanner[2]}, scanner_id={scanner_uid}")
+            
+        except Exception as client_db_error:
+            logging.error(f"Error saving API scan to client-specific database: {client_db_error}")
+        
         # TODO: Trigger actual scan process here
         # For now, just return success
         

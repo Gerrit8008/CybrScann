@@ -369,6 +369,30 @@ def ensure_client_database(client_id, business_name="Unknown Client"):
         logger.error(f"Error ensuring client database for {client_id}: {e}")
         return None
 
+def get_scanner_scan_count(client_id, scanner_id):
+    """Get scan count for a specific scanner"""
+    try:
+        db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client_databases')
+        db_path = os.path.join(db_dir, f'client_{client_id}_scans.db')
+        
+        if not os.path.exists(db_path):
+            return 0
+        
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Get scan count for this specific scanner
+        cursor.execute('SELECT COUNT(*) FROM scans WHERE scanner_id = ?', (scanner_id,))
+        result = cursor.fetchone()
+        scan_count = result[0] if result else 0
+        
+        conn.close()
+        return scan_count
+        
+    except Exception as e:
+        logging.error(f"Error getting scanner scan count for {scanner_id}: {e}")
+        return 0
+
 def get_client_scan_statistics(client_id):
     """Get scan statistics from client's dedicated database"""
     try:
