@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ client.scanner_name }}</title>
+    <link rel="stylesheet" href="styles.css">
+    {% if client.favicon_path %}
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    {% endif %}
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            {% if client.logo_path %}
+            <img src="logo.png" alt="{{ client.business_name }} Logo" class="logo">
+            {% else %}
+            <h1>{{ client.scanner_name }}</h1>
+            {% endif %}
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Dashboard</a></li>
+                <li><a href="#">Scans</a></li>
+                <li><a href="#">Reports</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="scanner-container">
+            <h2>Security Scanner</h2>
+            <div class="scan-form">
+                <input type="text" id="target-input" placeholder="Enter target URL or domain" 
+                       value="{{ client.business_domain }}">
+                <div class="scan-options">
+                    <h3>Scan Options</h3>
+                    <div class="options-grid">
+                        <label>
+                            <input type="checkbox" name="scan_type" value="ssl" checked>
+                            SSL/TLS Check
+                        </label>
+                        <label>
+                            <input type="checkbox" name="scan_type" value="headers" checked>
+                            HTTP Headers
+                        </label>
+                        <label>
+                            <input type="checkbox" name="scan_type" value="vulnerabilities" checked>
+                            Vulnerability Scan
+                        </label>
+                        <label>
+                            <input type="checkbox" name="scan_type" value="ports">
+                            Port Scan
+                        </label>
+                        <label>
+                            <input type="checkbox" name="scan_type" value="malware">
+                            Malware Detection
+                        </label>
+                        <label>
+                            <input type="checkbox" name="scan_type" value="dns">
+                            DNS Analysis
+                        </label>
+                    </div>
+                </div>
+                <button id="start-scan-btn" class="primary-btn">Start Scan</button>
+            </div>
+        </section>
+        
+        <section class="results-container" style="display: none;">
+            <h2>Scan Results</h2>
+            <div class="results-summary">
+                <div class="summary-item">
+                    <h3>Security Score</h3>
+                    <div class="score">
+                        <span id="security-score">0</span>/100
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <h3>Issues Found</h3>
+                    <div class="issues">
+                        <span id="critical-issues">0</span> Critical
+                        <span id="warning-issues">0</span> Warnings
+                        <span id="info-issues">0</span> Info
+                    </div>
+                </div>
+            </div>
+            
+            <div id="results-details" class="results-details">
+                <!-- Results will be populated here -->
+            </div>
+            
+            <div class="actions">
+                <button id="download-report-btn" class="secondary-btn">Download Report</button>
+                <button id="email-report-btn" class="secondary-btn">Email Report</button>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; {{ year }} {{ client.business_name }} - Powered by Security Scanner Platform</p>
+    </footer>
+    
+    <script src="scanner.js"></script>
+</body>
+</html>
