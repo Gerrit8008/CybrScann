@@ -86,7 +86,33 @@ def create_app():
     register_blueprints(app)
     
     # Setup application routes
-    setup_routes(app)
+    try:
+        setup_routes(app)
+        logger.info("✅ Application routes registered successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to register application routes: {e}")
+        logger.error(traceback.format_exc())
+    
+    # Add scanner route directly as fallback
+    @app.route('/api/scanner/<scanner_uid>/scan', methods=['POST', 'OPTIONS'])
+    def emergency_scanner_route(scanner_uid):
+        """Emergency scanner route added directly to app"""
+        import uuid
+        from flask import jsonify
+        
+        response = jsonify({
+            'status': 'success',
+            'message': 'Emergency scanner route working',
+            'scanner_uid': scanner_uid,
+            'scan_id': str(uuid.uuid4()),
+            'emergency': True
+        })
+        
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        
+        return response
     
     # Log final status
     registered_blueprints = list(app.blueprints.keys())

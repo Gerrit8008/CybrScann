@@ -12,10 +12,27 @@ import traceback
 
 # Import configuration and utilities
 from app_config import (
-    logger, CLIENT_DB_PATH, UPLOAD_FOLDER, validate_email, 
-    sanitize_input, generate_scan_id, get_client_ip,
+    logger, CLIENT_DB_PATH, UPLOAD_FOLDER, 
+    generate_scan_id, get_client_ip,
     determine_industry_from_data
 )
+
+# Define missing utility functions locally
+def validate_email(email):
+    """Validate email format"""
+    import re
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def sanitize_input(input_string):
+    """Sanitize user input to prevent injection attacks"""
+    if not input_string:
+        return ""
+    
+    # Remove potentially dangerous characters
+    import re
+    cleaned = re.sub(r'[<>"\';]', '', str(input_string))
+    return cleaned.strip()
 
 def setup_routes(app):
     """Set up all application routes"""
