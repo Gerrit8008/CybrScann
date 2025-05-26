@@ -3142,6 +3142,7 @@ def get_deployed_scanners(conn, cursor, page=1, per_page=10, filters=None):
 def update_scanner_config(conn, scanner_id, scanner_data, user_id):
     """Update scanner configuration"""
     cursor = conn.cursor()
+    
     # Get scanner details
     cursor.execute('SELECT client_id FROM scanners WHERE id = ?', (scanner_id,))
     row = cursor.fetchone()
@@ -3217,7 +3218,12 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
         'logo_path': 'logo_path',
         'favicon_path': 'favicon_path',
         'email_subject': 'email_subject',
-        'email_intro': 'email_intro'
+        'email_intro': 'email_intro',
+        'scanner_description': 'scanner_description',
+        'cta_button_text': 'cta_button_text', 
+        'company_tagline': 'company_tagline',
+        'support_email': 'support_email',
+        'custom_footer_text': 'custom_footer_text'
     }
     
     for key, db_field in custom_mapping.items():

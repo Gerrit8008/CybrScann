@@ -445,8 +445,17 @@ def scanner_edit(user, scanner_id):
                 'button_color': request.form.get('button_color'),
                 'email_subject': request.form.get('email_subject'),
                 'email_intro': request.form.get('email_intro'),
+                'scanner_description': request.form.get('scanner_description'),
+                'cta_button_text': request.form.get('cta_button_text'),
+                'company_tagline': request.form.get('company_tagline'),
+                'support_email': request.form.get('support_email'),
+                'custom_footer_text': request.form.get('custom_footer_text'),
                 'default_scans': request.form.getlist('default_scans[]')
             }
+            
+            # Debug: Log what we're trying to save
+            logger.info(f"Scanner edit form data: {scanner_data}")
+            logger.info(f"Scanner ID: {scanner_id}, User ID: {user['user_id']}")
             
             # Handle file uploads
             if 'logo_upload' in request.files and request.files['logo_upload'].filename:
@@ -460,14 +469,23 @@ def scanner_edit(user, scanner_id):
                 # scanner_data['favicon_path'] = save_uploaded_file(favicon_file)
             
             # Update scanner
-            result = update_scanner_config(scanner_id, scanner_data, user['user_id'])
-            
-            if result and result.get('status') == 'success':
-                flash('Scanner updated successfully', 'success')
-                return redirect(url_for('client.scanners'))
-            else:
-                error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
-                flash(f'Failed to update scanner: {error_msg}', 'danger')
+            try:
+                result = update_scanner_config(scanner_id, scanner_data, user['user_id'])
+                logger.info(f"Update scanner result: {result}")
+                
+                if result and result.get('status') == 'success':
+                    flash('Scanner updated successfully!', 'success')
+                    logger.info(f"Scanner {scanner_id} updated successfully, redirecting to scanners page")
+                    return redirect(url_for('client.scanners'))
+                else:
+                    error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
+                    flash(f'Failed to update scanner: {error_msg}', 'danger')
+                    logger.error(f"Scanner update failed: {error_msg}")
+            except Exception as e:
+                logger.error(f"Exception during scanner update: {e}")
+                import traceback
+                traceback.print_exc()
+                flash(f'Error updating scanner: {str(e)}', 'danger')
         
         return render_template(
             'client/scanner-edit.html',
