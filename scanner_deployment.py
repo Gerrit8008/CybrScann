@@ -60,12 +60,24 @@ def generate_scanner_html(deployment_dir, scanner_uid, scanner_data, api_key):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ scanner_name }} - Security Scanner</title>
+    {% if favicon_url %}
+    <!-- Custom Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ favicon_url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ favicon_url }}">
+    <link rel="shortcut icon" href="{{ favicon_url }}">
+    {% else %}
+    <!-- Default Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon.png">
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+    {% endif %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./scanner-styles.css">
     <style>
         :root {
             --primary-color: {{ primary_color }};
             --secondary-color: {{ secondary_color }};
+            --button-color: {{ button_color }};
         }
     </style>
 </head>
@@ -178,7 +190,9 @@ def generate_scanner_html(deployment_dir, scanner_uid, scanner_data, api_key):
             business_name=scanner_data.get('business_name', 'Security Services'),
             primary_color=scanner_data.get('primary_color', '#02054c'),
             secondary_color=scanner_data.get('secondary_color', '#35a310'),
+            button_color=scanner_data.get('button_color', scanner_data.get('primary_color', '#02054c')),
             logo_url=scanner_data.get('logo_url', ''),
+            favicon_url=scanner_data.get('favicon_path', scanner_data.get('favicon_url', '')),
             contact_email=scanner_data.get('contact_email', 'support@example.com'),
             scan_types=scanner_data.get('scan_types', ['port_scan', 'ssl_check']),
             api_key=api_key
@@ -269,7 +283,7 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .scanner-submit-btn {{
-    background: linear-gradient(135deg, {scanner_data.get('primary_color', '#02054c')}, {scanner_data.get('secondary_color', '#35a310')});
+    background: linear-gradient(135deg, {scanner_data.get('button_color', scanner_data.get('primary_color', '#02054c'))}, {scanner_data.get('secondary_color', '#35a310')});
     border: none;
     border-radius: 8px;
     padding: 1rem 2rem;
@@ -282,6 +296,7 @@ def generate_scanner_css(deployment_dir, scanner_data):
 }}
 
 .scanner-submit-btn:hover {{
+    background: linear-gradient(135deg, {scanner_data.get('button_color', scanner_data.get('primary_color', '#02054c'))}dd, {scanner_data.get('secondary_color', '#35a310')}dd);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }}
