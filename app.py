@@ -184,7 +184,11 @@ except ImportError as e:
     def check_dkim_record(domain): 
         return {"status": "error"}
     def check_os_updates(): 
-        return {"status": "error"}
+        return {
+            "status": "unknown",
+            "severity": "Medium",
+            "message": "OS update status cannot be determined remotely. Please check your system for available updates."
+        }
     def check_firewall_status(): 
         return {"status": "error"}
     def check_open_ports(ip): 
@@ -1967,6 +1971,7 @@ def get_industry_benchmarks():
                 'Incident Response Plan'
             ],
             'avg_score': 72,
+            'message': 'Healthcare organizations face strict regulatory requirements and must maintain the highest security standards to protect patient data.',
             'percentile_distribution': {
                 10: 45,
                 25: 58,
@@ -1986,6 +1991,7 @@ def get_industry_benchmarks():
                 'Disaster Recovery'
             ],
             'avg_score': 78,
+            'message': 'Financial institutions require robust security measures to protect sensitive financial data and maintain customer trust.',
             'percentile_distribution': {
                 10: 52,
                 25: 65,
@@ -2005,6 +2011,7 @@ def get_industry_benchmarks():
                 'Customer Data Protection'
             ],
             'avg_score': 65,
+            'message': 'Retail businesses must secure payment processing systems and protect customer data while maintaining operational efficiency.',
             'percentile_distribution': {
                 10: 38,
                 25: 52,
@@ -2024,6 +2031,7 @@ def get_industry_benchmarks():
                 'Identity Management'
             ],
             'avg_score': 60,
+            'message': 'Educational institutions must protect student privacy and secure research data while supporting diverse learning environments.',
             'percentile_distribution': {
                 10: 32,
                 25: 45,
@@ -2043,6 +2051,7 @@ def get_industry_benchmarks():
                 'Physical Security'
             ],
             'avg_score': 68,
+            'message': 'Manufacturing companies need to secure industrial control systems and protect intellectual property while maintaining operational efficiency.',
             'percentile_distribution': {
                 10: 40,
                 25: 54,
@@ -2062,6 +2071,7 @@ def get_industry_benchmarks():
                 'Security Clearance Management'
             ],
             'avg_score': 70,
+            'message': 'Government agencies must implement strict security controls and continuous monitoring to protect sensitive public information.',
             'percentile_distribution': {
                 10: 42,
                 25: 56,
@@ -2081,6 +2091,7 @@ def get_industry_benchmarks():
                 'Security Awareness Training'
             ],
             'avg_score': 65,
+            'message': 'General businesses should implement fundamental security controls to protect data and maintain customer trust.',
             'percentile_distribution': {
                 10: 35,
                 25: 50,
@@ -2354,18 +2365,25 @@ def run_consolidated_scan(lead_data):
     try:
         logging.info("Running web security checks...")
     
-        # Extract domain from email for scanning
-        email = lead_data.get('email', '')
-        extracted_domain = None
-        if "@" in email:
-            extracted_domain = extract_domain_from_email(email)
-            logging.debug(f"Extracted domain from email: {extracted_domain}")
-    
-        # Use extracted domain or fall back to target
-        target = extracted_domain or lead_data.get('target', '')
-    
+        # Use target domain that was already set with priority logic
+        # Priority 1: target from form (company website)
+        # Priority 2: email domain (if no target was set)
+        target = lead_data.get('target', '')
+        
+        # Only extract from email if no target was provided
+        if not target and lead_data.get('email', ''):
+            email = lead_data.get('email', '')
+            if "@" in email:
+                target = extract_domain_from_email(email)
+                logging.debug(f"Extracted domain from email as fallback: {target}")
+        
+        # If we have a target, make sure to respect it
         if target and target.strip():
             logging.info(f"Using domain for scanning: {target}")
+        else:
+            logging.warning("No target domain available for scanning")
+    
+        if target and target.strip():
                 
             # Check if ports 80 or 443 are accessible
             http_accessible = False
@@ -3013,7 +3031,10 @@ def scan_page():
                 
                 # Legacy client logging (keeping for compatibility)
                 from client_db import log_scan
-                log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
+                try:
+                    log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
+                except Exception as log_error:
+                    logging.error(f"Legacy log_scan error: {log_error}")
                 
                 # Save to client-specific database for reporting
                 try:
