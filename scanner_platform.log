@@ -265,3 +265,31 @@
 2025-05-26 10:58:24,099 - root - INFO - Initializing database from schema.sql...
 2025-05-26 10:58:24,112 - root - INFO - Schema executed successfully
 2025-05-26 10:58:24,113 - root - INFO - Database initialization completed
+2025-05-26 11:10:07,218 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:10:07,232 - root - INFO - Schema executed successfully
+2025-05-26 11:10:07,233 - root - INFO - Database initialization completed
+2025-05-26 11:11:01,745 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:11:01,759 - root - INFO - Schema executed successfully
+2025-05-26 11:11:01,759 - root - INFO - Database initialization completed
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated HTML files for scanner scanner_919391f3
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:11:01,828 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-26 11:11:01,829 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:01,829 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:01,829 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:11:54,654 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:11:54,668 - root - INFO - Schema executed successfully
+2025-05-26 11:11:54,668 - root - INFO - Database initialization completed
+2025-05-26 11:11:54,698 - scanner_deployment - INFO - Generated HTML files for scanner scanner_919391f3
+2025-05-26 11:11:54,698 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:54,698 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:54,699 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:11:54,701 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-26 11:11:54,701 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:54,702 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:54,702 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:14:21,272 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:14:21,285 - root - INFO - Schema executed successfully
+2025-05-26 11:14:21,285 - root - INFO - Database initialization completed

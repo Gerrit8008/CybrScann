@@ -736,3 +736,74 @@ if __name__ == "__main__":
     
     result = generate_scanner_deployment('test_scanner_123', test_scanner_data, 'test_api_key_456')
     print(f"Deployment result: {result}")
+
+def regenerate_scanner_if_needed(scanner_id, client_id):
+    """Regenerate scanner deployment if customizations have changed recently"""
+    try:
+        from client_db import get_db_connection
+        import sqlite3
+        from datetime import datetime, timedelta
+        
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get scanner info
+        cursor.execute('SELECT scanner_id FROM scanners WHERE id = ?', (scanner_id,))
+        scanner = cursor.fetchone()
+        
+        if not scanner:
+            return False
+            
+        scanner_uid = scanner['scanner_id']
+        
+        # Check if customizations were updated recently (within last hour)
+        cursor.execute('SELECT updated_at FROM customizations WHERE client_id = ?', (client_id,))
+        custom = cursor.fetchone()
+        
+        if custom and custom['updated_at']:
+            # Parse the updated_at timestamp
+            try:
+                updated_time = datetime.fromisoformat(custom['updated_at'])
+                one_hour_ago = datetime.now() - timedelta(hours=1)
+                
+                # If customizations were updated recently, regenerate
+                if updated_time > one_hour_ago:
+                    logger.info(f"Customizations updated recently, regenerating scanner {scanner_uid}")
+                    
+                    # Get full scanner data for regeneration
+                    cursor.execute('''
+                        SELECT s.*, c.primary_color, c.secondary_color, c.button_color, 
+                               c.logo_path, c.favicon_path, cl.business_name
+                        FROM scanners s
+                        JOIN clients cl ON s.client_id = cl.id
+                        LEFT JOIN customizations c ON cl.id = c.client_id
+                        WHERE s.id = ?
+                    ''', (scanner_id,))
+                    
+                    full_scanner = cursor.fetchone()
+                    if full_scanner:
+                        fs = dict(full_scanner)
+                        scanner_data = {
+                            'name': fs['name'],
+                            'business_name': fs['business_name'],
+                            'primary_color': fs['primary_color'] or '#02054c',
+                            'secondary_color': fs['secondary_color'] or '#35a310',
+                            'button_color': fs['button_color'] or fs['primary_color'] or '#02054c',
+                            'logo_url': fs['logo_path'] or '',
+                            'favicon_url': fs['favicon_path'] or '',
+                        }
+                        
+                        # Regenerate deployment
+                        success = generate_scanner_deployment(scanner_uid, scanner_data, fs['api_key'])
+                        conn.close()
+                        return success
+            except Exception as parse_error:
+                logger.warning(f"Could not parse customization timestamp: {parse_error}")
+        
+        conn.close()
+        return False
+        
+    except Exception as e:
+        logger.warning(f"Error checking if scanner regeneration needed: {e}")
+        return False
