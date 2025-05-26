@@ -3230,8 +3230,8 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
         custom_fields.append("default_scans = ?")
         custom_values.append(json.dumps(scanner_data['default_scans']))
     
-    # Always update last_updated and updated_by
-    custom_fields.append("last_updated = ?")
+    # Always update updated_at and updated_by
+    custom_fields.append("updated_at = ?")
     custom_values.append(datetime.now().isoformat())
     custom_fields.append("updated_by = ?")
     custom_values.append(user_id)
@@ -3254,10 +3254,11 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
         fields = [db_field for key, db_field in custom_mapping.items() if key in scanner_data]
         if 'default_scans' in scanner_data:
             fields.append('default_scans')
-        fields.extend(['client_id', 'last_updated', 'updated_by'])
+        fields.extend(['client_id', 'created_at', 'updated_at', 'updated_by'])
         
         values = custom_values
         values.append(client_id)
+        values.append(datetime.now().isoformat())
         values.append(datetime.now().isoformat())
         values.append(user_id)
         
@@ -3271,11 +3272,17 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
     # Note: deployed_scanners update removed - working with scanners table instead
     
     # Update scanner files
-    from scanner_template import update_scanner
-    update_scanner(client_id, scanner_data)
+    try:
+        from scanner_template import update_scanner
+        update_scanner(client_id, scanner_data)
+    except Exception as e:
+        logging.warning(f"Scanner template update failed: {e}")
     
     # Log the update
-    log_action(conn, cursor, user_id, 'update', 'scanner', scanner_id, scanner_data)
+    try:
+        log_action(conn, cursor, user_id, 'update', 'scanner', scanner_id, scanner_data)
+    except Exception as e:
+        logging.warning(f"Audit log failed: {e}")
     
     return {"status": "success", "scanner_id": scanner_id}
 
@@ -4283,8 +4290,8 @@ def update_client(conn, cursor, client_id, client_data, user_id):
         custom_fields.append("default_scans = ?")
         custom_values.append(json.dumps(client_data['default_scans']))
     
-    # Always update last_updated and updated_by
-    custom_fields.append("last_updated = ?")
+    # Always update updated_at and updated_by
+    custom_fields.append("updated_at = ?")
     custom_values.append(datetime.now().isoformat())
     custom_fields.append("updated_by = ?")
     custom_values.append(user_id)
@@ -4307,10 +4314,11 @@ def update_client(conn, cursor, client_id, client_data, user_id):
         fields = [db_field for key, db_field in custom_mapping.items() if key in client_data]
         if 'default_scans' in client_data:
             fields.append('default_scans')
-        fields.extend(['client_id', 'last_updated', 'updated_by'])
+        fields.extend(['client_id', 'created_at', 'updated_at', 'updated_by'])
         
         values = custom_values
         values.append(client_id)
+        values.append(datetime.now().isoformat())
         values.append(datetime.now().isoformat())
         values.append(user_id)
         

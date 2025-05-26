@@ -462,11 +462,12 @@ def scanner_edit(user, scanner_id):
             # Update scanner
             result = update_scanner_config(scanner_id, scanner_data, user['user_id'])
             
-            if result['status'] == 'success':
+            if result and result.get('status') == 'success':
                 flash('Scanner updated successfully', 'success')
-                return redirect(url_for('client.scanner_view', scanner_id=scanner_id))
+                return redirect(url_for('client.scanners'))
             else:
-                flash(f'Failed to update scanner: {result.get("message", "Unknown error")}', 'danger')
+                error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
+                flash(f'Failed to update scanner: {error_msg}', 'danger')
         
         return render_template(
             'client/scanner-edit.html',
