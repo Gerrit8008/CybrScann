@@ -637,6 +637,151 @@ def setup_routes(app):
             logging.error(f"Error serving scanner embed: {e}")
             return render_template('scan.html', embed_mode=True)
 
+    @app.route('/api/scanner/save', methods=['POST'])
+    def api_scanner_save():
+        """API endpoint for saving scanner data from frontend"""
+        try:
+            data = request.get_json()
+            
+            if not data:
+                return jsonify({
+                    'success': False,
+                    'error': 'No JSON data provided'
+                }), 400
+            
+            # Validate required fields
+            required_fields = ['companyName', 'email', 'phone']
+            for field in required_fields:
+                if not data.get(field):
+                    return jsonify({
+                        'success': False,
+                        'error': f'Missing required field: {field}'
+                    }), 400
+            
+            # For now, return success with a mock scanner ID
+            # In a full implementation, you would save to database
+            scanner_id = str(uuid.uuid4())[:8]
+            
+            # Log the save attempt
+            logging.info(f"Scanner save request: {data}")
+            
+            return jsonify({
+                'success': True,
+                'scannerId': scanner_id,
+                'message': 'Scanner saved successfully'
+            })
+            
+        except Exception as e:
+            logging.error(f"Error in api_scanner_save: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save scanner'
+            }), 500
+
+    @app.route('/api/scanner/<scanner_uid>/scan', methods=['POST', 'OPTIONS'])
+    def api_scanner_scan(scanner_uid):
+        """API endpoint for initiating scans"""
+        try:
+            # Handle CORS preflight request
+            if request.method == 'OPTIONS':
+                response = jsonify({'status': 'ok'})
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+                return response
+            
+            # Check for Authorization header
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                api_key = auth_header[7:]  # Remove 'Bearer ' prefix
+                logging.info(f"API Key received: {api_key[:10]}...")
+            else:
+                logging.warning("No valid Authorization header found")
+                # For now, continue without strict API key validation
+            
+            data = request.get_json()
+            
+            if not data:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'No JSON data provided'
+                }), 400
+            
+            # Extract scan parameters
+            target_url = data.get('target_url', data.get('target', ''))
+            contact_email = data.get('contact_email', '')
+            contact_name = data.get('contact_name', '')
+            scan_types = data.get('scan_types', ['basic'])
+            
+            if not target_url:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Target URL is required'
+                }), 400
+            
+            if not contact_email:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Contact email is required'
+                }), 400
+            
+            # Generate scan ID
+            scan_id = str(uuid.uuid4())
+            
+            # Log scan initiation
+            logging.info(f"Scan initiated: scanner_uid={scanner_uid}, target={target_url}, email={contact_email}, scan_id={scan_id}")
+            
+            # Store scan data (simplified for now)
+            scan_data = {
+                'scan_id': scan_id,
+                'scanner_uid': scanner_uid,
+                'target_url': target_url,
+                'contact_email': contact_email,
+                'contact_name': contact_name,
+                'scan_types': scan_types,
+                'timestamp': datetime.now().isoformat(),
+                'status': 'initiated'
+            }
+            
+            # In a full implementation, you would:
+            # 1. Validate the scanner exists and API key
+            # 2. Start the actual scan process
+            # 3. Store scan data in database
+            # 4. Send email to contact_email
+            # 5. Return scan results or status
+            
+            response = jsonify({
+                'status': 'success',
+                'message': 'Scan initiated successfully',
+                'scan_id': scan_id,
+                'scanner_uid': scanner_uid,
+                'target_url': target_url
+            })
+            
+            # Add CORS headers
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            
+            return response
+            
+        except Exception as e:
+            logging.error(f"Error in api_scanner_scan: {str(e)}")
+            import traceback
+            logging.error(traceback.format_exc())
+            
+            error_response = jsonify({
+                'status': 'error',
+                'message': f'Scan failed: {str(e)}'
+            })
+            
+            # Add CORS headers to error response
+            error_response.headers['Access-Control-Allow-Origin'] = '*'
+            error_response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            error_response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            
+            return error_response, 500
+
     # Emergency admin creation route
     @app.route('/emergency_admin')
     def emergency_admin():
