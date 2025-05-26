@@ -434,6 +434,12 @@ def scanner_edit(user, scanner_id):
             return redirect(url_for('client.scanners'))
         
         if request.method == 'POST':
+            print(f"=== SCANNER EDIT POST REQUEST ===")
+            print(f"Scanner ID: {scanner_id}")
+            print(f"User ID: {user['user_id']}")
+            print(f"Form keys: {list(request.form.keys())}")
+            print(f"=== END DEBUG ===")
+            
             # Process form submission
             scanner_data = {
                 'scanner_name': request.form.get('scanner_name'),
@@ -470,19 +476,20 @@ def scanner_edit(user, scanner_id):
             
             # Update scanner
             try:
+                print(f"About to call update_scanner_config with {len(scanner_data)} fields")
                 result = update_scanner_config(scanner_id, scanner_data, user['user_id'])
-                logger.info(f"Update scanner result: {result}")
+                print(f"Update result: {result}")
                 
                 if result and result.get('status') == 'success':
+                    print("SUCCESS! Scanner updated, setting flash message and redirecting")
                     flash('Scanner updated successfully!', 'success')
-                    logger.info(f"Scanner {scanner_id} updated successfully, redirecting to scanners page")
                     return redirect(url_for('client.scanners'))
                 else:
                     error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
+                    print(f"FAILED! Update failed: {error_msg}")
                     flash(f'Failed to update scanner: {error_msg}', 'danger')
-                    logger.error(f"Scanner update failed: {error_msg}")
             except Exception as e:
-                logger.error(f"Exception during scanner update: {e}")
+                print(f"EXCEPTION during update: {e}")
                 import traceback
                 traceback.print_exc()
                 flash(f'Error updating scanner: {str(e)}', 'danger')
