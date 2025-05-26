@@ -537,7 +537,7 @@ def scanner_edit(user, scanner_id):
 @client_bp.route('/scanners/<int:scanner_id>/stats')
 @client_required
 def scanner_stats(user, scanner_id):
-    """View scanner statistics"""
+    """View comprehensive scanner statistics"""
     try:
         # Get client info
         client = get_client_by_user_id(user['user_id'])
@@ -553,24 +553,248 @@ def scanner_stats(user, scanner_id):
             flash('Scanner not found', 'danger')
             return redirect(url_for('client.scanners'))
         
-        # Get scan statistics
-        stats = get_scanner_stats(scanner_id)
+        # Get comprehensive dashboard data for enhanced statistics
+        dashboard_data = get_client_dashboard_data(client['id'])
         
-        # Get scan history for chart data
-        scan_history = get_scan_history_by_client_id(client['id'])
+        # Get scanner-specific statistics
+        scanner_stats = get_scanner_stats(scanner_id)
+        
+        # Enhanced statistics with dashboard data
+        try:
+            from client_database_manager import get_client_scan_statistics, get_client_scan_reports
+            
+            # Get all client scans for more detailed analysis
+            all_scans, _ = get_client_scan_reports(client['id'], page=1, per_page=100)
+            
+            # Filter scans for this specific scanner
+            scanner_scans = []
+            if all_scans:
+                scanner_uid = scanner.get('scanner_id', '')
+                scanner_scans = [scan for scan in all_scans if scan.get('scanner_id') == scanner_uid or scan.get('scanner_name') == scanner.get('name')]
+            
+            # Calculate enhanced statistics
+            statistics = {
+                'total_scans': len(scanner_scans),
+                'unique_companies': len(set(scan.get('lead_company', '').strip() for scan in scanner_scans if scan.get('lead_company', '').strip())),
+                'avg_security_score': round(sum(scan.get('security_score', 0) for scan in scanner_scans) / len(scanner_scans)) if scanner_scans else 0,
+                'conversion_rate': round((len([s for s in scanner_scans if s.get('lead_email')]) / len(scanner_scans)) * 100) if scanner_scans else 0,
+                
+                # Monthly trends
+                'monthly_scans': {},
+                
+                # Risk distribution
+                'risk_distribution': {'Low': 0, 'Medium': 0, 'High': 0},
+                
+                # Company sizes
+                'company_sizes': {},
+                
+                # Top targets
+                'top_targets': []
+            }
+            
+            # Calculate monthly trends
+            from datetime import datetime, timedelta
+            import calendar
+            for i in range(6):
+                month_date = datetime.now() - timedelta(days=i*30)
+                month_key = month_date.strftime('%Y-%m')
+                month_name = calendar.month_abbr[month_date.month]
+                statistics['monthly_scans'][month_name] = len([
+                    scan for scan in scanner_scans 
+                    if scan.get('timestamp', '').startswith(month_key)
+                ])
+            
+            # Calculate risk distribution
+            for scan in scanner_scans:
+                risk = scan.get('risk_level', 'Medium')
+                if risk in statistics['risk_distribution']:
+                    statistics['risk_distribution'][risk] += 1
+                else:
+                    statistics['risk_distribution']['Medium'] += 1
+            
+            # Calculate company sizes
+            for scan in scanner_scans:
+                size = scan.get('company_size', 'Unknown')
+                statistics['company_sizes'][size] = statistics['company_sizes'].get(size, 0) + 1
+            
+            # Calculate top targets
+            target_counts = {}
+            for scan in scanner_scans:
+                target = scan.get('target_domain', scan.get('target_url', ''))
+                if target:
+                    target_counts[target] = target_counts.get(target, 0) + 1
+            
+            statistics['top_targets'] = sorted(target_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+            
+            # Recent scans (last 20)
+            recent_scans = sorted(scanner_scans, key=lambda x: x.get('timestamp', ''), reverse=True)[:20]
+            
+        except Exception as e:
+            logger.error(f"Error getting enhanced statistics: {e}")
+            # Fallback to basic statistics
+            statistics = {
+                'total_scans': scanner_stats.get('total_scans', 0),
+                'unique_companies': 0,
+                'avg_security_score': 75,
+                'conversion_rate': 0,
+                'monthly_scans': {},
+                'risk_distribution': {'Low': 0, 'Medium': 0, 'High': 0},
+                'company_sizes': {},
+                'top_targets': []
+            }
+            recent_scans = []
         
         return render_template(
             'client/scanner-stats.html',
             user=user,
             client=client,
             scanner=scanner,
-            stats=stats,
-            scan_history=scan_history
+            statistics=statistics,
+            recent_scans=recent_scans,
+            dashboard_data=dashboard_data
         )
     except Exception as e:
         logger.error(f"Error displaying scanner stats: {str(e)}")
         flash('An error occurred while loading scanner statistics', 'danger')
         return redirect(url_for('client.scanners'))
+
+@client_bp.route('/statistics')
+@client_required
+def client_statistics(user):
+    """View comprehensive client statistics across all scanners"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        
+        if not client:
+            flash('Please complete your client profile', 'info')
+            return redirect(url_for('auth.complete_profile'))
+        
+        # Get comprehensive dashboard data
+        dashboard_data = get_client_dashboard_data(client['id'])
+        
+        if not dashboard_data:
+            flash('Unable to load statistics data', 'warning')
+            return redirect(url_for('client.dashboard'))
+        
+        # Enhanced statistics with all client data
+        try:
+            from client_database_manager import get_client_scan_statistics, get_client_scan_reports
+            
+            # Get all client scans for comprehensive analysis
+            all_scans, total_pages = get_client_scan_reports(client['id'], page=1, per_page=500)
+            
+            if not all_scans:
+                all_scans = []
+            
+            # Calculate comprehensive statistics
+            statistics = {
+                'total_scans': len(all_scans),
+                'total_scanners': len(dashboard_data['scanners']),
+                'unique_companies': len(set(scan.get('lead_company', '').strip() for scan in all_scans if scan.get('lead_company', '').strip())),
+                'avg_security_score': round(sum(scan.get('security_score', 0) for scan in all_scans) / len(all_scans)) if all_scans else 0,
+                'conversion_rate': round((len([s for s in all_scans if s.get('lead_email')]) / len(all_scans)) * 100) if all_scans else 0,
+                'total_leads': len([s for s in all_scans if s.get('lead_email') or s.get('lead_name')]),
+                
+                # Monthly trends (last 12 months)
+                'monthly_scans': {},
+                
+                # Risk distribution
+                'risk_distribution': {'Low': 0, 'Medium': 0, 'High': 0},
+                
+                # Company sizes
+                'company_sizes': {},
+                
+                # Top targets
+                'top_targets': [],
+                
+                # Scanner performance
+                'scanner_performance': {},
+                
+                # Lead sources
+                'lead_sources': {}
+            }
+            
+            # Calculate monthly trends (12 months)
+            from datetime import datetime, timedelta
+            import calendar
+            for i in range(12):
+                month_date = datetime.now() - timedelta(days=i*30)
+                month_key = month_date.strftime('%Y-%m')
+                month_name = month_date.strftime('%b %Y')
+                statistics['monthly_scans'][month_name] = len([
+                    scan for scan in all_scans 
+                    if scan.get('timestamp', '').startswith(month_key)
+                ])
+            
+            # Calculate risk distribution
+            for scan in all_scans:
+                risk = scan.get('risk_level', 'Medium')
+                if risk in statistics['risk_distribution']:
+                    statistics['risk_distribution'][risk] += 1
+                else:
+                    statistics['risk_distribution']['Medium'] += 1
+            
+            # Calculate company sizes
+            for scan in all_scans:
+                size = scan.get('company_size', 'Unknown')
+                statistics['company_sizes'][size] = statistics['company_sizes'].get(size, 0) + 1
+            
+            # Calculate top targets
+            target_counts = {}
+            for scan in all_scans:
+                target = scan.get('target_domain', scan.get('target_url', ''))
+                if target:
+                    target_counts[target] = target_counts.get(target, 0) + 1
+            
+            statistics['top_targets'] = sorted(target_counts.items(), key=lambda x: x[1], reverse=True)[:15]
+            
+            # Calculate scanner performance
+            scanner_counts = {}
+            for scan in all_scans:
+                scanner_name = scan.get('scanner_name', 'Unknown')
+                scanner_counts[scanner_name] = scanner_counts.get(scanner_name, 0) + 1
+            
+            statistics['scanner_performance'] = sorted(scanner_counts.items(), key=lambda x: x[1], reverse=True)
+            
+            # Recent high-value scans (last 50 with lead data)
+            recent_scans = [
+                scan for scan in sorted(all_scans, key=lambda x: x.get('timestamp', ''), reverse=True)[:50]
+                if scan.get('lead_email') or scan.get('lead_name')
+            ]
+            
+        except Exception as e:
+            logger.error(f"Error getting comprehensive statistics: {e}")
+            # Fallback to dashboard data
+            statistics = {
+                'total_scans': dashboard_data['stats'].get('total_scans', 0),
+                'total_scanners': dashboard_data['stats'].get('scanners_count', 0),
+                'unique_companies': 0,
+                'avg_security_score': dashboard_data['stats'].get('avg_security_score', 75),
+                'conversion_rate': 0,
+                'total_leads': 0,
+                'monthly_scans': {},
+                'risk_distribution': {'Low': 0, 'Medium': 0, 'High': 0},
+                'company_sizes': {},
+                'top_targets': [],
+                'scanner_performance': {},
+                'lead_sources': {}
+            }
+            recent_scans = dashboard_data['scan_history'][:20]
+        
+        return render_template(
+            'client/client-statistics.html',
+            user=user,
+            client=client,
+            statistics=statistics,
+            recent_scans=recent_scans,
+            dashboard_data=dashboard_data
+        )
+        
+    except Exception as e:
+        logger.error(f"Error displaying client statistics: {str(e)}")
+        flash('An error occurred while loading statistics', 'danger')
+        return redirect(url_for('client.dashboard'))
 
 @client_bp.route('/scanners/<int:scanner_id>/regenerate-api-key', methods=['POST'])
 @client_required
