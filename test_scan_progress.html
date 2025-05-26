@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Scan Progress</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .progress-step {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #fff;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .progress-fill {
+            transition: width 0.5s ease-out;
+            background-color: #007bff;
+            color: white;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+        
+        .progress-step-status {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-step-status.status-in-progress {
+            color: #0066cc;
+        }
+        
+        .progress-step-status.status-complete {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Test Scan Progress Animation</h2>
+        
+        <div id="scanProgress">
+            <h3 class="section-title mb-4"><i class="bi bi-activity me-2"></i>Scan in Progress</h3>
+            
+            <div class="progress-steps">
+                <div class="progress-step">
+                    <h5><i class="bi bi-1-circle me-2"></i> Network Discovery</h5>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" id="progress1" style="width: 0%;">0%</div>
+                    </div>
+                    <p class="progress-step-status" id="status1">Pending...</p>
+                </div>
+                
+                <div class="progress-step">
+                    <h5><i class="bi bi-2-circle me-2"></i> Vulnerability Scanning</h5>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" id="progress2" style="width: 0%;">0%</div>
+                    </div>
+                    <p class="progress-step-status" id="status2">Pending...</p>
+                </div>
+                
+                <div class="progress-step">
+                    <h5><i class="bi bi-3-circle me-2"></i> Threat Assessment</h5>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" id="progress3" style="width: 0%;">0%</div>
+                    </div>
+                    <p class="progress-step-status" id="status3">Pending...</p>
+                </div>
+                
+                <div class="progress-step">
+                    <h5><i class="bi bi-4-circle me-2"></i> Report Generation</h5>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" id="progress4" style="width: 0%;">0%</div>
+                    </div>
+                    <p class="progress-step-status" id="status4">Pending...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="scanComplete" style="display: none;">
+            <div class="text-center py-5">
+                <h3 class="mt-4">Scan Complete!</h3>
+                <p class="mb-4">Your security assessment has been successfully completed.</p>
+                
+                <div class="alert alert-success mb-4">
+                    <i class="bi bi-envelope-check me-2"></i>
+                    A detailed report has been sent to your email address.
+                </div>
+                
+                <a href="/results" class="btn btn-primary btn-lg">
+                    <i class="bi bi-file-earmark-text me-2"></i> View Detailed Results
+                </a>
+            </div>
+        </div>
+        
+        <button onclick="startTest()" class="btn btn-success">Test Scan Progress</button>
+    </div>
+
+    <script>
+        function simulateScanProgress() {
+            // Network Discovery (0-100% over 3 seconds)
+            updateProgress('progress1', 'status1', 0, 100, 'In progress...', 'Complete!', 3000);
+            
+            // Vulnerability Scanning (starts after network discovery)
+            setTimeout(() => {
+                updateProgress('progress2', 'status2', 0, 100, 'In progress...', 'Complete!', 4000);
+            }, 3000);
+            
+            // Threat Assessment (starts after vulnerability scanning)
+            setTimeout(() => {
+                updateProgress('progress3', 'status3', 0, 100, 'In progress...', 'Complete!', 3500);
+            }, 7000);
+            
+            // Report Generation (starts after threat assessment)
+            setTimeout(() => {
+                updateProgress('progress4', 'status4', 0, 100, 'In progress...', 'Complete!', 3000);
+            }, 10500);
+        }
+        
+        function updateProgress(progressId, statusId, start, end, inProgressText, completeText, duration) {
+            const progressBar = document.getElementById(progressId);
+            const statusEl = document.getElementById(statusId);
+            let current = start;
+            const increment = (end - start) / (duration / 50);
+            
+            statusEl.textContent = inProgressText;
+            statusEl.className = 'progress-step-status status-in-progress';
+            
+            const interval = setInterval(() => {
+                current += increment;
+                
+                if (current >= end) {
+                    current = end;
+                    clearInterval(interval);
+                    statusEl.textContent = completeText;
+                    statusEl.className = 'progress-step-status status-complete';
+                }
+                
+                progressBar.style.width = current + '%';
+                progressBar.textContent = Math.round(current) + '%';
+            }, 50);
+        }
+        
+        function startTest() {
+            // Reset everything
+            document.getElementById('scanProgress').style.display = 'block';
+            document.getElementById('scanComplete').style.display = 'none';
+            
+            // Reset progress bars
+            ['progress1', 'progress2', 'progress3', 'progress4'].forEach(id => {
+                document.getElementById(id).style.width = '0%';
+                document.getElementById(id).textContent = '0%';
+            });
+            
+            ['status1', 'status2', 'status3', 'status4'].forEach(id => {
+                document.getElementById(id).textContent = 'Pending...';
+                document.getElementById(id).className = 'progress-step-status';
+            });
+            
+            simulateScanProgress();
+            
+            // Show completion after all progress is done
+            setTimeout(() => {
+                document.getElementById('scanProgress').style.display = 'none';
+                document.getElementById('scanComplete').style.display = 'block';
+            }, 14000);
+        }
+    </script>
+</body>
+</html>
