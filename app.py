@@ -1045,6 +1045,7 @@ def customize_scanner():
                 'subscription_level': scanner_data['subscription'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
+                'button_color': scanner_data['button_color'],  # Add missing button_color
                 'logo_path': scanner_data.get('logo_path', ''),
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'email_subject': scanner_data['email_subject'],
@@ -1078,6 +1079,7 @@ def customize_scanner():
                 'domain': scanner_data['business_domain'],
                 'primary_color': scanner_data['primary_color'],
                 'secondary_color': scanner_data['secondary_color'],
+                'button_color': scanner_data['button_color'],  # Add missing button_color
                 'logo_url': scanner_data.get('logo_path', ''),  # Fix: use logo_url to match database column
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'contact_email': scanner_data['contact_email'],
@@ -1232,7 +1234,7 @@ def scanner_embed(scanner_uid):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
-        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.logo_path
+        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.button_color, cu.logo_path, cu.favicon_path
         FROM scanners s 
         JOIN clients c ON s.client_id = c.id 
         LEFT JOIN customizations cu ON c.id = cu.client_id
@@ -1251,7 +1253,9 @@ def scanner_embed(scanner_uid):
                 'business_name': scanner_data.get('business_name', ''),
                 'primary_color': scanner_data.get('primary_color', '#02054c'),
                 'secondary_color': scanner_data.get('secondary_color', '#35a310'),
+                'button_color': scanner_data.get('button_color', scanner_data.get('primary_color', '#02054c')),
                 'logo_path': scanner_data.get('logo_path', ''),
+                'favicon_path': scanner_data.get('favicon_path', ''),
                 'scanner_name': scanner_data.get('name', 'Security Scanner')
             }
             
@@ -1658,13 +1662,14 @@ def create_client_direct(conn, cursor, client_data, user_id):
     
     cursor.execute('''
     INSERT INTO customizations 
-    (client_id, primary_color, secondary_color, logo_path, 
+    (client_id, primary_color, secondary_color, button_color, logo_path, 
      favicon_path, email_subject, email_intro, default_scans, last_updated, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         client_id,
         client_data.get('primary_color', '#02054c'),
         client_data.get('secondary_color', '#35a310'),
+        client_data.get('button_color', client_data.get('primary_color', '#02054c')),
         client_data.get('logo_path', ''),
         client_data.get('favicon_path', ''),
         client_data.get('email_subject', 'Your Security Scan Report'),
