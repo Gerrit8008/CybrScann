@@ -97,7 +97,7 @@
 
                     <div class="row">
                         <div class="col-lg-8">
-                            <form method="POST" enctype="multipart/form-data">
+                            <form method="POST" enctype="multipart/form-data" onsubmit="console.log('Form submitting...'); return true;">
                                 <!-- Basic Information -->
                                 <div class="card mb-4">
                                     <div class="card-header">
@@ -345,7 +345,7 @@
                                             <div class="mt-3">
                                                 <button type="button" class="btn" id="preview-cta" 
                                                         style="background-color: {{ scanner.button_color or scanner.primary_color or '#007bff' }}; color: white;">
-                                                    Start Security Scan
+                                                    {{ scanner.cta_button_text or 'Start Security Scan' }}
                                                 </button>
                                             </div>
                                             <div class="mt-3">
@@ -381,6 +381,12 @@ document.addEventListener('DOMContentLoaded', function() {
         this.nextElementSibling.value = color;
         const ctaBtn = document.getElementById('preview-cta');
         ctaBtn.style.backgroundColor = color;
+    });
+
+    // CTA button text preview
+    document.getElementById('cta_button_text').addEventListener('input', function() {
+        const ctaBtn = document.getElementById('preview-cta');
+        ctaBtn.textContent = this.value || 'Start Security Scan';
     });
 
     // Logo upload preview

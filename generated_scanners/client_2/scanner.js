@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Configuration
     const clientId = 2;
-    const defaultDomain = "https://example.com";
+    const defaultDomain = "https://test.com";
     const apiEndpoint = '/api/v1/scan';
     
     // Set default domain if available
