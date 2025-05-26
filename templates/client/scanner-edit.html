@@ -315,7 +315,7 @@
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary" id="saveButton">
+                                    <button type="submit" class="btn btn-primary" id="saveButton" onclick="console.log('Button onclick fired'); return true;">
                                         <i class="bi bi-check-lg me-2"></i>Save Changes
                                     </button>
                                     <a href="/client/scanners" class="btn btn-outline-secondary">Cancel</a>
@@ -365,6 +365,50 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up form debugging...');
+    
+    // Form debugging
+    const form = document.getElementById('scannerEditForm');
+    const saveButton = document.getElementById('saveButton');
+    
+    console.log('Form element:', form);
+    console.log('Save button element:', saveButton);
+    
+    if (form) {
+        console.log('Form found - adding submit listener');
+        form.addEventListener('submit', function(e) {
+            console.log('=== FORM SUBMIT EVENT ===');
+            console.log('Form submitting to:', this.action || window.location.href);
+            console.log('Method:', this.method);
+            
+            // Log some form data
+            const formData = new FormData(this);
+            console.log('Sample form data:');
+            let count = 0;
+            for (let [key, value] of formData.entries()) {
+                if (count < 5 && value) {
+                    console.log(`  ${key}: ${value}`);
+                    count++;
+                }
+            }
+            console.log('Form submission continuing...');
+        });
+    } else {
+        console.error('Form not found!');
+    }
+    
+    if (saveButton) {
+        console.log('Save button found - adding click listener');
+        saveButton.addEventListener('click', function(e) {
+            console.log('=== SAVE BUTTON CLICKED ===');
+            console.log('Button type:', this.type);
+            console.log('Form property:', this.form);
+            
+            // Don't prevent default, let it submit normally
+        });
+    } else {
+        console.error('Save button not found!');
+    }
 
     // Color picker sync
     document.getElementById('primary_color').addEventListener('input', function() {
