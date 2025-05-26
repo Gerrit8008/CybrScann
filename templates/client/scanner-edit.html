@@ -55,7 +55,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="primary_color" class="form-label">Primary Color</label>
                                             <div class="input-group">
@@ -66,7 +66,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="secondary_color" class="form-label">Secondary Color</label>
                                             <div class="input-group">
@@ -77,67 +77,105 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="button_color" class="form-label">Button Color</label>
+                                            <div class="input-group">
+                                                <input type="color" class="form-control form-control-color" id="button_color" 
+                                                       name="button_color" value="{{ scanner.button_color or scanner.primary_color or '#007bff' }}">
+                                                <input type="text" class="form-control" value="{{ scanner.button_color or scanner.primary_color or '#007bff' }}" 
+                                                       readonly>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="logo_upload" class="form-label">Logo Upload</label>
                                             <input type="file" class="form-control" id="logo_upload" name="logo_upload" 
                                                    accept="image/*">
-                                            {% if scanner.logo_url %}
+                                            {% if scanner.logo_url or scanner.logo_path %}
                                             <div class="mt-2">
                                                 <small class="text-muted">Current logo:</small><br>
-                                                <img src="{{ scanner.logo_url }}" alt="Current Logo" class="img-thumbnail" 
+                                                <img src="{{ scanner.logo_url or scanner.logo_path }}" alt="Current Logo" class="img-thumbnail" 
                                                      style="max-height: 60px;">
                                             </div>
                                             {% endif %}
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="company_name" class="form-label">Company Name</label>
-                                            <input type="text" class="form-control" id="company_name" name="company_name" 
-                                                   value="{{ scanner.company_name or user.company_name or '' }}">
+                                            <label for="favicon_upload" class="form-label">Favicon Upload</label>
+                                            <input type="file" class="form-control" id="favicon_upload" name="favicon_upload" 
+                                                   accept="image/*">
+                                            {% if scanner.favicon_path %}
+                                            <div class="mt-2">
+                                                <small class="text-muted">Current favicon:</small><br>
+                                                <img src="{{ scanner.favicon_path }}" alt="Current Favicon" class="img-thumbnail" 
+                                                     style="max-height: 32px;">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="business_domain" class="form-label">Business Domain</label>
+                                            <input type="url" class="form-control" id="business_domain" name="business_domain" 
+                                                   value="{{ scanner.business_domain or '' }}" placeholder="https://yourwebsite.com">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Messaging & Content -->
+                        <!-- Contact Information -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="bi bi-chat-text me-2"></i>Messaging & Content
+                                    <i class="bi bi-envelope me-2"></i>Contact Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="contact_email" class="form-label">Contact Email</label>
+                                            <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                                                   value="{{ scanner.contact_email or '' }}" placeholder="support@yourcompany.com">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="contact_phone" class="form-label">Contact Phone</label>
+                                            <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                                                   value="{{ scanner.contact_phone or '' }}" placeholder="+1 (555) 123-4567">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Configuration -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-chat-text me-2"></i>Email Configuration
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="welcome_message" class="form-label">Welcome Message</label>
-                                    <textarea class="form-control" id="welcome_message" name="welcome_message" rows="3">{{ scanner.welcome_message or 'Welcome to our cybersecurity scanner. Protect your business with our comprehensive security assessment.' }}</textarea>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="cta_text" class="form-label">Call-to-Action Button Text</label>
-                                            <input type="text" class="form-control" id="cta_text" name="cta_text" 
-                                                   value="{{ scanner.cta_text or 'Start Security Scan' }}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="results_message" class="form-label">Results Page Message</label>
-                                            <input type="text" class="form-control" id="results_message" name="results_message" 
-                                                   value="{{ scanner.results_message or 'Your security assessment is complete.' }}">
-                                        </div>
-                                    </div>
+                                    <label for="email_subject" class="form-label">Email Subject Line</label>
+                                    <input type="text" class="form-control" id="email_subject" name="email_subject" 
+                                           value="{{ scanner.email_subject or 'Your Security Scan Report' }}" 
+                                           placeholder="Your Security Scan Report">
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="footer_text" class="form-label">Footer Text</label>
-                                    <textarea class="form-control" id="footer_text" name="footer_text" rows="2">{{ scanner.footer_text or 'Powered by ' + (user.company_name or 'CyberScan Pro') }}</textarea>
+                                    <label for="email_intro" class="form-label">Email Introduction Message</label>
+                                    <textarea class="form-control" id="email_intro" name="email_intro" rows="3" 
+                                              placeholder="Thank you for using our security scanner. Please find your detailed report below.">{{ scanner.email_intro or '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -261,8 +299,8 @@
                                     <h6 id="preview-welcome">{{ scanner.welcome_message or 'Welcome to our cybersecurity scanner.' }}</h6>
                                     <div class="mt-3">
                                         <button type="button" class="btn" id="preview-cta" 
-                                                style="background-color: {{ scanner.primary_color or '#007bff' }}; color: white;">
-                                            {{ scanner.cta_text or 'Start Security Scan' }}
+                                                style="background-color: {{ scanner.button_color or scanner.primary_color or '#007bff' }}; color: white;">
+                                            Start Security Scan
                                         </button>
                                     </div>
                                     <div class="mt-3">
@@ -294,13 +332,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('primary_color').addEventListener('input', function() {
         const color = this.value;
         this.nextElementSibling.value = color;
-        const ctaBtn = document.getElementById('preview-cta');
-        ctaBtn.style.backgroundColor = color;
     });
 
     document.getElementById('secondary_color').addEventListener('input', function() {
         const color = this.value;
         this.nextElementSibling.value = color;
+    });
+
+    document.getElementById('button_color').addEventListener('input', function() {
+        const color = this.value;
+        this.nextElementSibling.value = color;
+        const ctaBtn = document.getElementById('preview-cta');
+        ctaBtn.style.backgroundColor = color;
     });
 
     // Text input preview updates
