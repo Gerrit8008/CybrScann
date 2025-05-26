@@ -312,3 +312,33 @@
 2025-05-26 12:38:11,759 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
 2025-05-26 12:38:11,759 - root - INFO - Scanner generated successfully for client 2
 2025-05-26 12:38:11,759 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 12:55:45,299 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:55:45,309 - root - INFO - Schema executed successfully
+2025-05-26 12:55:45,310 - root - INFO - Database initialization completed
+2025-05-26 12:55:45,310 - root - INFO - Updating scanner 1 with data: {'scanner_name': 'Updated Scanner Name', 'business_domain': 'https://example.com', 'contact_email': 'contact@example.com', 'contact_phone': '+1234567890', 'primary_color': '#ff0000', 'secondary_color': '#00ff00', 'button_color': '#0000ff', 'email_subject': 'Updated Email Subject', 'email_intro': 'Updated email intro text', 'scanner_description': 'Updated scanner description', 'cta_button_text': 'Click Here Now', 'company_tagline': 'We protect everything', 'support_email': 'support@example.com', 'custom_footer_text': 'Custom footer text here'}
+2025-05-26 12:55:45,310 - root - INFO - Found scanner, client_id: 2
+2025-05-26 12:55:45,310 - root - INFO - Executing client update: 
+        UPDATE clients 
+        SET scanner_name = ?, business_domain = ?, contact_email = ?, contact_phone = ?, updated_at = ?, updated_by = ?
+        WHERE id = ?
+         with values: ['Updated Scanner Name', 'https://example.com', 'contact@example.com', '+1234567890', '2025-05-26T12:55:45.310598', 1, 2]
+2025-05-26 12:55:45,310 - root - INFO - Client update affected 1 rows
+2025-05-26 12:55:45,310 - root - INFO - Executing scanner update: 
+        UPDATE scanners 
+        SET name = ?, contact_email = ?, contact_phone = ?, domain = ?, updated_at = ?
+        WHERE id = ?
+         with values: ['Updated Scanner Name', 'contact@example.com', '+1234567890', 'https://example.com', '2025-05-26T12:55:45.310845', 1]
+2025-05-26 12:55:45,310 - root - INFO - Scanner update affected 1 rows
+2025-05-26 12:55:45,310 - root - INFO - Adding custom field: primary_color = #ff0000
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: secondary_color = #00ff00
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: button_color = #0000ff
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: email_subject = Updated Email Subject
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: email_intro = Updated email intro text
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: scanner_description = Updated scanner description
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: cta_button_text = Click Here Now
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: company_tagline = We protect everything
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: support_email = support@example.com
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: custom_footer_text = Custom footer text here
+2025-05-26 12:55:45,367 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 12:55:45,367 - root - INFO - Scanner updated successfully for client 2
+2025-05-26 12:55:45,367 - root - ERROR - Transaction error in log_action: no such table: audit_log
