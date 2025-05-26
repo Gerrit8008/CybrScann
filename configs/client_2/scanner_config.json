@@ -1,14 +1,14 @@
 {
     "client_id": 2,
     "business_name": "",
-    "business_domain": "",
-    "scanner_name": "Updated Test Scanner",
+    "business_domain": "https://example.com",
+    "scanner_name": "Updated Scanner Name",
     "primary_color": "#ff0000",
     "secondary_color": "#00ff00",
     "default_scans": [],
     "logo_path": "",
     "favicon_path": "",
     "created_at": "2025-05-26T12:38:11.755061",
-    "last_updated": "2025-05-26T12:38:11.755068",
+    "last_updated": "2025-05-26T12:55:45.360549",
     "template_version": "1.0"
 }
