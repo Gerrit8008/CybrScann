@@ -327,11 +327,150 @@ def setup_routes(app):
                 
                 logging.info(f"Creating new scanner with data: {scanner_data}")
                 
-                # Create user and client logic would continue here...
-                # This is a simplified version for the route extraction
+                # First, create or get client
+                from auth_utils import register_client
+                from fix_auth import create_user
                 
-                flash('Scanner creation process started!', 'info')
-                return render_template('admin/customization-form.html')
+                # Create user if doesn't exist (for admin-created scanners)
+                user_email = scanner_data['contact_email']
+                username = scanner_data['business_name'].lower().replace(' ', '')
+                temp_password = uuid.uuid4().hex[:12]  # Temporary password
+                
+                user_result = create_user(username, user_email, temp_password, 'client', scanner_data['business_name'])
+                
+                if user_result['status'] != 'success':
+                    # User might already exist, try to find them
+                    from client_db import get_db_connection
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT id FROM users WHERE email = ?', (user_email,))
+                    user_row = cursor.fetchone()
+                    conn.close()
+                    
+                    if user_row:
+                        user_id = user_row[0]
+                        logging.info(f"Using existing user with email {user_email}")
+                    else:
+                        flash(f'Error creating user: {user_result["message"]}', 'danger')
+                        return render_template('admin/customization-form.html')
+                else:
+                    user_id = user_result['user_id']
+                    logging.info(f"Created new user with ID: {user_id}")
+                
+                # Create or get client profile
+                client_data = {
+                    'business_name': scanner_data['business_name'],
+                    'business_domain': scanner_data['business_domain'],
+                    'contact_email': scanner_data['contact_email'],
+                    'contact_phone': scanner_data['contact_phone'],
+                    'scanner_name': scanner_data['scanner_name'],
+                    'subscription_level': scanner_data['subscription'],
+                    'primary_color': scanner_data['primary_color'],
+                    'secondary_color': scanner_data['secondary_color'],
+                    'logo_path': scanner_data.get('logo_path', ''),
+                    'favicon_path': scanner_data.get('favicon_path', ''),
+                    'email_subject': scanner_data['email_subject'],
+                    'email_intro': scanner_data['email_intro']
+                }
+                
+                client_result = register_client(user_id, client_data)
+                
+                if client_result['status'] != 'success':
+                    # Try to get existing client
+                    from client_db import get_client_by_user_id
+                    existing_client = get_client_by_user_id(user_id)
+                    if existing_client:
+                        client_id = existing_client['id']
+                        logging.info(f"Using existing client with ID: {client_id}")
+                    else:
+                        flash(f'Error creating client: {client_result["message"]}', 'danger')
+                        return render_template('admin/customization-form.html')
+                else:
+                    client_id = client_result['client_id']
+                    logging.info(f"Created new client with ID: {client_id}")
+                
+                # Create the scanner
+                from scanner_db_functions import patch_client_db_scanner_functions, create_scanner_for_client
+                patch_client_db_scanner_functions()
+                
+                scanner_creation_data = {
+                    'name': scanner_data['scanner_name'],
+                    'business_name': scanner_data['business_name'],  # Add business_name for deployment
+                    'description': scanner_data.get('description', f"Security scanner for {scanner_data['business_name']}"),
+                    'domain': scanner_data['business_domain'],
+                    'primary_color': scanner_data['primary_color'],
+                    'secondary_color': scanner_data['secondary_color'],
+                    'logo_url': scanner_data.get('logo_path', ''),  # Fix: use logo_url to match database column
+                    'favicon_path': scanner_data.get('favicon_path', ''),
+                    'contact_email': scanner_data['contact_email'],
+                    'contact_phone': scanner_data['contact_phone'],
+                    'email_subject': scanner_data['email_subject'],
+                    'email_intro': scanner_data['email_intro'],
+                    'scan_types': scanner_data.get('default_scans', ['port_scan', 'ssl_check'])
+                }
+                
+                scanner_result = create_scanner_for_client(client_id, scanner_creation_data, 1)  # Admin user ID 1
+                
+                if scanner_result['status'] != 'success':
+                    flash(f'Error creating scanner: {scanner_result["message"]}', 'danger')
+                    return render_template('admin/customization-form.html')
+                
+                scanner_id = scanner_result['scanner_id']
+                scanner_uid = scanner_result['scanner_uid']
+                api_key = scanner_result['api_key']
+                
+                # Create dedicated database for this client
+                try:
+                    from client_database_manager import create_client_specific_database
+                    db_path = create_client_specific_database(client_id, scanner_data['business_name'])
+                    if db_path:
+                        logging.info(f"Created dedicated database for client {client_id}: {db_path}")
+                    else:
+                        logging.warning(f"Failed to create dedicated database for client {client_id}")
+                except Exception as e:
+                    logging.error(f"Error creating client database: {e}")
+                
+                logging.info(f"Scanner created successfully: ID {scanner_id}, UID {scanner_uid}")
+                print(f"SCANNER CREATED: ID {scanner_id}, UID {scanner_uid}")
+                print(f"SCANNER COLORS: {scanner_creation_data['primary_color']}, {scanner_creation_data['secondary_color']}")
+                
+                # Generate deployable HTML and API endpoints
+                from scanner_deployment import generate_scanner_deployment
+                print(f"GENERATING DEPLOYMENT FOR: {scanner_uid}")
+                deployment_result = generate_scanner_deployment(scanner_uid, scanner_creation_data, api_key)
+                print(f"DEPLOYMENT RESULT: {deployment_result['status']}")
+                
+                if deployment_result['status'] == 'success':
+                    # Log the client in automatically after scanner creation
+                    from auth_utils import create_session
+                    
+                    # Create a session for the new client
+                    session_result = create_session(user_id, user_email, 'client')
+                    if session_result['status'] == 'success':
+                        session['session_token'] = session_result['session_token']
+                        session['user_id'] = user_id
+                        session['user_email'] = user_email
+                        session['user_role'] = 'client'
+                        flash('Scanner created successfully! You can now manage your scanners.', 'success')
+                        
+                        # Redirect to client scanners page where they can see their new scanner
+                        return redirect('/client/scanners')
+                    else:
+                        flash('Scanner created and deployed successfully!', 'success')
+                        # Redirect to scanner deployment page showing integration options  
+                        return redirect(f'/scanner/{scanner_uid}/info')
+                else:
+                    # Even if deployment fails, log the client in and redirect to scan page
+                    from auth_utils import create_session
+                    session_result = create_session(user_id, user_email, 'client')
+                    if session_result['status'] == 'success':
+                        session['session_token'] = session_result['session_token']
+                        session['user_id'] = user_id
+                        session['user_email'] = user_email
+                        session['user_role'] = 'client'
+                    
+                    flash(f'Scanner created but deployment had issues: {deployment_result["message"]}. You can still use your scanner.', 'warning')
+                    return redirect('/client/scanners')
                 
             except Exception as e:
                 logging.error(f"Error in customize_scanner: {str(e)}")
@@ -391,6 +530,112 @@ def setup_routes(app):
         """Display scan results"""
         # In a real implementation, you would fetch results from database
         return render_template('results.html', scan_id=scan_id)
+
+    @app.route('/scanner/<scanner_uid>/info')
+    def scanner_deployment_info(scanner_uid):
+        """Show scanner deployment information and integration options"""
+        try:
+            # Get scanner details from database
+            from scanner_db_functions import patch_client_db_scanner_functions
+            from client_db import get_db_connection
+            
+            patch_client_db_scanner_functions()
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+            SELECT s.*, c.business_name, c.contact_email 
+            FROM scanners s 
+            JOIN clients c ON s.client_id = c.id 
+            WHERE s.scanner_id = ?
+            ''', (scanner_uid,))
+            
+            scanner_row = cursor.fetchone()
+            conn.close()
+            
+            if not scanner_row:
+                flash('Scanner not found', 'danger')
+                return redirect('/admin/dashboard')
+            
+            # Convert to dict
+            if hasattr(scanner_row, 'keys'):
+                scanner = dict(scanner_row)
+            else:
+                columns = ['id', 'client_id', 'scanner_id', 'name', 'description', 'domain', 'api_key', 
+                          'primary_color', 'secondary_color', 'logo_url', 'contact_email', 'contact_phone',
+                          'email_subject', 'email_intro', 'scan_types', 'status', 'created_at', 'created_by',
+                          'updated_at', 'updated_by', 'business_name', 'client_contact_email']
+                scanner = dict(zip(columns, scanner_row))
+            
+            # Generate deployment URLs
+            base_url = request.url_root.rstrip('/')
+            deployment_info = {
+                'embed_url': f"{base_url}/scanner/{scanner_uid}/embed",
+                'api_url': f"{base_url}/api/scanner/{scanner_uid}",
+                'docs_url': f"{base_url}/scanner/{scanner_uid}/docs",
+                'download_url': f"{base_url}/scanner/{scanner_uid}/download"
+            }
+            
+            return render_template('admin/scanner-deployment.html', 
+                                 scanner=scanner, 
+                                 deployment_info=deployment_info,
+                                 base_url=base_url)
+            
+        except Exception as e:
+            logging.error(f"Error loading scanner deployment info: {e}")
+            flash('Error loading scanner information', 'danger')
+            return redirect('/admin/dashboard')
+
+    @app.route('/scanner/<scanner_uid>/embed')
+    def scanner_embed(scanner_uid):
+        """Serve the embeddable scanner HTML using main scan template"""
+        try:
+            # Get scanner data from database to provide branding
+            from client_db import get_db_connection
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+            SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.logo_path
+            FROM scanners s 
+            JOIN clients c ON s.client_id = c.id 
+            LEFT JOIN customizations cu ON c.id = cu.client_id
+            WHERE s.scanner_id = ?
+            ''', (scanner_uid,))
+            
+            scanner_row = cursor.fetchone()
+            conn.close()
+            
+            if scanner_row:
+                # Convert to dict for easier access
+                scanner_data = dict(scanner_row) if hasattr(scanner_row, 'keys') else dict(zip([col[0] for col in cursor.description], scanner_row))
+                
+                # Create client branding object
+                client_branding = {
+                    'business_name': scanner_data.get('business_name', ''),
+                    'primary_color': scanner_data.get('primary_color', '#02054c'),
+                    'secondary_color': scanner_data.get('secondary_color', '#35a310'),
+                    'logo_path': scanner_data.get('logo_path', ''),
+                    'scanner_name': scanner_data.get('name', 'Security Scanner')
+                }
+                
+                # Add client_id and scanner_id to URL parameters for tracking
+                import urllib.parse
+                client_id = scanner_data.get('client_id')
+                scanner_id = scanner_data.get('scanner_id')
+                
+                # Render the main scan template with client branding
+                return render_template('scan.html', 
+                                     client_branding=client_branding,
+                                     client_id=client_id,
+                                     scanner_id=scanner_id,
+                                     embed_mode=True)
+            else:
+                return render_template('scan.html', embed_mode=True)
+                
+        except Exception as e:
+            logging.error(f"Error serving scanner embed: {e}")
+            return render_template('scan.html', embed_mode=True)
 
     # Emergency admin creation route
     @app.route('/emergency_admin')
