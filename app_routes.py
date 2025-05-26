@@ -679,108 +679,60 @@ def setup_routes(app):
             }), 500
 
     @app.route('/api/scanner/<scanner_uid>/scan', methods=['POST', 'OPTIONS'])
-    def api_scanner_scan(scanner_uid):
-        """API endpoint for initiating scans"""
-        try:
-            # Handle CORS preflight request
-            if request.method == 'OPTIONS':
-                response = jsonify({'status': 'ok'})
-                response.headers['Access-Control-Allow-Origin'] = '*'
-                response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-                return response
-            
-            # Check for Authorization header
-            auth_header = request.headers.get('Authorization', '')
-            if auth_header.startswith('Bearer '):
-                api_key = auth_header[7:]  # Remove 'Bearer ' prefix
-                logging.info(f"API Key received: {api_key[:10]}...")
-            else:
-                logging.warning("No valid Authorization header found")
-                # For now, continue without strict API key validation
-            
-            data = request.get_json()
-            
-            if not data:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'No JSON data provided'
-                }), 400
-            
-            # Extract scan parameters
-            target_url = data.get('target_url', data.get('target', ''))
-            contact_email = data.get('contact_email', '')
-            contact_name = data.get('contact_name', '')
-            scan_types = data.get('scan_types', ['basic'])
-            
-            if not target_url:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Target URL is required'
-                }), 400
-            
-            if not contact_email:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Contact email is required'
-                }), 400
-            
-            # Generate scan ID
-            scan_id = str(uuid.uuid4())
-            
-            # Log scan initiation
-            logging.info(f"Scan initiated: scanner_uid={scanner_uid}, target={target_url}, email={contact_email}, scan_id={scan_id}")
-            
-            # Store scan data (simplified for now)
-            scan_data = {
-                'scan_id': scan_id,
-                'scanner_uid': scanner_uid,
-                'target_url': target_url,
-                'contact_email': contact_email,
-                'contact_name': contact_name,
-                'scan_types': scan_types,
-                'timestamp': datetime.now().isoformat(),
-                'status': 'initiated'
-            }
-            
-            # In a full implementation, you would:
-            # 1. Validate the scanner exists and API key
-            # 2. Start the actual scan process
-            # 3. Store scan data in database
-            # 4. Send email to contact_email
-            # 5. Return scan results or status
-            
-            response = jsonify({
-                'status': 'success',
-                'message': 'Scan initiated successfully',
-                'scan_id': scan_id,
-                'scanner_uid': scanner_uid,
-                'target_url': target_url
-            })
-            
-            # Add CORS headers
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            
-            return response
-            
-        except Exception as e:
-            logging.error(f"Error in api_scanner_scan: {str(e)}")
-            import traceback
-            logging.error(traceback.format_exc())
-            
-            error_response = jsonify({
-                'status': 'error',
-                'message': f'Scan failed: {str(e)}'
-            })
-            
-            # Add CORS headers to error response
-            error_response.headers['Access-Control-Allow-Origin'] = '*'
-            error_response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-            error_response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            
-            return error_response, 500
+    def api_scanner_scan_simple(scanner_uid):
+        """Simplified API endpoint for initiating scans"""
+        # Immediate response for testing
+        response = jsonify({
+            'status': 'success',
+            'message': 'Scan endpoint is working',
+            'scanner_uid': scanner_uid,
+            'scan_id': str(uuid.uuid4()),
+            'debug': True
+        })
+        
+        # Add CORS headers
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        
+        return response
+
+    @app.route('/api/scanner/scanner_c73b04ed/scan', methods=['POST', 'OPTIONS'])
+    def api_scanner_specific():
+        """Specific route for the deployed scanner"""
+        return jsonify({
+            'status': 'success',
+            'message': 'Specific scanner endpoint working',
+            'scan_id': str(uuid.uuid4()),
+            'scanner_uid': 'scanner_c73b04ed'
+        })
+
+    @app.route('/api/test', methods=['GET', 'POST'])
+    def api_test():
+        """Test API endpoint to verify routes are working"""
+        return jsonify({
+            'status': 'success',
+            'message': 'API routes are working correctly',
+            'method': request.method,
+            'path': request.path
+        })
+
+    @app.route('/api/scanner/<path:subpath>', methods=['GET', 'POST', 'OPTIONS'])
+    def api_scanner_debug(subpath):
+        """Debug route to catch scanner API calls"""
+        logging.info(f"=== SCANNER DEBUG ROUTE CALLED ===")
+        logging.info(f"Method: {request.method}")
+        logging.info(f"Full path: {request.path}")
+        logging.info(f"Subpath: {subpath}")
+        logging.info(f"Args: {request.args}")
+        
+        return jsonify({
+            'debug': True,
+            'message': f'Debug route caught: {request.path}',
+            'method': request.method,
+            'subpath': subpath,
+            'note': 'This is the debug catch-all route'
+        })
 
     # Emergency admin creation route
     @app.route('/emergency_admin')
