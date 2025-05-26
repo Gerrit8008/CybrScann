@@ -418,6 +418,8 @@ def scanner_view(user, scanner_id):
 @client_required
 def scanner_edit(user, scanner_id):
     """Edit scanner configuration"""
+    print(f"=== SCANNER EDIT ROUTE - {request.method} ===")
+    print(f"Scanner ID: {scanner_id}, User: {user.get('username', 'unknown')}")
     try:
         # Get client info
         client = get_client_by_user_id(user['user_id'])
@@ -434,6 +436,7 @@ def scanner_edit(user, scanner_id):
             return redirect(url_for('client.scanners'))
         
         if request.method == 'POST':
+            print(f"POST request received! Form keys: {list(request.form.keys())}")
             # Process form submission
             scanner_data = {
                 'scanner_name': request.form.get('scanner_name'),
@@ -467,15 +470,20 @@ def scanner_edit(user, scanner_id):
             
             # Update scanner
             try:
+                print(f"Calling update_scanner_config with {len(scanner_data)} fields...")
                 result = update_scanner_config(scanner_id, scanner_data, user['user_id'])
+                print(f"Update result: {result}")
                 
                 if result and result.get('status') == 'success':
+                    print("SUCCESS! Scanner updated, redirecting...")
                     flash('Scanner updated successfully!', 'success')
                     return redirect(url_for('client.scanners'))
                 else:
                     error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
+                    print(f"FAILED! Error: {error_msg}")
                     flash(f'Failed to update scanner: {error_msg}', 'danger')
             except Exception as e:
+                print(f"EXCEPTION: {e}")
                 flash(f'Error updating scanner: {str(e)}', 'danger')
         
         return render_template(
