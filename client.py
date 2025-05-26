@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import os
 import logging
 import json
+import time
 from datetime import datetime
 from functools import wraps
 
@@ -418,8 +419,6 @@ def scanner_view(user, scanner_id):
 @client_required
 def scanner_edit(user, scanner_id):
     """Edit scanner configuration"""
-    print(f"=== SCANNER EDIT ROUTE - {request.method} ===")
-    print(f"Scanner ID: {scanner_id}, User: {user.get('username', 'unknown')}")
     try:
         # Get client info
         client = get_client_by_user_id(user['user_id'])
@@ -436,7 +435,6 @@ def scanner_edit(user, scanner_id):
             return redirect(url_for('client.scanners'))
         
         if request.method == 'POST':
-            print(f"POST request received! Form keys: {list(request.form.keys())}")
             # Process form submission
             scanner_data = {
                 'scanner_name': request.form.get('scanner_name'),
@@ -460,30 +458,61 @@ def scanner_edit(user, scanner_id):
             # Handle file uploads
             if 'logo_upload' in request.files and request.files['logo_upload'].filename:
                 logo_file = request.files['logo_upload']
-                # TODO: Implement file handling
-                # scanner_data['logo_path'] = save_uploaded_file(logo_file)
+                try:
+                    # Save logo file
+                    from werkzeug.utils import secure_filename
+                    
+                    # Create upload directory if it doesn't exist
+                    upload_dir = os.path.join('static', 'uploads')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Generate unique filename
+                    filename = secure_filename(logo_file.filename)
+                    unique_filename = f"logo_{int(time.time())}_{filename}"
+                    file_path = os.path.join(upload_dir, unique_filename)
+                    
+                    # Save file
+                    logo_file.save(file_path)
+                    scanner_data['logo_path'] = f"/static/uploads/{unique_filename}"
+                    print(f"Logo saved to: {scanner_data['logo_path']}")
+                    
+                except Exception as e:
+                    print(f"Error saving logo: {e}")
             
             if 'favicon_upload' in request.files and request.files['favicon_upload'].filename:
                 favicon_file = request.files['favicon_upload']
-                # TODO: Implement file handling
-                # scanner_data['favicon_path'] = save_uploaded_file(favicon_file)
+                try:
+                    # Save favicon file
+                    from werkzeug.utils import secure_filename
+                    
+                    # Create upload directory if it doesn't exist
+                    upload_dir = os.path.join('static', 'uploads')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Generate unique filename
+                    filename = secure_filename(favicon_file.filename)
+                    unique_filename = f"favicon_{int(time.time())}_{filename}"
+                    file_path = os.path.join(upload_dir, unique_filename)
+                    
+                    # Save file
+                    favicon_file.save(file_path)
+                    scanner_data['favicon_path'] = f"/static/uploads/{unique_filename}"
+                    print(f"Favicon saved to: {scanner_data['favicon_path']}")
+                    
+                except Exception as e:
+                    print(f"Error saving favicon: {e}")
             
             # Update scanner
             try:
-                print(f"Calling update_scanner_config with {len(scanner_data)} fields...")
                 result = update_scanner_config(scanner_id, scanner_data, user['user_id'])
-                print(f"Update result: {result}")
                 
                 if result and result.get('status') == 'success':
-                    print("SUCCESS! Scanner updated, redirecting...")
                     flash('Scanner updated successfully!', 'success')
                     return redirect(url_for('client.scanners'))
                 else:
                     error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
-                    print(f"FAILED! Error: {error_msg}")
                     flash(f'Failed to update scanner: {error_msg}', 'danger')
             except Exception as e:
-                print(f"EXCEPTION: {e}")
                 flash(f'Error updating scanner: {str(e)}', 'danger')
         
         return render_template(
