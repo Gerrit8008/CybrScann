@@ -227,3 +227,23 @@
 2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated CSS for scanner
 2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated JavaScript for scanner
 2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 10:29:05,861 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:29:05,870 - root - INFO - Schema executed successfully
+2025-05-26 10:29:05,871 - root - INFO - Database initialization completed
+2025-05-26 10:30:25,621 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:30:25,635 - root - INFO - Schema executed successfully
+2025-05-26 10:30:25,635 - root - INFO - Database initialization completed
+2025-05-26 10:30:25,636 - root - ERROR - Transaction error in get_scanner_stats: get_scanner_stats() takes 2 positional arguments but 3 were given
+2025-05-26 10:30:54,730 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:30:54,746 - root - INFO - Schema executed successfully
+2025-05-26 10:30:54,747 - root - INFO - Database initialization completed
+2025-05-26 10:31:08,487 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:31:08,496 - root - INFO - Schema executed successfully
+2025-05-26 10:31:08,496 - root - INFO - Database initialization completed
+2025-05-26 10:31:50,250 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:31:50,262 - root - INFO - Schema executed successfully
+2025-05-26 10:31:50,262 - root - INFO - Database initialization completed
+2025-05-26 10:31:50,263 - root - ERROR - Transaction error in get_scanner_by_id: no such table: deployed_scanners
+2025-05-26 10:32:08,653 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:32:08,665 - root - INFO - Schema executed successfully
+2025-05-26 10:32:08,665 - root - INFO - Database initialization completed
