@@ -474,7 +474,9 @@ def scanner_edit(user, scanner_id):
                     # Save file
                     logo_file.save(file_path)
                     scanner_data['logo_path'] = f"/static/uploads/{unique_filename}"
-                    print(f"Logo saved to: {scanner_data['logo_path']}")
+                    
+                    # Also update the scanner variable for immediate display
+                    scanner['logo_path'] = scanner_data['logo_path']
                     
                 except Exception as e:
                     print(f"Error saving logo: {e}")
@@ -497,7 +499,9 @@ def scanner_edit(user, scanner_id):
                     # Save file
                     favicon_file.save(file_path)
                     scanner_data['favicon_path'] = f"/static/uploads/{unique_filename}"
-                    print(f"Favicon saved to: {scanner_data['favicon_path']}")
+                    
+                    # Also update the scanner variable for immediate display
+                    scanner['favicon_path'] = scanner_data['favicon_path']
                     
                 except Exception as e:
                     print(f"Error saving favicon: {e}")
@@ -512,8 +516,12 @@ def scanner_edit(user, scanner_id):
                 else:
                     error_msg = result.get('message', 'Unknown error') if result else 'No result returned'
                     flash(f'Failed to update scanner: {error_msg}', 'danger')
+                    # If update failed, reload scanner data to show current state
+                    scanner = get_scanner_by_id(scanner_id)
             except Exception as e:
                 flash(f'Error updating scanner: {str(e)}', 'danger')
+                # If exception, reload scanner data to show current state
+                scanner = get_scanner_by_id(scanner_id)
         
         return render_template(
             'client/scanner-edit.html',
