@@ -299,3 +299,16 @@
 2025-05-26 12:14:29,785 - root - INFO - Initializing database from schema.sql...
 2025-05-26 12:14:29,803 - root - INFO - Schema executed successfully
 2025-05-26 12:14:29,803 - root - INFO - Database initialization completed
+2025-05-26 12:36:21,810 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:36:21,824 - root - INFO - Schema executed successfully
+2025-05-26 12:36:21,824 - root - INFO - Database initialization completed
+2025-05-26 12:36:21,825 - root - ERROR - Transaction error in update_scanner_config: no such column: last_updated
+2025-05-26 12:38:11,680 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:38:11,693 - root - INFO - Schema executed successfully
+2025-05-26 12:38:11,694 - root - INFO - Database initialization completed
+2025-05-26 12:38:11,754 - root - INFO - Created default template: scanner_template.html
+2025-05-26 12:38:11,754 - root - INFO - Created default template: scanner_styles.css
+2025-05-26 12:38:11,754 - root - INFO - Created default template: scanner_script.js
+2025-05-26 12:38:11,759 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 12:38:11,759 - root - INFO - Scanner generated successfully for client 2
+2025-05-26 12:38:11,759 - root - ERROR - Transaction error in log_action: no such table: audit_log
