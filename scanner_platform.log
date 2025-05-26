@@ -342,3 +342,12 @@
 2025-05-26 12:55:45,367 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
 2025-05-26 12:55:45,367 - root - INFO - Scanner updated successfully for client 2
 2025-05-26 12:55:45,367 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 13:14:14,033 - root - INFO - Initializing database from schema.sql...
+2025-05-26 13:14:14,050 - root - INFO - Schema executed successfully
+2025-05-26 13:14:14,050 - root - INFO - Database initialization completed
+2025-05-26 13:14:14,106 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 13:14:14,106 - root - INFO - Scanner updated successfully for client 2
+2025-05-26 13:14:14,106 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 13:14:14,120 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 13:14:14,120 - root - INFO - Scanner updated successfully for client 2
+2025-05-26 13:14:14,120 - root - ERROR - Transaction error in log_action: no such table: audit_log
