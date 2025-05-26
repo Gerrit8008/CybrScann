@@ -403,8 +403,18 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('=== SAVE BUTTON CLICKED ===');
             console.log('Button type:', this.type);
             console.log('Form property:', this.form);
+            console.log('Form variable:', form);
             
-            // Don't prevent default, let it submit normally
+            // Prevent default button behavior and force form submission
+            e.preventDefault();
+            console.log('Prevented default, now forcing form submission...');
+            
+            if (form) {
+                console.log('Form found, submitting...');
+                form.submit();
+            } else {
+                console.error('No form variable available!');
+            }
         });
     } else {
         console.error('Save button not found!');
