@@ -3255,7 +3255,10 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
         WHERE client_id = ?
         '''
         custom_values.append(client_id)
+        print(f"Updating customizations: {query}")
+        print(f"Values: {custom_values}")
         cursor.execute(query, custom_values)
+        print(f"Customizations update affected {cursor.rowcount} rows")
     elif custom_fields:
         # Insert new record
         fields = [db_field for key, db_field in custom_mapping.items() if key in scanner_data]
@@ -4316,7 +4319,10 @@ def update_client(conn, cursor, client_id, client_data, user_id):
         WHERE client_id = ?
         '''
         custom_values.append(client_id)
+        print(f"Updating customizations: {query}")
+        print(f"Values: {custom_values}")
         cursor.execute(query, custom_values)
+        print(f"Customizations update affected {cursor.rowcount} rows")
     elif custom_fields:
         # Insert new record
         fields = [db_field for key, db_field in custom_mapping.items() if key in client_data]
