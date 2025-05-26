@@ -351,3 +351,29 @@
 2025-05-26 13:14:14,120 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
 2025-05-26 13:14:14,120 - root - INFO - Scanner updated successfully for client 2
 2025-05-26 13:14:14,120 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 16:14:17,810 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:14:17,823 - root - INFO - Schema executed successfully
+2025-05-26 16:14:17,824 - root - INFO - Database initialization completed
+2025-05-26 16:15:29,799 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:15:29,811 - root - INFO - Schema executed successfully
+2025-05-26 16:15:29,811 - root - INFO - Database initialization completed
+2025-05-26 16:17:35,164 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:17:35,178 - root - INFO - Schema executed successfully
+2025-05-26 16:17:35,179 - root - INFO - Database initialization completed
+2025-05-26 16:17:35,190 - client_database_manager - INFO - Saved scan test_scanner_919391f3_20250526_161735_0 to client 2 database
+2025-05-26 16:17:35,196 - client_database_manager - INFO - Saved scan test_scanner_919391f3_20250526_161735_1 to client 2 database
+2025-05-26 16:17:35,203 - client_database_manager - INFO - Saved scan test_scanner_919391f3_20250526_161735_2 to client 2 database
+2025-05-26 16:17:35,208 - client_database_manager - INFO - Saved scan test_scanner_c73b04ed_20250526_161735_0 to client 4 database
+2025-05-26 16:17:35,212 - client_database_manager - INFO - Saved scan test_scanner_c73b04ed_20250526_161735_1 to client 4 database
+2025-05-26 16:17:35,217 - client_database_manager - INFO - Saved scan test_scanner_c73b04ed_20250526_161735_2 to client 4 database
+2025-05-26 16:17:35,217 - client_database_manager - WARNING - Recreating database for client 6 - missing scans table
+2025-05-26 16:17:35,277 - client_database_manager - INFO - Created dedicated database for client 6 (Client 6): /home/ggrun/CybrScan_1/client_databases/client_6_scans.db
+2025-05-26 16:17:35,282 - client_database_manager - INFO - Saved scan test_scanner_f2c9d6f0_20250526_161735_0 to client 6 database
+2025-05-26 16:17:35,287 - client_database_manager - INFO - Saved scan test_scanner_f2c9d6f0_20250526_161735_1 to client 6 database
+2025-05-26 16:17:35,291 - client_database_manager - INFO - Saved scan test_scanner_f2c9d6f0_20250526_161735_2 to client 6 database
+2025-05-26 16:17:40,801 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:17:40,813 - root - INFO - Schema executed successfully
+2025-05-26 16:17:40,814 - root - INFO - Database initialization completed
+2025-05-26 16:17:52,210 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:17:52,223 - root - INFO - Schema executed successfully
+2025-05-26 16:17:52,223 - root - INFO - Database initialization completed
