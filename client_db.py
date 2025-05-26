@@ -3231,10 +3231,11 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
             custom_fields.append(f"{db_field} = ?")
             custom_values.append(scanner_data[key])
     
-    # Handle default_scans separately as it needs to be JSON
-    if 'default_scans' in scanner_data:
-        custom_fields.append("default_scans = ?")
-        custom_values.append(json.dumps(scanner_data['default_scans']))
+    # Handle default_scans separately as it needs to be JSON (only if column exists)
+    # Note: default_scans column may not exist in customizations table
+    # if 'default_scans' in scanner_data:
+    #     custom_fields.append("default_scans = ?")
+    #     custom_values.append(json.dumps(scanner_data['default_scans']))
     
     # Always update updated_at and updated_by
     custom_fields.append("updated_at = ?")
@@ -3258,8 +3259,9 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
     elif custom_fields:
         # Insert new record
         fields = [db_field for key, db_field in custom_mapping.items() if key in scanner_data]
-        if 'default_scans' in scanner_data:
-            fields.append('default_scans')
+        # Skip default_scans as column may not exist
+        # if 'default_scans' in scanner_data:
+        #     fields.append('default_scans')
         fields.extend(['client_id', 'created_at', 'updated_at', 'updated_by'])
         
         values = custom_values
