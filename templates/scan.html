@@ -243,6 +243,39 @@
             color: var(--danger-color);
             margin-left: 0.25rem;
         }
+        
+        /* Progress step styles */
+        .progress-step {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #fff;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .progress-step-status {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-step-status.status-in-progress {
+            color: #0066cc;
+        }
+        
+        .progress-step-status.status-complete {
+            color: #28a745;
+        }
     </style>
 </head>
 <body>
@@ -1225,54 +1258,6 @@
             });
         }
         
-        // Add domain management
-        function setupDomainManagement() {
-            // Add additional domain field
-            document.getElementById('add-domain').addEventListener('click', function() {
-                const domainsContainer = document.getElementById('additional-domains');
-                const newDomain = document.createElement('div');
-                newDomain.className = 'domain-card mb-3';
-                newDomain.innerHTML = `
-                    <div class="input-group">
-                        <span class="input-group-text">https://</span>
-                        <input type="text" class="form-control" name="additional_domains[]" placeholder="www.another-domain.com">
-                        <button type="button" class="btn btn-outline-danger remove-domain"><i class="bi bi-trash"></i></button>
-                    </div>
-                `;
-                domainsContainer.appendChild(newDomain);
-                
-                // Add event listener to the new remove button
-                newDomain.querySelector('.remove-domain').addEventListener('click', function() {
-                    domainsContainer.removeChild(newDomain);
-                });
-                
-                // Add animation effect
-                newDomain.style.opacity = '0';
-                newDomain.style.transform = 'translateY(10px)';
-                
-                setTimeout(() => {
-                    newDomain.style.transition = 'all 0.3s ease';
-                    newDomain.style.opacity = '1';
-                    newDomain.style.transform = 'translateY(0)';
-                }, 10);
-            });
-            
-            // Handle initial remove buttons
-            document.querySelectorAll('.remove-domain').forEach(button => {
-                button.addEventListener('click', function() {
-                    const domainCard = this.closest('.domain-card');
-                    
-                    // Add fade out animation
-                    domainCard.style.transition = 'all 0.3s ease';
-                    domainCard.style.opacity = '0';
-                    domainCard.style.transform = 'translateY(10px)';
-                    
-                    setTimeout(() => {
-                        domainCard.parentNode.removeChild(domainCard);
-                    }, 300);
-                });
-            });
-        }
         
         // Initialize fade-in effects
         function initFadeEffects() {
@@ -1361,9 +1346,6 @@
             
             // Form step navigation
             setupFormSteps();
-            
-            // Domain management
-            setupDomainManagement();
             
             // Form submission and scan progress
             setupFormSubmission();
