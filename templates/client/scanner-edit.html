@@ -315,8 +315,11 @@
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary" id="saveButton" onclick="console.log('Save button clicked');">
+                                    <button type="submit" class="btn btn-primary" id="saveButton">
                                         <i class="bi bi-check-lg me-2"></i>Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-warning" id="testSubmit">
+                                        <i class="bi bi-bug me-2"></i>Test Submit
                                     </button>
                                     <a href="/client/scanners" class="btn btn-outline-secondary">Cancel</a>
                                 </div>
@@ -367,9 +370,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Form submission debugging
     const form = document.getElementById('scannerEditForm');
+    const saveButton = document.getElementById('saveButton');
+    
     if (form) {
+        console.log('Form found:', form);
+        console.log('Form action:', form.action || 'current page');
+        console.log('Form method:', form.method);
+        
         form.addEventListener('submit', function(e) {
-            console.log('Form submission started');
+            console.log('=== FORM SUBMIT EVENT TRIGGERED ===');
             console.log('Form action:', this.action || 'current page');
             console.log('Form method:', this.method);
             
@@ -380,8 +389,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (value) console.log(`  ${key}: ${value}`);
             }
             
-            // Don't prevent submission, just log
-            console.log('Allowing form to submit...');
+            console.log('Form submitting now...');
+            // Allow submission to proceed
+        });
+    } else {
+        console.error('Form not found!');
+    }
+    
+    if (saveButton) {
+        saveButton.addEventListener('click', function(e) {
+            console.log('=== SAVE BUTTON CLICKED ===');
+            console.log('Button type:', this.type);
+            console.log('Form:', this.form);
+            
+            // Force form submission if needed
+            if (form) {
+                console.log('Manually submitting form...');
+                form.submit();
+            } else {
+                console.error('No form to submit!');
+            }
+        });
+    } else {
+        console.error('Save button not found!');
+    }
+    
+    // Test submit button
+    const testButton = document.getElementById('testSubmit');
+    if (testButton) {
+        testButton.addEventListener('click', function() {
+            console.log('=== TEST SUBMIT CLICKED ===');
+            alert('Test button works! Now checking form submission...');
+            
+            if (form) {
+                console.log('Force submitting form via test button...');
+                form.submit();
+            } else {
+                alert('Form not found!');
+            }
         });
     }
 
