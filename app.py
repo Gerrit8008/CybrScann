@@ -2890,24 +2890,46 @@ def scan_page():
     """Main scan page - handles both form display and scan submission"""
     if request.method == 'POST':
         try:
-            # Get form data including client OS info
+            # Get form data including client OS info and new fields
             lead_data = {
                 'name': request.form.get('name', ''),
                 'email': request.form.get('email', ''),
                 'company': request.form.get('company', ''),
                 'phone': request.form.get('phone', ''),
+                'industry': request.form.get('industry', ''),
+                'company_size': request.form.get('company_size', ''),
+                'company_website': request.form.get('company_website', ''),
                 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'client_os': request.form.get('client_os', 'Unknown'),
                 'client_browser': request.form.get('client_browser', 'Unknown'),
                 'windows_version': request.form.get('windows_version', ''),
-                'target': ''  # Leave blank to ensure we use email domain
+                'target': ''  # Will be set based on priority logic below
             }
             
-            # Extract domain from email and use it as target
-            if lead_data["email"]:
-                domain = extract_domain_from_email(lead_data["email"])
-                lead_data["target"] = domain
-                logging.info(f"Using domain extracted from email: {domain}")
+            # Determine target domain with priority: company_website > email domain
+            target_domain = None
+            
+            # Priority 1: Company website from form
+            company_website = request.form.get('company_website', '').strip()
+            if company_website:
+                # Clean up the domain (remove http/https if present)
+                if company_website.startswith(('http://', 'https://')):
+                    company_website = company_website.split('://', 1)[1]
+                target_domain = company_website
+                logging.info(f"Using company website domain: {target_domain}")
+            
+            # Priority 2: Extract domain from email if no company website
+            elif lead_data["email"]:
+                target_domain = extract_domain_from_email(lead_data["email"])
+                logging.info(f"Using domain extracted from email: {target_domain}")
+            
+            # Set the target for scanning
+            if target_domain:
+                lead_data["target"] = target_domain
+                # Also store company website in lead data
+                lead_data["company_website"] = target_domain
+            else:
+                logging.warning("No target domain found from company website or email")
             
             # Basic validation
             if not lead_data["email"]:
