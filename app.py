@@ -2929,7 +2929,14 @@ def scan_page():
             # Add client tracking information to scan results
             if client:
                 scan_results['client_id'] = client['id']
-                scan_results['scanner_id'] = scanner_id or 'web_interface'
+                scan_results['scanner_id'] = scanner_id
+                
+                # Regenerate scanner deployment if customizations changed recently
+                try:
+                    from scanner_deployment import regenerate_scanner_if_needed
+                    regenerate_scanner_if_needed(scanner_id, client['id'])
+                except Exception as regen_error:
+                    logging.warning(f"Could not regenerate scanner deployment: {regen_error}")
                 # Copy lead data into scan results for tracking
                 scan_results.update(lead_data)
                 
