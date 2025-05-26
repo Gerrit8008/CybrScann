@@ -72,7 +72,7 @@ def create_scanner_for_client(client_id, scanner_data, created_by_user_id):
         }
 
 def get_scanners_by_client_id(client_id):
-    """Get all scanners for a specific client"""
+    """Get all scanners for a specific client with scan counts"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -107,10 +107,19 @@ def get_scanners_by_client_id(client_id):
                     'scan_types': row[11]
                 }
             
-            # Add scan count
-            cursor.execute('SELECT COUNT(*) FROM scan_history WHERE scanner_id = ?', (scanner['scanner_id'],))
-            scan_count = cursor.fetchone()[0]
-            scanner['scan_count'] = scan_count
+            # Add scan count from client-specific database
+            try:
+                from client_database_manager import get_scanner_scan_count
+                scan_count = get_scanner_scan_count(client_id, scanner['scanner_id'])
+                scanner['scan_count'] = scan_count
+            except Exception as e:
+                # Fallback to main database scan_history table
+                try:
+                    cursor.execute('SELECT COUNT(*) FROM scan_history WHERE scanner_id = ?', (scanner['scanner_id'],))
+                    result = cursor.fetchone()
+                    scanner['scan_count'] = result[0] if result else 0
+                except Exception:
+                    scanner['scan_count'] = 0
             
             # Add fields expected by the template (for both dict and tuple cases)
             scanner['scanner_name'] = scanner.get('name', scanner.get('scanner_name', 'Unknown Scanner'))
@@ -164,10 +173,19 @@ def get_all_scanners_for_admin():
                     'client_id': row[10]
                 }
             
-            # Add scan count
-            cursor.execute('SELECT COUNT(*) FROM scan_history WHERE scanner_id = ?', (scanner['scanner_id'],))
-            scan_count = cursor.fetchone()[0]
-            scanner['scan_count'] = scan_count
+            # Add scan count from client-specific database
+            try:
+                from client_database_manager import get_scanner_scan_count
+                scan_count = get_scanner_scan_count(scanner['client_id'], scanner['scanner_id'])
+                scanner['scan_count'] = scan_count
+            except Exception as e:
+                # Fallback to main database scan_history table
+                try:
+                    cursor.execute('SELECT COUNT(*) FROM scan_history WHERE scanner_id = ?', (scanner['scanner_id'],))
+                    result = cursor.fetchone()
+                    scanner['scan_count'] = result[0] if result else 0
+                except Exception:
+                    scanner['scan_count'] = 0
             
             scanners.append(scanner)
         
