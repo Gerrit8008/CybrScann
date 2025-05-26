@@ -2898,6 +2898,34 @@ def scan_page():
             logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
             scan_results = run_consolidated_scan(lead_data)
             
+            # Log scan to client scan_history if client_id and scanner_id are provided
+            if client_id and scanner_id and scan_results:
+                try:
+                    from client_db import get_db_connection
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    
+                    # Log to scan_history table
+                    cursor.execute('''
+                        INSERT INTO scan_history (scanner_id, scan_id, target_url, scan_type, status, results, created_at, completed_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        scanner_id,
+                        scan_results.get('scan_id', ''),
+                        lead_data.get('target', ''),
+                        'comprehensive',
+                        'completed',
+                        json.dumps(scan_results),
+                        datetime.now().isoformat(),
+                        datetime.now().isoformat()
+                    ))
+                    
+                    conn.commit()
+                    conn.close()
+                    logging.info(f"Logged scan to client scan_history: client_id={client_id}, scanner_id={scanner_id}")
+                except Exception as scan_log_error:
+                    logging.error(f"Error logging scan to client scan_history: {scan_log_error}")
+            
             # Add client tracking information to scan results
             if client:
                 scan_results['client_id'] = client['id']

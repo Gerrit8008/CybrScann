@@ -1697,12 +1697,12 @@ def get_scanner_by_id(conn, scanner_id):
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT ds.*, c.business_name, c.business_domain, c.scanner_name, c.subscription_level,
-            (SELECT COUNT(*) FROM scan_history WHERE client_id = ds.client_id) as scan_count,
-            (SELECT MAX(timestamp) FROM scan_history WHERE client_id = ds.client_id) as last_scan
-        FROM deployed_scanners ds
-        JOIN clients c ON ds.client_id = c.id
-        WHERE ds.id = ?
+        SELECT s.*, c.business_name, c.business_domain, c.scanner_name, c.subscription_level,
+            (SELECT COUNT(*) FROM scan_history WHERE scanner_id = s.scanner_id) as scan_count,
+            (SELECT MAX(created_at) FROM scan_history WHERE scanner_id = s.scanner_id) as last_scan
+        FROM scanners s
+        JOIN clients c ON s.client_id = c.id
+        WHERE s.id = ?
     """, (scanner_id,))
     
     scanner = cursor.fetchone()
@@ -1885,35 +1885,36 @@ def get_scanner_stats(conn, scanner_id):
     """Get statistics for a scanner"""
     cursor = conn.cursor()
     
-    # Get scanner info
-    cursor.execute("SELECT client_id, deploy_date FROM deployed_scanners WHERE id = ?", (scanner_id,))
+    # Get scanner info - scanner_id could be numeric ID or string scanner_id
+    cursor.execute("SELECT client_id, created_at, scanner_id FROM scanners WHERE id = ?", (scanner_id,))
     scanner = cursor.fetchone()
     
     if not scanner:
         return {'status': 'error', 'message': 'Scanner not found'}
     
     client_id = scanner['client_id']
+    scanner_uid = scanner['scanner_id']  # This is the string scanner_id like 'scanner_919391f3'
     
-    # Get total scan count
-    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE client_id = ?", (client_id,))
+    # Get total scan count for this scanner using the string scanner_id
+    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE scanner_id = ?", (scanner_uid,))
     total_scans = cursor.fetchone()['total']
     
     # Get scans in last 24 hours
     twenty_four_hours_ago = (datetime.now() - timedelta(hours=24)).isoformat()
-    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE client_id = ? AND timestamp > ?", 
-                  (client_id, twenty_four_hours_ago))
+    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE scanner_id = ? AND created_at > ?", 
+                  (scanner_uid, twenty_four_hours_ago))
     scans_today = cursor.fetchone()['total']
     
     # Get scans in last 7 days
     seven_days_ago = (datetime.now() - timedelta(days=7)).isoformat()
-    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE client_id = ? AND timestamp > ?", 
-                  (client_id, seven_days_ago))
+    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE scanner_id = ? AND created_at > ?", 
+                  (scanner_uid, seven_days_ago))
     scans_week = cursor.fetchone()['total']
     
     # Get scans in last 30 days
     thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
-    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE client_id = ? AND timestamp > ?", 
-                  (client_id, thirty_days_ago))
+    cursor.execute("SELECT COUNT(*) as total FROM scan_history WHERE scanner_id = ? AND created_at > ?", 
+                  (scanner_uid, thirty_days_ago))
     scans_month = cursor.fetchone()['total']
     
     # Get monthly scan trends (past 6 months)
@@ -1926,8 +1927,8 @@ def get_scanner_stats(conn, scanner_id):
         
         cursor.execute("""
             SELECT COUNT(*) as count FROM scan_history 
-            WHERE client_id = ? AND timestamp >= ? AND timestamp < ?
-        """, (client_id, month_start, next_month_start))
+            WHERE scanner_id = ? AND created_at >= ? AND created_at < ?
+        """, (scanner_uid, month_start, next_month_start))
         
         month_name = datetime.fromisoformat(month_start).strftime('%b')
         count = cursor.fetchone()['count']
@@ -1936,10 +1937,10 @@ def get_scanner_stats(conn, scanner_id):
     # Get last scan details
     cursor.execute("""
         SELECT * FROM scan_history 
-        WHERE client_id = ? 
-        ORDER BY timestamp DESC 
+        WHERE scanner_id = ? 
+        ORDER BY created_at DESC 
         LIMIT 1
-    """, (client_id,))
+    """, (scanner_uid,))
     last_scan = cursor.fetchone()
     last_scan_details = dict(last_scan) if last_scan else None
     
