@@ -3139,10 +3139,11 @@ def get_deployed_scanners(conn, cursor, page=1, per_page=10, filters=None):
     }
 
 @with_transaction
-def update_scanner_config(conn, cursor, scanner_id, scanner_data, user_id):
+def update_scanner_config(conn, scanner_id, scanner_data, user_id):
     """Update scanner configuration"""
+    cursor = conn.cursor()
     # Get scanner details
-    cursor.execute('SELECT client_id FROM deployed_scanners WHERE id = ?', (scanner_id,))
+    cursor.execute('SELECT client_id FROM scanners WHERE id = ?', (scanner_id,))
     row = cursor.fetchone()
     
     if not row:
@@ -3150,13 +3151,59 @@ def update_scanner_config(conn, cursor, scanner_id, scanner_data, user_id):
     
     client_id = row['client_id']
     
-    # Update client table if scanner_name is provided
-    if 'scanner_name' in scanner_data and scanner_data['scanner_name']:
-        cursor.execute('''
-        UPDATE clients
-        SET scanner_name = ?, updated_at = ?, updated_by = ?
+    # Update client table for business-level fields
+    client_fields = []
+    client_values = []
+    
+    client_mapping = {
+        'scanner_name': 'scanner_name',
+        'business_domain': 'business_domain',
+        'contact_email': 'contact_email',
+        'contact_phone': 'contact_phone'
+    }
+    
+    for key, db_field in client_mapping.items():
+        if key in scanner_data and scanner_data[key]:
+            client_fields.append(f"{db_field} = ?")
+            client_values.append(scanner_data[key])
+    
+    if client_fields:
+        client_fields.extend(["updated_at = ?", "updated_by = ?"])
+        client_values.extend([datetime.now().isoformat(), user_id])
+        query = f'''
+        UPDATE clients 
+        SET {', '.join(client_fields)}
         WHERE id = ?
-        ''', (scanner_data['scanner_name'], datetime.now().isoformat(), user_id, client_id))
+        '''
+        client_values.append(client_id)
+        cursor.execute(query, client_values)
+    
+    # Update scanner table for scanner-specific fields
+    scanner_fields = []
+    scanner_values = []
+    
+    scanner_mapping = {
+        'scanner_name': 'name',
+        'contact_email': 'contact_email',
+        'contact_phone': 'contact_phone',
+        'business_domain': 'domain'
+    }
+    
+    for key, db_field in scanner_mapping.items():
+        if key in scanner_data and scanner_data[key]:
+            scanner_fields.append(f"{db_field} = ?")
+            scanner_values.append(scanner_data[key])
+    
+    if scanner_fields:
+        scanner_fields.append("updated_at = ?")
+        scanner_values.append(datetime.now().isoformat())
+        query = f'''
+        UPDATE scanners 
+        SET {', '.join(scanner_fields)}
+        WHERE id = ?
+        '''
+        scanner_values.append(scanner_id)
+        cursor.execute(query, scanner_values)
     
     # Update customizations table
     custom_fields = []
@@ -3166,6 +3213,7 @@ def update_scanner_config(conn, cursor, scanner_id, scanner_data, user_id):
     custom_mapping = {
         'primary_color': 'primary_color',
         'secondary_color': 'secondary_color',
+        'button_color': 'button_color',
         'logo_path': 'logo_path',
         'favicon_path': 'favicon_path',
         'email_subject': 'email_subject',
@@ -3220,12 +3268,7 @@ def update_scanner_config(conn, cursor, scanner_id, scanner_data, user_id):
         '''
         cursor.execute(query, values)
     
-    # Update deployed_scanners table
-    cursor.execute('''
-    UPDATE deployed_scanners
-    SET last_updated = ?
-    WHERE id = ?
-    ''', (datetime.now().isoformat(), scanner_id))
+    # Note: deployed_scanners update removed - working with scanners table instead
     
     # Update scanner files
     from scanner_template import update_scanner

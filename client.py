@@ -442,19 +442,20 @@ def scanner_edit(user, scanner_id):
                 'contact_phone': request.form.get('contact_phone'),
                 'primary_color': request.form.get('primary_color'),
                 'secondary_color': request.form.get('secondary_color'),
+                'button_color': request.form.get('button_color'),
                 'email_subject': request.form.get('email_subject'),
                 'email_intro': request.form.get('email_intro'),
                 'default_scans': request.form.getlist('default_scans[]')
             }
             
             # Handle file uploads
-            if 'logo' in request.files and request.files['logo'].filename:
-                logo_file = request.files['logo']
+            if 'logo_upload' in request.files and request.files['logo_upload'].filename:
+                logo_file = request.files['logo_upload']
                 # TODO: Implement file handling
                 # scanner_data['logo_path'] = save_uploaded_file(logo_file)
             
-            if 'favicon' in request.files and request.files['favicon'].filename:
-                favicon_file = request.files['favicon']
+            if 'favicon_upload' in request.files and request.files['favicon_upload'].filename:
+                favicon_file = request.files['favicon_upload']
                 # TODO: Implement file handling
                 # scanner_data['favicon_path'] = save_uploaded_file(favicon_file)
             
