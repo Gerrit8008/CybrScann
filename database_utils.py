@@ -77,12 +77,41 @@ def save_lead_data(lead_data):
             )
             ''')
         else:
-            # Check if lead_id column exists, if not add it
+            # Check if required columns exist, if not add them
             cursor.execute("PRAGMA table_info(leads)")
             columns = [column[1] for column in cursor.fetchall()]
+            
             if 'lead_id' not in columns:
                 cursor.execute("ALTER TABLE leads ADD COLUMN lead_id TEXT")
                 logging.info("Added lead_id column to existing leads table")
+            
+            if 'industry' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN industry TEXT")
+                logging.info("Added industry column to existing leads table")
+            
+            if 'company_size' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN company_size TEXT")
+                logging.info("Added company_size column to existing leads table")
+            
+            if 'company_website' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN company_website TEXT")
+                logging.info("Added company_website column to existing leads table")
+            
+            if 'target' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN target TEXT")
+                logging.info("Added target column to existing leads table")
+            
+            if 'client_os' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN client_os TEXT")
+                logging.info("Added client_os column to existing leads table")
+            
+            if 'client_browser' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN client_browser TEXT")
+                logging.info("Added client_browser column to existing leads table")
+            
+            if 'windows_version' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN windows_version TEXT")
+                logging.info("Added windows_version column to existing leads table")
         
         # Generate unique lead ID
         lead_id = f"lead_{uuid.uuid4().hex[:12]}"

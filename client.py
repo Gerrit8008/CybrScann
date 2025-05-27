@@ -171,6 +171,7 @@ def dashboard(user):
                 logger.info(f"Found {len(client_scanners) if client_scanners else 0} scanners for client {client['id']}")
                 if client_scanners:
                     logger.info(f"Scanner details: {[s.get('scanner_name', s.get('name', 'Unknown')) for s in client_scanners]}")
+                    logger.info(f"Scanner IDs: {[s.get('scanner_id', 'No scanner_id') for s in client_scanners]}")
             except Exception as e:
                 logger.error(f"Error fetching scanners for client {client['id']}: {e}")
                 client_scanners = []

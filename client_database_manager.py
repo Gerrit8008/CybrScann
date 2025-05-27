@@ -197,6 +197,7 @@ def save_scan_to_client_db(client_id, scan_data):
         ))
         
         logger.info(f"✅ Saved scan {scan_id} for scanner {scanner_id} to client {client_id} database")
+        logger.info(f"   📊 Scan details: email={lead_email}, target={target_domain}, score={security_score}")
         
         # Update or insert lead information
         if lead_email:
@@ -388,6 +389,11 @@ def get_scanner_scan_count(client_id, scanner_id):
         result = cursor.fetchone()
         scan_count = result[0] if result else 0
         
+        # Debug: List all scans for this scanner
+        cursor.execute('SELECT scan_id, timestamp FROM scans WHERE scanner_id = ? ORDER BY timestamp DESC LIMIT 5', (scanner_id,))
+        recent_scans = cursor.fetchall()
+        logger.info(f"Scanner {scanner_id} has {scan_count} total scans. Recent: {[(row[0][:8], row[1]) for row in recent_scans]}")
+        
         conn.close()
         return scan_count
         
@@ -452,6 +458,52 @@ def get_scanner_scan_reports(client_id, scanner_id, page=1, per_page=10):
     except Exception as e:
         logger.error(f"Error getting scan reports for scanner {scanner_id}: {e}")
         return [], {'page': page, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
+
+def get_scan_by_id(scan_id):
+    """Search for a scan by ID across all client databases"""
+    try:
+        db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client_databases')
+        
+        if not os.path.exists(db_dir):
+            return None
+        
+        # Search through all client database files
+        for db_file in os.listdir(db_dir):
+            if db_file.startswith('client_') and db_file.endswith('_scans.db'):
+                db_path = os.path.join(db_dir, db_file)
+                
+                try:
+                    conn = sqlite3.connect(db_path)
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('SELECT * FROM scans WHERE scan_id = ?', (scan_id,))
+                    row = cursor.fetchone()
+                    
+                    if row:
+                        scan_data = dict(row)
+                        # Parse scan_results if it's JSON
+                        if scan_data.get('scan_results'):
+                            try:
+                                scan_data['parsed_results'] = json.loads(scan_data['scan_results'])
+                            except:
+                                scan_data['parsed_results'] = {}
+                        
+                        conn.close()
+                        logger.info(f"Found scan {scan_id} in database {db_file}")
+                        return scan_data
+                    
+                    conn.close()
+                    
+                except Exception as db_error:
+                    logger.error(f"Error searching in {db_file}: {db_error}")
+                    continue
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error searching for scan {scan_id}: {e}")
+        return None
 
 
 def get_recent_client_scans(client_id, limit=10):
