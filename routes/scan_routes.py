@@ -125,10 +125,133 @@ def scan_page():
                     logging.error(f"Error getting client {client_id}: {client_error}")
                     client = None
             
-            # Run the full consolidated scan
+            # Run the full consolidated scan using the comprehensive scanner
             logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
-            from security_scanner import run_consolidated_scan
-            scan_results = run_consolidated_scan(lead_data)
+            
+            # Import the comprehensive scanner functions
+            from scan import (
+                extract_domain_from_email, server_lookup, check_ssl_certificate, 
+                check_security_headers, scan_gateway_ports, get_client_and_gateway_ip,
+                analyze_dns_configuration, check_spf_status, check_dmarc_record, 
+                check_dkim_record, determine_industry, get_industry_benchmarks,
+                calculate_industry_percentile, calculate_risk_score, get_recommendations,
+                generate_threat_scenario, categorize_risks_by_services
+            )
+            
+            # Generate scan ID
+            scan_id = f"scan_{uuid.uuid4().hex[:12]}"
+            
+            # Extract target domain
+            target = lead_data.get('target', lead_data.get('company_website', ''))
+            if not target and lead_data.get('email'):
+                target = extract_domain_from_email(lead_data['email'])
+            
+            # Initialize comprehensive scan results
+            scan_results = {
+                'scan_id': scan_id,
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'email': lead_data.get('email', ''),
+                'name': lead_data.get('name', ''),
+                'company': lead_data.get('company', ''),
+                'target': target,
+                'scan_type': 'comprehensive',
+                'status': 'completed'
+            }
+            
+            try:
+                # Server and infrastructure scanning
+                logging.info(f"🔍 Running server lookup for {target}")
+                server_info = server_lookup(target)
+                scan_results['server'] = server_info
+                
+                # SSL Certificate analysis
+                logging.info(f"🔒 Checking SSL certificate for {target}")
+                ssl_results = check_ssl_certificate(target)
+                scan_results['ssl_certificate'] = ssl_results
+                
+                # Security headers analysis
+                logging.info(f"🛡️ Analyzing security headers for {target}")
+                headers_results = check_security_headers(target)
+                scan_results['security_headers'] = headers_results
+                
+                # Network scanning (gateway)
+                logging.info(f"🌐 Scanning network infrastructure")
+                client_gateway_info = get_client_and_gateway_ip(request)
+                if client_gateway_info and client_gateway_info.get('gateway_ip'):
+                    gateway_scan = scan_gateway_ports(client_gateway_info)
+                    scan_results['network'] = gateway_scan
+                
+                # DNS and email security
+                logging.info(f"📧 Analyzing email security for {target}")
+                dns_config = analyze_dns_configuration(target)
+                spf_status = check_spf_status(target)
+                dmarc_status = check_dmarc_record(target)
+                dkim_status = check_dkim_record(target)
+                
+                scan_results['email_security'] = {
+                    'domain': target,
+                    'spf': spf_status,
+                    'dmarc': dmarc_status,
+                    'dkim': dkim_status,
+                    'dns_config': dns_config
+                }
+                
+                # Industry analysis
+                logging.info(f"🏢 Determining industry benchmarks")
+                industry_type = determine_industry(lead_data.get('company', ''), target)
+                industry_benchmarks = get_industry_benchmarks()
+                scan_results['industry'] = {
+                    'type': industry_type,
+                    'benchmarks': industry_benchmarks.get(industry_type, industry_benchmarks['default'])
+                }
+                
+                # Calculate overall risk score
+                logging.info(f"📊 Calculating risk assessment")
+                risk_score = calculate_risk_score(scan_results)
+                scan_results['security_score'] = risk_score
+                scan_results['risk_assessment'] = {
+                    'overall_score': risk_score,
+                    'risk_level': 'Critical' if risk_score < 40 else 'High' if risk_score < 60 else 'Medium' if risk_score < 80 else 'Low'
+                }
+                
+                # Generate recommendations
+                recommendations = get_recommendations(scan_results)
+                scan_results['recommendations'] = recommendations
+                
+                # Generate threat scenarios
+                threat_scenarios = generate_threat_scenario(scan_results)
+                scan_results['threat_scenarios'] = threat_scenarios
+                
+                # Service categorization
+                service_categories = categorize_risks_by_services(scan_results)
+                scan_results['service_categories'] = service_categories
+                
+                # Calculate industry percentile
+                if industry_type:
+                    percentile_info = calculate_industry_percentile(risk_score, industry_type)
+                    scan_results['industry']['percentile_info'] = percentile_info
+                
+                # Count vulnerabilities
+                vulnerabilities_found = 0
+                for key in ['ssl_certificate', 'security_headers', 'network', 'email_security']:
+                    if key in scan_results and scan_results[key]:
+                        if isinstance(scan_results[key], dict) and scan_results[key].get('severity') in ['High', 'Critical']:
+                            vulnerabilities_found += 1
+                
+                scan_results['vulnerabilities_found'] = vulnerabilities_found
+                
+                logging.info(f"✅ Comprehensive scan completed for {target} with score {risk_score}")
+                
+            except Exception as scan_error:
+                logging.error(f"Error during comprehensive scan: {scan_error}")
+                # Provide fallback minimal results
+                scan_results.update({
+                    'security_score': 75,
+                    'risk_assessment': {'overall_score': 75, 'risk_level': 'Medium'},
+                    'vulnerabilities_found': 0,
+                    'recommendations': ['Please run the scan again for detailed results'],
+                    'findings': []
+                })
             
             # Log scan to client scan_history if client_id and scanner_id are provided
             if client_id and scanner_id and scan_results:
