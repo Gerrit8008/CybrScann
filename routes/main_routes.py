@@ -248,9 +248,10 @@ def debug_routes():
 # These were causing form submissions to redirect to landing page instead of processing login/register
 
 
-@main_bp.route('/customize', methods=['GET', 'POST'])
-def customize():
-    """Comprehensive scanner customization page with detailed options"""
+@main_bp.route('/customize')
+@main_bp.route('/customize/<int:scanner_id>')
+def customize(scanner_id=None):
+    """Redirect to proper scanner customization page"""
     # Check if user is logged in
     session_token = session.get('session_token')
     if not session_token:
@@ -266,172 +267,10 @@ def customize():
     
     user = result['user']
     
-    # Get client information
-    try:
-        from client_db import get_client_by_user_id, get_db_connection
-        client = get_client_by_user_id(user['user_id'])
-        
-        if not client:
-            flash('Please complete your profile setup first', 'warning')
-            return redirect(url_for('auth.complete_profile'))
-        
-        # Get existing customization settings
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get scanner info
-        cursor.execute('SELECT * FROM scanners WHERE client_id = ? ORDER BY created_at DESC LIMIT 1', (client['id'],))
-        scanner = cursor.fetchone()
-        
-        # Get customization settings
-        cursor.execute('SELECT * FROM customizations WHERE client_id = ?', (client['id'],))
-        customization = cursor.fetchone()
-        
-        conn.close()
-        
-        if request.method == 'POST':
-            # Process customization form submission
-            try:
-                import os
-                from werkzeug.utils import secure_filename
-                
-                # Handle file uploads
-                logo_url = None
-                favicon_url = None
-                
-                if 'logo' in request.files and request.files['logo'].filename:
-                    logo_file = request.files['logo']
-                    if logo_file and allowed_file(logo_file.filename):
-                        filename = secure_filename(f"logo_{client['id']}_{logo_file.filename}")
-                        logo_path = os.path.join('static/uploads', filename)
-                        os.makedirs(os.path.dirname(logo_path), exist_ok=True)
-                        logo_file.save(logo_path)
-                        logo_url = f'/static/uploads/{filename}'
-                
-                if 'favicon' in request.files and request.files['favicon'].filename:
-                    favicon_file = request.files['favicon']
-                    if favicon_file and allowed_file(favicon_file.filename):
-                        filename = secure_filename(f"favicon_{client['id']}_{favicon_file.filename}")
-                        favicon_path = os.path.join('static/uploads', filename)
-                        os.makedirs(os.path.dirname(favicon_path), exist_ok=True)
-                        favicon_file.save(favicon_path)
-                        favicon_url = f'/static/uploads/{filename}'
-                
-                # Get form data
-                customization_data = {
-                    'scanner_name': request.form.get('scanner_name', ''),
-                    'company_name': request.form.get('company_name', ''),
-                    'primary_color': request.form.get('primary_color', '#02054c'),
-                    'secondary_color': request.form.get('secondary_color', '#35a310'),
-                    'button_color': request.form.get('button_color', '#28a745'),
-                    'welcome_message': request.form.get('welcome_message', ''),
-                    'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
-                    'email_intro': request.form.get('email_intro', ''),
-                    'contact_email': request.form.get('contact_email', ''),
-                    'scan_timeout': request.form.get('scan_timeout', 300),
-                    'results_retention': request.form.get('results_retention', 90),
-                    'language': request.form.get('language', 'en'),
-                    'scan_types': request.form.getlist('scan_types')
-                }
-                
-                # Save customization to database
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                
-                # Update or insert customization settings
-                if customization:
-                    cursor.execute('''
-                        UPDATE customizations SET
-                            primary_color = ?, secondary_color = ?, button_color = ?,
-                            email_subject = ?, email_intro = ?, welcome_message = ?,
-                            contact_email = ?, scan_timeout = ?, results_retention = ?,
-                            language = ?, scan_types = ?, logo_url = COALESCE(?, logo_url),
-                            favicon_url = COALESCE(?, favicon_url), last_updated = ?
-                        WHERE client_id = ?
-                    ''', (
-                        customization_data['primary_color'],
-                        customization_data['secondary_color'], 
-                        customization_data['button_color'],
-                        customization_data['email_subject'],
-                        customization_data['email_intro'],
-                        customization_data['welcome_message'],
-                        customization_data['contact_email'],
-                        customization_data['scan_timeout'],
-                        customization_data['results_retention'],
-                        customization_data['language'],
-                        ','.join(customization_data['scan_types']),
-                        logo_url, favicon_url,
-                        datetime.now().isoformat(),
-                        client['id']
-                    ))
-                else:
-                    cursor.execute('''
-                        INSERT INTO customizations (
-                            client_id, primary_color, secondary_color, button_color,
-                            email_subject, email_intro, welcome_message, contact_email,
-                            scan_timeout, results_retention, language, scan_types,
-                            logo_url, favicon_url, last_updated
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        client['id'],
-                        customization_data['primary_color'],
-                        customization_data['secondary_color'],
-                        customization_data['button_color'],
-                        customization_data['email_subject'],
-                        customization_data['email_intro'],
-                        customization_data['welcome_message'],
-                        customization_data['contact_email'],
-                        customization_data['scan_timeout'],
-                        customization_data['results_retention'],
-                        customization_data['language'],
-                        ','.join(customization_data['scan_types']),
-                        logo_url, favicon_url,
-                        datetime.now().isoformat()
-                    ))
-                
-                # Update scanner info if exists
-                if scanner:
-                    cursor.execute('''
-                        UPDATE scanners SET
-                            name = ?, contact_email = ?, primary_color = ?, 
-                            secondary_color = ?, logo_url = COALESCE(?, logo_url)
-                        WHERE id = ?
-                    ''', (
-                        customization_data['scanner_name'],
-                        customization_data['contact_email'],
-                        customization_data['primary_color'],
-                        customization_data['secondary_color'],
-                        logo_url,
-                        scanner['id']
-                    ))
-                
-                conn.commit()
-                conn.close()
-                
-                flash('Scanner customization saved successfully!', 'success')
-                return redirect(url_for('client.dashboard'))
-                
-            except Exception as e:
-                logging.error(f"Error saving customization: {e}")
-                flash('Error saving customization. Please try again.', 'danger')
-        
-        # Convert database rows to dictionaries for template
-        scanner_dict = dict(scanner) if scanner else None
-        customization_dict = dict(customization) if customization else None
-        client_dict = dict(client) if client else None
-        
-        return render_template('customize.html', 
-                             scanner=scanner_dict,
-                             customization=customization_dict,
-                             client=client_dict,
-                             user=user)
-        
-    except Exception as e:
-        logging.error(f"Error in customize route: {e}")
-        flash('An error occurred while loading customization page', 'danger')
-        return redirect(url_for('client.dashboard'))
-
-def allowed_file(filename):
-    """Check if file type is allowed"""
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'ico'}
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    # If no scanner ID provided, redirect to scanners list
+    if not scanner_id:
+        flash('Please select a scanner to customize', 'info')
+        return redirect(url_for('client.scanners'))
+    
+    # Redirect to the proper scanner edit page
+    return redirect(url_for('client.scanner_edit', scanner_id=scanner_id))
