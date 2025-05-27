@@ -134,6 +134,8 @@ def scanner_embed(scanner_uid):
             return render_template('scan.html', 
                                  client_branding=client_branding,
                                  scanner_uid=scanner_uid,
+                                 scanner_id=scanner_uid,  # Add this for the form
+                                 client_id=scanner_data.get('client_id'),  # Add this for the form
                                  is_embedded=True,
                                  embed_url_params=embed_url_params)
         else:
@@ -141,6 +143,7 @@ def scanner_embed(scanner_uid):
             return render_template('scan.html', 
                                  client_branding=None,
                                  scanner_uid=scanner_uid,
+                                 scanner_id=scanner_uid,  # Add this for the form
                                  is_embedded=True,
                                  embed_url_params=f"?scanner_id={scanner_uid}")
     

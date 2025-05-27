@@ -276,6 +276,35 @@ def scan_page():
 @scan_bp.route('/results')
 def results():
     """Display scan results"""
+    # Check for scan_id in query parameters first
+    scan_id = request.args.get('scan_id')
+    
+    if scan_id:
+        # Try to get scan results from database
+        try:
+            from database_utils import get_scan_results
+            scan_results = get_scan_results(scan_id)
+            
+            if scan_results:
+                return render_template('results.html', scan_results=scan_results)
+            else:
+                # Try to get from client-specific databases
+                try:
+                    from client_database_manager import get_scan_by_id
+                    scan_results = get_scan_by_id(scan_id)
+                    if scan_results:
+                        return render_template('results.html', scan_results=scan_results)
+                except Exception as e:
+                    logger.error(f"Error getting scan from client databases: {e}")
+                
+                flash(f'Scan results not found for ID: {scan_id}', 'warning')
+                return redirect(url_for('scan.scan_page'))
+        except Exception as e:
+            logger.error(f"Error retrieving scan results for {scan_id}: {e}")
+            flash('Error retrieving scan results', 'danger')
+            return redirect(url_for('scan.scan_page'))
+    
+    # Fallback to session-based results
     scan_results = session.get('scan_results')
     
     if not scan_results:
