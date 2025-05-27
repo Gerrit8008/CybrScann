@@ -85,11 +85,12 @@ def get_admin_dashboard_data():
             logger.warning(f"Error getting total scans: {e}")
             total_scans = 0
         
-        # Revenue calculations (assuming subscription levels)
+        # Revenue calculations - only count active subscriptions
         try:
             cursor.execute('''
                 SELECT subscription_level, COUNT(*) as count
                 FROM clients 
+                WHERE active = 1 AND (subscription_status = 'active' OR subscription_status IS NULL)
                 GROUP BY subscription_level
             ''')
             subscription_stats = cursor.fetchall()
@@ -150,15 +151,27 @@ def get_admin_dashboard_data():
         
         # === CLIENT LIST WITH DETAILS ===
         
-        cursor.execute('''
-            SELECT c.*, u.username, u.email as user_email, u.created_at as user_created_at,
-                   COUNT(DISTINCT s.id) as scanner_count
-            FROM clients c
-            LEFT JOIN users u ON c.user_id = u.id
-            LEFT JOIN scanners s ON c.id = s.client_id
-            GROUP BY c.id
-            ORDER BY c.created_at DESC
-        ''')
+        try:
+            cursor.execute('''
+                SELECT c.*, u.username, u.email as user_email, u.created_at as user_created_at,
+                       COUNT(DISTINCT s.id) as scanner_count
+                FROM clients c
+                LEFT JOIN users u ON c.user_id = u.id
+                LEFT JOIN scanners s ON c.id = s.client_id
+                WHERE c.active = 1
+                GROUP BY c.id
+                ORDER BY c.created_at DESC
+            ''')
+        except Exception as e:
+            logger.warning(f"Error querying clients: {e}")
+            cursor.execute('''
+                SELECT c.*, COUNT(DISTINCT s.id) as scanner_count
+                FROM clients c
+                LEFT JOIN scanners s ON c.id = s.client_id
+                WHERE c.active = 1
+                GROUP BY c.id
+                ORDER BY c.created_at DESC
+            ''')
         clients = []
         for row in cursor.fetchall():
             client = dict(row)
@@ -223,6 +236,11 @@ def get_admin_dashboard_data():
         # Database sizes
         db_stats = get_database_statistics()
         data['system_health'] = db_stats
+        
+        # === PAYMENT TRACKING (FUTURE ENHANCEMENT) ===
+        # Note: For real payments, add a payments table to track:
+        # - payment_id, client_id, amount, date, status, method
+        # This will replace the estimated revenue calculations
         
         conn.close()
         
