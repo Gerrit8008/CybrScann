@@ -39,7 +39,7 @@ def login():
             # User is already logged in - redirect based on role
             logging.debug(f"Session valid for user: {result['user']['username']}")
             if result['user']['role'] == 'admin':
-                return redirect(url_for('admin.dashboard'))
+                return redirect(url_for('admin.admin_dashboard'))
             else:
                 return redirect(url_for('client.dashboard'))
     
@@ -82,7 +82,7 @@ def login():
                     return redirect(next_url)
                 elif result['role'] == 'admin':
                     logging.debug("Redirecting to admin dashboard")
-                    return redirect(url_for('admin.dashboard'))
+                    return redirect(url_for('admin.admin_dashboard'))
                 else:
                     # All non-admin users go to client dashboard
                     logging.debug("Redirecting to client dashboard")
@@ -323,7 +323,7 @@ def complete_profile():
     if client:
         # Redirect to appropriate dashboard based on role
         if user['role'] == 'admin':
-            return redirect(url_for('admin.dashboard'))
+            return redirect(url_for('admin.admin_dashboard'))
         else:
             return redirect(url_for('client.dashboard'))
     

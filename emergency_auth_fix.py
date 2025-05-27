@@ -10,11 +10,24 @@ def add_emergency_auth_routes(app):
     
     @app.route('/auth/register', methods=['GET', 'POST'])
     def emergency_register():
-        """Emergency register route"""
+        """Emergency register route - redirects to actual auth"""
+        # Redirect to the actual auth blueprint route
         if request.method == 'POST':
-            # For now, show a message that registration is being processed
-            flash('Registration is being processed. This feature will be available shortly.', 'info')
-            return redirect(url_for('emergency_register'))
+            # Forward the POST request by rebuilding it
+            from werkzeug.datastructures import MultiDict
+            form_data = MultiDict(request.form)
+            
+            # Try to use the actual auth blueprint route
+            try:
+                from auth import register as auth_register
+                # This is a bit hacky but necessary for emergency routing
+                import flask
+                with app.test_request_context('/auth/register', method='POST', data=form_data):
+                    response = auth_register()
+                    return response
+            except Exception as e:
+                flash('Registration temporarily unavailable. Please try again later.', 'warning')
+                return redirect('/')
         
         try:
             return render_template('auth/register.html')
@@ -33,11 +46,24 @@ def add_emergency_auth_routes(app):
     
     @app.route('/auth/login', methods=['GET', 'POST'])
     def emergency_login():
-        """Emergency login route"""
+        """Emergency login route - redirects to actual auth"""
+        # Redirect to the actual auth blueprint route
         if request.method == 'POST':
-            # For now, show a message that login is being processed
-            flash('Login is being processed. This feature will be available shortly.', 'info')
-            return redirect(url_for('emergency_login'))
+            # Forward the POST request by rebuilding it
+            from werkzeug.datastructures import MultiDict
+            form_data = MultiDict(request.form)
+            
+            # Try to use the actual auth blueprint route
+            try:
+                from auth import login as auth_login
+                # This is a bit hacky but necessary for emergency routing
+                import flask
+                with app.test_request_context('/auth/login', method='POST', data=form_data):
+                    response = auth_login()
+                    return response
+            except Exception as e:
+                flash('Login temporarily unavailable. Please try again later.', 'warning')
+                return redirect('/')
         
         try:
             return render_template('auth/login.html')

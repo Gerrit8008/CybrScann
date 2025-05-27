@@ -1,7 +1,7 @@
 """
 CybrScan - Modular Flask Application
 Main application file with organized route imports
-Updated: 2025-05-27 - Auth routes fixed
+Updated: 2025-05-27 - Auth routes fixed v3 - Removed conflicting fallback routes
 """
 
 import logging
@@ -68,11 +68,11 @@ except ImportError as e:
 # Import route blueprints
 try:
     from routes.main_routes import main_bp
-    from routes.auth_routes import auth_bp
+    # from routes.auth_routes import auth_bp  # Commented out to avoid conflicts with main auth.py
     from routes.scanner_routes import scanner_bp
     from routes.scan_routes import scan_bp
     from routes.admin_routes import admin_bp
-    logger.info("✅ All route blueprints imported successfully")
+    logger.info("✅ All route blueprints imported successfully (auth_bp excluded to avoid conflicts)")
 except ImportError as e:
     logger.error(f"❌ Failed to import route blueprints: {e}")
     logger.error("Make sure all route files are properly created in the routes/ directory")
@@ -159,11 +159,16 @@ def create_app():
     # Keep existing auth blueprint as primary since it has more functionality
     if auth_existing_bp:
         app.register_blueprint(auth_existing_bp)  # No url_prefix since it's already defined in the blueprint
-        logger.info("✅ Existing auth blueprint registered")
+        logger.info(f"✅ Existing auth blueprint registered: {auth_existing_bp}")
+        logger.info(f"✅ Auth blueprint name: {auth_existing_bp.name}")
+    else:
+        logger.error("❌ Auth blueprint not available - auth routes will not work!")
     
-    if admin_existing_bp:
-        app.register_blueprint(admin_existing_bp, url_prefix='/admin_existing')
-        logger.info("✅ Existing admin blueprint registered")
+    # Do not register the old admin blueprint to avoid conflicts
+    # if admin_existing_bp:
+    #     app.register_blueprint(admin_existing_bp, url_prefix='/admin_existing')
+    #     logger.info("✅ Existing admin blueprint registered")
+    logger.info("ℹ️ Old admin blueprint skipped to avoid conflicts with new admin routes")
     
     # Add error handlers
     @app.errorhandler(404)
@@ -193,13 +198,19 @@ def create_app():
             'app_name': 'CybrScan'
         }
     
-    # Emergency auth fix for deployment issues
-    try:
-        from emergency_auth_fix import add_emergency_auth_routes
-        app = add_emergency_auth_routes(app)
-        logger.info("✅ Emergency auth routes added")
-    except Exception as e:
-        logger.warning(f"⚠️ Emergency auth fix not applied: {e}")
+    # Debug: Print all registered routes
+    logger.info("📋 Registered routes:")
+    for rule in app.url_map.iter_rules():
+        methods = ','.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+        logger.info(f"  {methods} {rule} -> {rule.endpoint}")
+    
+    # Emergency auth fix for deployment issues (disabled for now)
+    # try:
+    #     from emergency_auth_fix import add_emergency_auth_routes
+    #     app = add_emergency_auth_routes(app)
+    #     logger.info("✅ Emergency auth routes added")
+    # except Exception as e:
+    #     logger.warning(f"⚠️ Emergency auth fix not applied: {e}")
     
     logger.info("✅ CybrScan modular application created successfully")
     return app
