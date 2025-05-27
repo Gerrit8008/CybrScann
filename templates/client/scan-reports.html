@@ -284,7 +284,7 @@
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <a href="/results?scan_id={{ report.scan_id }}" target="_blank" 
+                                                    <a href="{{ url_for('client.report_view', scan_id=report.scan_id) }}" target="_blank" 
                                                        class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="View Complete Security Report">
                                                         <i class="bi bi-file-earmark-text me-1"></i>View Report
                                                     </a>
