@@ -137,11 +137,28 @@ def scan_page():
                     conn = get_db_connection()
                     cursor = conn.cursor()
                     
+                    # Ensure scan_history table exists with proper schema
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS scan_history (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            client_id INTEGER,
+                            scanner_id TEXT,
+                            scan_id TEXT,
+                            target_url TEXT,
+                            scan_type TEXT,
+                            status TEXT,
+                            results TEXT,
+                            created_at TEXT,
+                            completed_at TEXT
+                        )
+                    ''')
+                    
                     # Log to scan_history table
                     cursor.execute('''
-                        INSERT INTO scan_history (scanner_id, scan_id, target_url, scan_type, status, results, created_at, completed_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO scan_history (client_id, scanner_id, scan_id, target_url, scan_type, status, results, created_at, completed_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
+                        client_id,
                         scanner_id,
                         scan_results.get('scan_id', ''),
                         lead_data.get('target', ''),

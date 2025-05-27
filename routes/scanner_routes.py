@@ -85,9 +85,14 @@ def scanner_embed(scanner_uid):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
-        SELECT s.*, c.business_name, cu.primary_color, cu.secondary_color, cu.button_color, cu.logo_path, cu.favicon_path,
-               cu.email_subject, cu.email_intro, cu.scanner_description, cu.cta_button_text, cu.company_tagline, 
-               cu.support_email, cu.custom_footer_text
+        SELECT s.*, c.business_name,
+               COALESCE(s.primary_color, cu.primary_color, '#02054c') as final_primary_color,
+               COALESCE(s.secondary_color, cu.secondary_color, '#35a310') as final_secondary_color,
+               COALESCE(s.logo_url, cu.logo_path, '') as final_logo_url,
+               COALESCE(s.email_subject, cu.email_subject, 'Your Security Scan Report') as final_email_subject,
+               COALESCE(s.email_intro, cu.email_intro, '') as final_email_intro,
+               cu.scanner_description, cu.cta_button_text, cu.company_tagline, 
+               cu.support_email, cu.custom_footer_text, cu.favicon_path
         FROM scanners s 
         JOIN clients c ON s.client_id = c.id 
         LEFT JOIN customizations cu ON c.id = cu.client_id
@@ -101,29 +106,27 @@ def scanner_embed(scanner_uid):
             # Convert to dict for easier access
             scanner_data = dict(scanner_row) if hasattr(scanner_row, 'keys') else dict(zip([col[0] for col in cursor.description], scanner_row))
             
-            # Create client branding object - prioritize scanner-specific settings over client customizations
-            # Extract scanner-specific data (prefixed columns in query)
-            scanner_primary = scanner_data.get('primary_color')  # From scanners table
-            scanner_secondary = scanner_data.get('secondary_color')  # From scanners table
-            customization_primary = scanner_data.get('primary_color')  # From customizations table (may be same key)
-            
+            # Create client branding object using COALESCED final values
             client_branding = {
                 'business_name': scanner_data.get('business_name', ''),
-                'primary_color': scanner_primary or customization_primary or '#02054c',
-                'secondary_color': scanner_secondary or scanner_data.get('secondary_color') or '#35a310',
-                'button_color': scanner_primary or customization_primary or '#02054c',
-                'logo_path': scanner_data.get('logo_url', scanner_data.get('logo_path', '')),  # Use logo_url from scanners table first
-                'logo_url': scanner_data.get('logo_url', scanner_data.get('logo_path', '')),  # Also set logo_url for template compatibility
+                'primary_color': scanner_data.get('final_primary_color', '#02054c'),
+                'secondary_color': scanner_data.get('final_secondary_color', '#35a310'),
+                'button_color': scanner_data.get('final_primary_color', '#02054c'),  # Use primary as button color
+                'logo_path': scanner_data.get('final_logo_url', ''),
+                'logo_url': scanner_data.get('final_logo_url', ''),  # Also set logo_url for template compatibility
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'scanner_name': scanner_data.get('name', 'Security Scanner'),
-                'email_subject': scanner_data.get('email_subject', 'Your Security Scan Report'),
-                'email_intro': scanner_data.get('email_intro', ''),
+                'email_subject': scanner_data.get('final_email_subject', 'Your Security Scan Report'),
+                'email_intro': scanner_data.get('final_email_intro', ''),
                 'scanner_description': scanner_data.get('scanner_description', ''),
                 'cta_button_text': scanner_data.get('cta_button_text', 'Start Security Scan'),
                 'company_tagline': scanner_data.get('company_tagline', ''),
                 'support_email': scanner_data.get('support_email', ''),
                 'custom_footer_text': scanner_data.get('custom_footer_text', '')
             }
+            
+            # Debug logging for branding
+            logging.info(f"Scanner {scanner_uid} branding: primary={client_branding['primary_color']}, secondary={client_branding['secondary_color']}, logo={client_branding['logo_url']}")
             
             # Add client_id and scanner_id to URL parameters for tracking
             embed_url_params = f"?client_id={scanner_data.get('client_id', '')}&scanner_id={scanner_uid}"
