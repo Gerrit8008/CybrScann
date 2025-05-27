@@ -393,6 +393,77 @@ def get_scanner_scan_count(client_id, scanner_id):
         logging.error(f"Error getting scanner scan count for {scanner_id}: {e}")
         return 0
 
+
+def get_recent_client_scans(client_id, limit=10):
+    """Get recent scans for a specific client"""
+    try:
+        db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client_databases')
+        db_path = os.path.join(db_dir, f'client_{client_id}_scans.db')
+        
+        if not os.path.exists(db_path):
+            return []
+        
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get recent scans with all details
+        cursor.execute('''
+            SELECT * FROM scans 
+            ORDER BY timestamp DESC 
+            LIMIT ?
+        ''', (limit,))
+        
+        scans = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        return scans
+        
+    except Exception as e:
+        logging.error(f"Error getting recent scans for client {client_id}: {e}")
+        return []
+
+
+def get_all_client_scan_statistics():
+    """Get aggregated scan statistics across all clients"""
+    try:
+        db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client_databases')
+        
+        if not os.path.exists(db_dir):
+            return {'total_scans': 0, 'clients_with_scans': 0}
+        
+        total_scans = 0
+        clients_with_scans = 0
+        
+        for filename in os.listdir(db_dir):
+            if filename.startswith('client_') and filename.endswith('_scans.db'):
+                try:
+                    db_path = os.path.join(db_dir, filename)
+                    conn = sqlite3.connect(db_path)
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('SELECT COUNT(*) FROM scans')
+                    client_scan_count = cursor.fetchone()[0]
+                    
+                    if client_scan_count > 0:
+                        total_scans += client_scan_count
+                        clients_with_scans += 1
+                    
+                    conn.close()
+                    
+                except Exception as e:
+                    logging.warning(f"Error reading {filename}: {e}")
+                    continue
+        
+        return {
+            'total_scans': total_scans,
+            'clients_with_scans': clients_with_scans
+        }
+        
+    except Exception as e:
+        logging.error(f"Error getting all client scan statistics: {e}")
+        return {'total_scans': 0, 'clients_with_scans': 0}
+
 def get_client_scan_statistics(client_id):
     """Get scan statistics from client's dedicated database"""
     try:
