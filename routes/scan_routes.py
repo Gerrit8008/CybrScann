@@ -294,7 +294,7 @@ def results():
             scan_results = get_scan_results(scan_id)
             
             if scan_results:
-                return render_template('results.html', scan_results=scan_results)
+                return render_template('results.html', scan=scan_results)
             else:
                 # Try to get from client-specific databases
                 try:
@@ -326,7 +326,7 @@ def results():
                                     'risk_level': scan_data.get('risk_level', 'Medium')
                                 }
                             }
-                        return render_template('results.html', scan_results=converted_results)
+                        return render_template('results.html', scan=converted_results)
                 except Exception as e:
                     logger.error(f"Error getting scan from client databases: {e}")
                     import traceback
@@ -346,7 +346,7 @@ def results():
         flash('No scan results found. Please run a scan first.', 'warning')
         return redirect(url_for('scan.scan_page'))
     
-    return render_template('results.html', scan_results=scan_results)
+    return render_template('results.html', scan=scan_results)
 
 
 @scan_bp.route('/results_direct')
