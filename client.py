@@ -80,9 +80,11 @@ def get_client_total_scans(client_id):
     try:
         from client_database_manager import get_client_scan_statistics
         stats = get_client_scan_statistics(client_id)
-        return stats.get('total_scans', 0)
+        total_scans = stats.get('total_scans', 0)
+        logger.info(f"Client {client_id} total scans: {total_scans}")
+        return total_scans
     except Exception as e:
-        logger.error(f"Error getting client total scans: {e}")
+        logger.error(f"Error getting client total scans for client {client_id}: {e}")
         return 0
 
 def get_client_scan_limit(client):
