@@ -892,6 +892,52 @@ def scanner_regenerate_api_key(user, scanner_id):
         return jsonify({'status': 'error', 'message': str(e)})
         
         
+@client_bp.route('/scanners/<int:scanner_id>/reports')
+@client_required
+def scanner_reports(user, scanner_id):
+    """Display reports for a specific scanner"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        
+        if not client:
+            flash('Please complete your client profile', 'info')
+            return redirect(url_for('auth.complete_profile'))
+        
+        # Get scanner details to verify ownership
+        scanner = get_scanner_by_id(scanner_id)
+        
+        if not scanner or scanner['client_id'] != client['id']:
+            flash('Scanner not found', 'danger')
+            return redirect(url_for('client.scanners'))
+        
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Get scan reports for this specific scanner
+        try:
+            from client_database_manager import get_scanner_scan_reports
+            scan_reports, pagination = get_scanner_scan_reports(client['id'], scanner['scanner_id'], page, per_page)
+        except Exception as e:
+            logger.error(f"Error getting scanner reports: {e}")
+            scan_reports, pagination = [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
+        
+        return render_template(
+            'client/scan-reports.html',
+            user=user,
+            client=client,
+            scanner=scanner,
+            scan_reports=scan_reports,
+            pagination=pagination,
+            page_title=f"Reports for {scanner['name']}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error displaying scanner reports: {str(e)}")
+        flash('An error occurred while loading scanner reports', 'danger')
+        return redirect(url_for('client.scanners'))
+
 @client_bp.route('/reports/<scan_id>')
 @client_required
 def report_view(user, scan_id):
