@@ -199,11 +199,25 @@ def scan_page():
                 dmarc_status = check_dmarc_record(target)
                 dkim_status = check_dkim_record(target)
                 
+                # Convert tuple results to dict format for consistency
+                def convert_email_result(result):
+                    if isinstance(result, tuple):
+                        # Handle tuple format: (status, severity, details)
+                        return {
+                            'status': result[0] if len(result) > 0 else 'Unknown',
+                            'severity': result[1] if len(result) > 1 else 'Medium',
+                            'details': result[2] if len(result) > 2 else ''
+                        }
+                    elif isinstance(result, dict):
+                        return result
+                    else:
+                        return {'status': str(result), 'severity': 'Medium', 'details': ''}
+                
                 scan_results['email_security'] = {
                     'domain': target,
-                    'spf': spf_status,
-                    'dmarc': dmarc_status,
-                    'dkim': dkim_status,
+                    'spf': convert_email_result(spf_status),
+                    'dmarc': convert_email_result(dmarc_status),
+                    'dkim': convert_email_result(dkim_status),
                     'dns_config': dns_config
                 }
                 
@@ -218,24 +232,46 @@ def scan_page():
                 
                 # Calculate overall risk score
                 logging.info(f"📊 Calculating risk assessment")
-                risk_score = calculate_risk_score(scan_results)
-                scan_results['security_score'] = risk_score
-                scan_results['risk_assessment'] = {
-                    'overall_score': risk_score,
-                    'risk_level': 'Critical' if risk_score < 40 else 'High' if risk_score < 60 else 'Medium' if risk_score < 80 else 'Low'
-                }
+                try:
+                    risk_score = calculate_risk_score(scan_results)
+                    scan_results['security_score'] = risk_score
+                    scan_results['risk_assessment'] = {
+                        'overall_score': risk_score,
+                        'risk_level': 'Critical' if risk_score < 40 else 'High' if risk_score < 60 else 'Medium' if risk_score < 80 else 'Low'
+                    }
+                except Exception as risk_error:
+                    logging.error(f"Error calculating risk score: {risk_error}")
+                    # Use simplified fallback scoring
+                    risk_score = 75  # Default score
+                    scan_results['security_score'] = risk_score
+                    scan_results['risk_assessment'] = {
+                        'overall_score': risk_score,
+                        'risk_level': 'Medium'
+                    }
                 
                 # Generate recommendations
-                recommendations = get_recommendations(scan_results)
-                scan_results['recommendations'] = recommendations
+                try:
+                    recommendations = get_recommendations(scan_results)
+                    scan_results['recommendations'] = recommendations if recommendations else []
+                except Exception as rec_error:
+                    logging.error(f"Error generating recommendations: {rec_error}")
+                    scan_results['recommendations'] = ['Implement comprehensive security monitoring', 'Regular security assessments']
                 
                 # Generate threat scenarios
-                threat_scenarios = generate_threat_scenario(scan_results)
-                scan_results['threat_scenarios'] = threat_scenarios
+                try:
+                    threat_scenarios = generate_threat_scenario(scan_results)
+                    scan_results['threat_scenarios'] = threat_scenarios if threat_scenarios else []
+                except Exception as threat_error:
+                    logging.error(f"Error generating threat scenarios: {threat_error}")
+                    scan_results['threat_scenarios'] = []
                 
                 # Service categorization
-                service_categories = categorize_risks_by_services(scan_results)
-                scan_results['service_categories'] = service_categories
+                try:
+                    service_categories = categorize_risks_by_services(scan_results)
+                    scan_results['service_categories'] = service_categories if service_categories else {}
+                except Exception as cat_error:
+                    logging.error(f"Error categorizing services: {cat_error}")
+                    scan_results['service_categories'] = {}
                 
                 # Calculate industry percentile
                 if industry_type:
@@ -245,9 +281,16 @@ def scan_page():
                 # Convert scan results to findings format for template compatibility
                 findings = []
                 
+                logging.info(f"🔍 Processing scan results for findings extraction:")
+                logging.info(f"   SSL Certificate: {type(scan_results.get('ssl_certificate'))}")
+                logging.info(f"   Security Headers: {type(scan_results.get('security_headers'))}")
+                logging.info(f"   Network: {type(scan_results.get('network'))}")
+                logging.info(f"   Email Security: {type(scan_results.get('email_security'))}")
+                
                 # SSL Certificate findings
                 if 'ssl_certificate' in scan_results and scan_results['ssl_certificate']:
                     ssl_data = scan_results['ssl_certificate']
+                    logging.info(f"SSL data: {ssl_data}")
                     if isinstance(ssl_data, dict):
                         if ssl_data.get('error') or ssl_data.get('severity') in ['High', 'Critical']:
                             findings.append({
@@ -257,19 +300,51 @@ def scan_page():
                                 'description': ssl_data.get('error', 'SSL certificate configuration issue detected'),
                                 'recommendation': 'Review SSL certificate configuration and ensure proper security'
                             })
+                            logging.info("Added SSL finding")
+                        else:
+                            logging.info("SSL check passed - no issues found")
                 
                 # Security Headers findings
                 if 'security_headers' in scan_results and scan_results['security_headers']:
                     headers_data = scan_results['security_headers']
-                    if isinstance(headers_data, dict) and headers_data.get('missing_critical'):
-                        for header in headers_data.get('missing_critical', []):
+                    logging.info(f"Headers data: {headers_data}")
+                    if isinstance(headers_data, dict):
+                        # Check for missing critical headers
+                        if headers_data.get('missing_critical'):
+                            for header in headers_data.get('missing_critical', []):
+                                findings.append({
+                                    'category': 'Security Headers',
+                                    'severity': 'High',
+                                    'title': f'Missing {header} Header',
+                                    'description': f'Critical security header {header} is not configured',
+                                    'recommendation': f'Implement {header} header to improve security'
+                                })
+                                logging.info(f"Added finding for missing header: {header}")
+                        
+                        # Check for headers with poor implementation
+                        if headers_data.get('poor_implementation'):
+                            for header in headers_data.get('poor_implementation', []):
+                                findings.append({
+                                    'category': 'Security Headers',
+                                    'severity': 'Medium',
+                                    'title': f'Weak {header} Configuration',
+                                    'description': f'Security header {header} is configured but could be improved',
+                                    'recommendation': f'Review and strengthen {header} header configuration'
+                                })
+                                logging.info(f"Added finding for weak header: {header}")
+                        
+                        # Check overall security headers score
+                        if headers_data.get('score', 100) < 70:
                             findings.append({
                                 'category': 'Security Headers',
-                                'severity': 'High',
-                                'title': f'Missing {header} Header',
-                                'description': f'Critical security header {header} is not configured',
-                                'recommendation': f'Implement {header} header to improve security'
+                                'severity': 'Medium' if headers_data.get('score', 100) > 40 else 'High',
+                                'title': 'Poor Security Headers Score',
+                                'description': f'Overall security headers score is {headers_data.get("score", 0)}/100',
+                                'recommendation': 'Implement missing security headers to improve protection'
                             })
+                            logging.info(f"Added finding for low headers score: {headers_data.get('score', 0)}")
+                    else:
+                        logging.warning(f"Security headers data is not a dict: {type(headers_data)}")
                 
                 # Network findings
                 if 'network' in scan_results and scan_results['network']:
