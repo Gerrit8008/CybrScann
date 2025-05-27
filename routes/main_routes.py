@@ -248,23 +248,14 @@ def debug_routes():
 # These were causing form submissions to redirect to landing page instead of processing login/register
 
 
-@main_bp.route('/customize', methods=['GET', 'POST'])
+@main_bp.route('/customize')
 def customize():
-    """Scanner customization page"""
-    if request.method == 'POST':
-        try:
-            # Process customization form
-            from auth_utils import process_scanner_customization
-            result = process_scanner_customization(request)
-            
-            if result['success']:
-                flash('Scanner customized successfully!', 'success')
-                return redirect(url_for('client.dashboard'))
-            else:
-                flash(result.get('message', 'Error customizing scanner'), 'danger')
-                
-        except Exception as e:
-            logging.error(f"Error processing customization: {e}")
-            flash('An error occurred while customizing your scanner', 'danger')
+    """Redirect to client scanner customization page"""
+    # Check if user is logged in
+    session_token = session.get('session_token')
+    if not session_token:
+        flash('Please log in to customize your scanner', 'info')
+        return redirect(url_for('auth.login'))
     
-    return render_template('customize.html')
+    # Redirect to client scanner creation page
+    return redirect(url_for('client.scanner_create'))
