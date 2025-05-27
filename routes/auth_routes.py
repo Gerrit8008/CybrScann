@@ -22,6 +22,20 @@ def login():
     return render_template('auth/login.html')
 
 
+@auth_bp.route('/register')
+def register():
+    """Registration page"""
+    return render_template('auth/register.html')
+
+
+@auth_bp.route('/logout')
+def logout():
+    """Logout user"""
+    session.clear()
+    flash('You have been logged out successfully', 'info')
+    return redirect(url_for('main.landing_page'))
+
+
 @auth_bp.route('/auth_status')
 def auth_status():
     """Check authentication status"""
