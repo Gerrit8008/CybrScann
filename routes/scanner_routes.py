@@ -101,13 +101,19 @@ def scanner_embed(scanner_uid):
             # Convert to dict for easier access
             scanner_data = dict(scanner_row) if hasattr(scanner_row, 'keys') else dict(zip([col[0] for col in cursor.description], scanner_row))
             
-            # Create client branding object
+            # Create client branding object - prioritize scanner-specific settings over client customizations
+            # Extract scanner-specific data (prefixed columns in query)
+            scanner_primary = scanner_data.get('primary_color')  # From scanners table
+            scanner_secondary = scanner_data.get('secondary_color')  # From scanners table
+            customization_primary = scanner_data.get('primary_color')  # From customizations table (may be same key)
+            
             client_branding = {
                 'business_name': scanner_data.get('business_name', ''),
-                'primary_color': scanner_data.get('primary_color', '#02054c'),
-                'secondary_color': scanner_data.get('secondary_color', '#35a310'),
-                'button_color': scanner_data.get('button_color', scanner_data.get('primary_color', '#02054c')),
-                'logo_path': scanner_data.get('logo_path', ''),
+                'primary_color': scanner_primary or customization_primary or '#02054c',
+                'secondary_color': scanner_secondary or scanner_data.get('secondary_color') or '#35a310',
+                'button_color': scanner_primary or customization_primary or '#02054c',
+                'logo_path': scanner_data.get('logo_url', scanner_data.get('logo_path', '')),  # Use logo_url from scanners table first
+                'logo_url': scanner_data.get('logo_url', scanner_data.get('logo_path', '')),  # Also set logo_url for template compatibility
                 'favicon_path': scanner_data.get('favicon_path', ''),
                 'scanner_name': scanner_data.get('name', 'Security Scanner'),
                 'email_subject': scanner_data.get('email_subject', 'Your Security Scan Report'),
