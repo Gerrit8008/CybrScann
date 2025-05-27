@@ -153,6 +153,13 @@ def scan_page():
                         )
                     ''')
                     
+                    # Check if client_id column exists in existing table
+                    cursor.execute("PRAGMA table_info(scan_history)")
+                    columns = [column[1] for column in cursor.fetchall()]
+                    if 'client_id' not in columns:
+                        cursor.execute("ALTER TABLE scan_history ADD COLUMN client_id INTEGER")
+                        logging.info("Added client_id column to existing scan_history table")
+                    
                     # Log to scan_history table
                     cursor.execute('''
                         INSERT INTO scan_history (client_id, scanner_id, scan_id, target_url, scan_type, status, results, created_at, completed_at)
@@ -190,8 +197,9 @@ def scan_page():
                 scan_results.update(lead_data)
                 
                 # Legacy client logging (keeping for compatibility)
-                from client_db import log_scan
                 try:
+                    from client_db import log_scan
+                    # Use the simple version that doesn't require conn parameter
                     log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
                 except Exception as log_error:
                     logging.error(f"Legacy log_scan error: {log_error}")
@@ -291,11 +299,38 @@ def results():
                 # Try to get from client-specific databases
                 try:
                     from client_database_manager import get_scan_by_id
-                    scan_results = get_scan_by_id(scan_id)
-                    if scan_results:
-                        return render_template('results.html', scan_results=scan_results)
+                    scan_data = get_scan_by_id(scan_id)
+                    if scan_data:
+                        # Convert client database format to results format
+                        if 'parsed_results' in scan_data and scan_data['parsed_results']:
+                            # Use the parsed JSON results
+                            converted_results = scan_data['parsed_results']
+                        else:
+                            # Create results from database fields
+                            converted_results = {
+                                'scan_id': scan_data.get('scan_id'),
+                                'timestamp': scan_data.get('timestamp'),
+                                'email': scan_data.get('lead_email'),
+                                'name': scan_data.get('lead_name'),
+                                'company': scan_data.get('lead_company'),
+                                'target': scan_data.get('target_domain'),
+                                'scan_type': scan_data.get('scan_type', 'comprehensive'),
+                                'status': scan_data.get('status', 'completed'),
+                                'security_score': scan_data.get('security_score', 75),
+                                'risk_level': scan_data.get('risk_level', 'Medium'),
+                                'vulnerabilities_found': scan_data.get('vulnerabilities_found', 0),
+                                'findings': [],
+                                'recommendations': ['Implement comprehensive security monitoring', 'Regular security assessments'],
+                                'risk_assessment': {
+                                    'overall_score': scan_data.get('security_score', 75),
+                                    'risk_level': scan_data.get('risk_level', 'Medium')
+                                }
+                            }
+                        return render_template('results.html', scan_results=converted_results)
                 except Exception as e:
                     logger.error(f"Error getting scan from client databases: {e}")
+                    import traceback
+                    logger.error(traceback.format_exc())
                 
                 flash(f'Scan results not found for ID: {scan_id}', 'warning')
                 return redirect(url_for('scan.scan_page'))

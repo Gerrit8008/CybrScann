@@ -206,7 +206,7 @@ def emergency_login():
                     
                     # Redirect based on role
                     if user.get('role') == 'admin':
-                        return redirect(url_for('admin.dashboard'))
+                        return redirect(url_for('admin.admin_dashboard'))
                     else:
                         return redirect(url_for('client.dashboard'))
                 else:

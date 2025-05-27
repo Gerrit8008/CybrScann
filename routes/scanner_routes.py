@@ -43,7 +43,7 @@ def scanner_deployment_info(scanner_uid):
         
         if not scanner_row:
             flash('Scanner not found', 'danger')
-            return redirect(url_for('admin.dashboard'))
+            return redirect(url_for('admin.admin_dashboard'))
         
         # Convert to dict
         if hasattr(scanner_row, 'keys'):
@@ -72,7 +72,7 @@ def scanner_deployment_info(scanner_uid):
     except Exception as e:
         logging.error(f"Error loading scanner deployment info: {e}")
         flash('Error loading scanner information', 'danger')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('admin.admin_dashboard'))
 
 
 @scanner_bp.route('/scanner/<scanner_uid>/embed')
@@ -264,7 +264,7 @@ def scanner_download(scanner_uid):
         
         if not scanner_row:
             flash('Scanner not found', 'danger')
-            return redirect(url_for('admin.dashboard'))
+            return redirect(url_for('admin.admin_dashboard'))
         
         scanner_name = scanner_row[0]
         api_key = scanner_row[1]
@@ -319,7 +319,7 @@ fetch('{base_url}/api/scanner/{scanner_uid}/scan', {{
     except Exception as e:
         logging.error(f"Error creating scanner download package: {e}")
         flash('Error creating download package', 'danger')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('admin.admin_dashboard'))
 
 
 @scanner_bp.route('/api/scanner/<scanner_uid>/scan', methods=['POST', 'OPTIONS'])
