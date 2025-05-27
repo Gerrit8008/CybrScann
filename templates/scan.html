@@ -1237,9 +1237,9 @@
                                     // Show completion message
                                     scanComplete.style.display = 'block';
                                     
-                                    // Update the results button with correct scan_id
+                                    // Update the results button with correct URL from server
                                     const viewResultsBtn = document.querySelector('#scanComplete a.btn');
-                                    viewResultsBtn.href = `/results?scan_id=${data.scan_id}`;
+                                    viewResultsBtn.href = data.results_url || `/results?scan_id=${data.scan_id}`;
                                 } else {
                                     // Show error
                                     throw new Error(data.message || 'Unknown error occurred');

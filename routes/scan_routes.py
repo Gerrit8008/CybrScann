@@ -302,8 +302,8 @@ def results():
                     if scan_data:
                         logger.info(f"Retrieved scan data keys: {list(scan_data.keys())}")
                         # Convert client database format to results format
-                        if 'parsed_results' in scan_data and scan_data['parsed_results']:
-                            # Use the parsed JSON results
+                        if 'parsed_results' in scan_data and scan_data['parsed_results'] and scan_data['parsed_results'].get('client_info'):
+                            # Use the parsed JSON results (only if they have proper structure)
                             converted_results = scan_data['parsed_results']
                         else:
                             # Create results from database fields with proper structure for template
@@ -345,6 +345,8 @@ def results():
                                 'service_categories': {},
                                 'industry': {}
                             }
+                        logger.info(f"Final converted_results keys: {list(converted_results.keys())}")
+                        logger.info(f"Has client_info: {'client_info' in converted_results}")
                         return render_template('results.html', scan=converted_results)
                 except Exception as e:
                     logger.error(f"Error getting scan from client databases: {e}")
