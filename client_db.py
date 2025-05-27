@@ -4571,9 +4571,14 @@ def get_scan_reports_for_client(client_id, page=1, per_page=25, filters=None):
         where_clause = " AND ".join(where_conditions)
         
         # Get total count for pagination
-        count_query = f"SELECT COUNT(*) FROM scan_history WHERE {where_clause}"
-        cursor.execute(count_query, params)
-        total_count = cursor.fetchone()[0]
+        try:
+            count_query = f"SELECT COUNT(*) FROM scan_history WHERE {where_clause}"
+            cursor.execute(count_query, params)
+            total_count = cursor.fetchone()[0]
+        except Exception as e:
+            logger.warning(f"scan_history table not found, returning empty results: {e}")
+            conn.close()
+            return [], {'page': 1, 'per_page': per_page, 'total_pages': 1, 'total_count': 0}
         
         # Calculate pagination
         total_pages = (total_count + per_page - 1) // per_page
@@ -4639,47 +4644,13 @@ def get_scan_reports_for_client(client_id, page=1, per_page=25, filters=None):
 def get_scan_statistics_for_client(client_id):
     """Get scan statistics summary for a client"""
     try:
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        # Total scans
-        cursor.execute("SELECT COUNT(*) FROM scan_history WHERE client_id = ?", (client_id,))
-        total_scans = cursor.fetchone()[0]
-        
-        # Average security score
-        cursor.execute("SELECT AVG(security_score) FROM scan_history WHERE client_id = ? AND security_score > 0", (client_id,))
-        avg_score_result = cursor.fetchone()[0]
-        avg_score = avg_score_result if avg_score_result else 0
-        
-        # This month's scans
-        cursor.execute("""
-            SELECT COUNT(*) FROM scan_history 
-            WHERE client_id = ? 
-            AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
-        """, (client_id,))
-        this_month = cursor.fetchone()[0]
-        
-        # Unique companies
-        cursor.execute("""
-            SELECT COUNT(DISTINCT lead_company) FROM scan_history 
-            WHERE client_id = ? AND lead_company IS NOT NULL AND lead_company != ''
-        """, (client_id,))
-        unique_companies = cursor.fetchone()[0]
-        
-        conn.close()
-        
-        return {
-            'total_scans': total_scans,
-            'avg_score': avg_score,
-            'this_month': this_month,
-            'unique_companies': unique_companies
-        }
+        # Use client-specific database instead of scan_history table
+        from client_database_manager import get_client_scan_statistics
+        stats = get_client_scan_statistics(client_id)
+        return stats
         
     except Exception as e:
         logger.error(f"Error getting scan statistics for client {client_id}: {str(e)}")
-        if 'conn' in locals():
-            conn.close()
         return {
             'total_scans': 0,
             'avg_score': 0,
