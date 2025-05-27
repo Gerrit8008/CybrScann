@@ -138,8 +138,9 @@ def create_app():
     app.register_blueprint(main_bp)
     logger.info("✅ Main routes registered")
     
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    logger.info("✅ Auth routes registered")
+    # Note: Using existing auth blueprint instead of new auth_bp to maintain compatibility
+    # app.register_blueprint(auth_bp)
+    # logger.info("✅ Auth routes registered")
     
     app.register_blueprint(scanner_bp)
     logger.info("✅ Scanner routes registered")
@@ -155,8 +156,9 @@ def create_app():
         app.register_blueprint(client_bp)
         logger.info("✅ Client blueprint registered")
     
+    # Keep existing auth blueprint as primary since it has more functionality
     if auth_existing_bp:
-        app.register_blueprint(auth_existing_bp, url_prefix='/auth_existing')
+        app.register_blueprint(auth_existing_bp, url_prefix='/auth')
         logger.info("✅ Existing auth blueprint registered")
     
     if admin_existing_bp:
