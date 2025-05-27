@@ -226,35 +226,26 @@ def debug_routes():
                 'path': str(rule)
             })
         
+        auth_routes = [r for r in routes if 'auth' in r['endpoint'] or '/auth' in r['path']]
+        admin_routes = [r for r in routes if 'admin' in r['endpoint'] or '/admin' in r['path']]
+        
         return jsonify({
             'routes': sorted(routes, key=lambda x: x['path']),
             'total_routes': len(routes),
-            'auth_routes': [r for r in routes if 'auth' in r['endpoint']],
-            'main_routes': [r for r in routes if 'main' in r['endpoint']]
+            'auth_routes': auth_routes,
+            'admin_routes': admin_routes,
+            'main_routes': [r for r in routes if 'main' in r['endpoint']],
+            'has_auth_login': any('/auth/login' in r['path'] for r in routes),
+            'has_auth_register': any('/auth/register' in r['path'] for r in routes),
+            'has_admin_dashboard': any('/admin' in r['path'] and 'admin_dashboard' in r['endpoint'] for r in routes)
         })
     except Exception as e:
         logging.error(f"Error listing routes: {e}")
         return jsonify({'error': str(e)}), 500
 
 
-@main_bp.route('/auth/register', methods=['GET', 'POST'])
-def auth_register_fallback():
-    """Fallback auth register route"""
-    if request.method == 'POST':
-        # For now, redirect to existing auth system
-        flash('Registration temporarily unavailable. Please try again later.', 'warning')
-        return redirect(url_for('main.landing_page'))
-    return render_template('auth/register.html')
-
-
-@main_bp.route('/auth/login', methods=['GET', 'POST'])
-def auth_login_fallback():
-    """Fallback auth login route"""
-    if request.method == 'POST':
-        # For now, redirect to existing auth system
-        flash('Login temporarily unavailable. Please try again later.', 'warning')
-        return redirect(url_for('main.landing_page'))
-    return render_template('auth/login.html')
+# Removed fallback auth routes that were conflicting with the real auth.py blueprint
+# These were causing form submissions to redirect to landing page instead of processing login/register
 
 
 @main_bp.route('/customize', methods=['GET', 'POST'])
