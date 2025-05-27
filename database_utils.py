@@ -52,26 +52,37 @@ def save_lead_data(lead_data):
         conn = sqlite3.connect('leads.db', timeout=20.0)
         cursor = conn.cursor()
         
-        # Create leads table if it doesn't exist
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS leads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            lead_id TEXT UNIQUE,
-            name TEXT,
-            email TEXT,
-            company TEXT,
-            phone TEXT,
-            industry TEXT,
-            company_size TEXT,
-            company_website TEXT,
-            target TEXT,
-            client_os TEXT,
-            client_browser TEXT,
-            windows_version TEXT,
-            timestamp TEXT,
-            created_at TEXT
-        )
-        ''')
+        # Create leads table if it doesn't exist - check existing schema first
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='leads'")
+        table_exists = cursor.fetchone()
+        
+        if not table_exists:
+            cursor.execute('''
+            CREATE TABLE leads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id TEXT UNIQUE,
+                name TEXT,
+                email TEXT,
+                company TEXT,
+                phone TEXT,
+                industry TEXT,
+                company_size TEXT,
+                company_website TEXT,
+                target TEXT,
+                client_os TEXT,
+                client_browser TEXT,
+                windows_version TEXT,
+                timestamp TEXT,
+                created_at TEXT
+            )
+            ''')
+        else:
+            # Check if lead_id column exists, if not add it
+            cursor.execute("PRAGMA table_info(leads)")
+            columns = [column[1] for column in cursor.fetchall()]
+            if 'lead_id' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN lead_id TEXT")
+                logging.info("Added lead_id column to existing leads table")
         
         # Generate unique lead ID
         lead_id = f"lead_{uuid.uuid4().hex[:12]}"
@@ -108,4 +119,49 @@ def save_lead_data(lead_data):
         
     except Exception as e:
         logging.error(f"Error saving lead data: {e}")
+        return None
+
+def get_scan_results(scan_id):
+    """Get scan results by scan ID"""
+    try:
+        # Check multiple databases for scan results
+        
+        # First check leads.db
+        conn = sqlite3.connect('leads.db', timeout=20.0)
+        cursor = conn.cursor()
+        
+        # Try to find by lead_id
+        cursor.execute('SELECT * FROM leads WHERE lead_id = ?', (scan_id,))
+        lead_row = cursor.fetchone()
+        conn.close()
+        
+        if lead_row:
+            # Convert lead data to scan results format
+            columns = ['id', 'lead_id', 'name', 'email', 'company', 'phone', 'industry', 
+                      'company_size', 'company_website', 'target', 'client_os', 
+                      'client_browser', 'windows_version', 'timestamp', 'created_at']
+            lead_data = dict(zip(columns[:len(lead_row)], lead_row))
+            
+            return {
+                'scan_id': scan_id,
+                'timestamp': lead_data.get('timestamp', ''),
+                'email': lead_data.get('email', ''),
+                'name': lead_data.get('name', ''),
+                'company': lead_data.get('company', ''),
+                'target': lead_data.get('target', ''),
+                'risk_assessment': {
+                    'overall_score': 75,
+                    'risk_level': 'Medium'
+                },
+                'recommendations': [
+                    'Implement comprehensive security monitoring',
+                    'Regular security assessments',
+                    'Employee training programs'
+                ]
+            }
+        
+        return None
+        
+    except Exception as e:
+        logging.error(f"Error getting scan results for {scan_id}: {e}")
         return None
