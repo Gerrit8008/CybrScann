@@ -223,10 +223,18 @@ def dashboard(user):
         else:
             logger.warning("   ❌ No scan history to display!")
         
+        # Get client data
+        client_data = dashboard_data['client']
+        
+        # Calculate actual scanner count
+        actual_scanners = client_scanners if client_scanners else dashboard_data.get('scanners', [])
+        stats['scanners_count'] = len(actual_scanners)  # Add the missing scanners_count to stats
+        
         template_vars = {
             'user': user,
-            'client': dashboard_data['client'],
-            'user_client': dashboard_data['client'],
+            'client': client_data,
+            'user_client': client_data,
+            'stats': stats,  # Add the missing stats variable
             'scanners': client_scanners if client_scanners else dashboard_data.get('scanners', []),
             'scan_history': scan_history,
             'total_scans': stats.get('total_scans', 0),
@@ -245,9 +253,9 @@ def dashboard(user):
             'high_issues': stats.get('high_issues', 0),
             'medium_issues': stats.get('medium_issues', 0),
             'recommendations': [],  # Default empty recommendations
-            'scans_used': get_client_total_scans(client['id']),  # Get actual scans used
-            'scans_limit': get_client_scan_limit(client),  # Get client's scan limit based on plan
-            'scanner_limit': get_client_scanner_limit(client)  # Get client's scanner limit based on plan
+            'scans_used': get_client_total_scans(client_data['id']) if client_data else 0,  # Get actual scans used
+            'scans_limit': get_client_scan_limit(client_data) if client_data else 50,  # Get client's scan limit based on plan
+            'scanner_limit': get_client_scanner_limit(client_data) if client_data else 1  # Get client's scanner limit based on plan
         }
         
         # IMPORTANT: Ensure the correct URL for the "Create New Scanner" button
@@ -265,7 +273,9 @@ def dashboard(user):
         return render_template('client/client-dashboard.html', 
                               user=user, 
                               error=str(e),
+                              client={},  # Add missing client variable
                               user_client={},
+                              stats={},  # Add missing stats variable
                               scanners=[],
                               scan_history=[],
                               total_scans=0,
