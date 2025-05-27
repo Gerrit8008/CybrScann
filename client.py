@@ -57,16 +57,15 @@ def client_required(f):
             flash('Please log in to access this page', 'danger')
             return redirect(url_for('auth.login', next=request.url))
         
-        # Add role check - ensure user is a client
-        if result['user']['role'] != 'client':
+        # Add role check - ensure user is a client or admin (admins can access for testing)
+        if result['user']['role'] not in ['client', 'admin']:
             logger.warning(f"Access denied: User {result['user']['username']} with role {result['user']['role']} attempted to access client area")
             flash('Access denied. This area is for clients only.', 'danger')
-            
-            # Redirect admins to their dashboard
-            if result['user']['role'] == 'admin':
-                return redirect(url_for('admin.dashboard'))
-            else:
-                return redirect(url_for('auth.login'))
+            return redirect(url_for('auth.login'))
+        
+        # Log admin access for monitoring
+        if result['user']['role'] == 'admin':
+            logger.info(f"Admin {result['user']['username']} accessing client area for testing/management")
         
         # Add user info to kwargs
         kwargs['user'] = result['user']
@@ -944,6 +943,8 @@ def scanner_reports(user, scanner_id):
 def report_view(user, scan_id):
     """View a specific scan report"""
     try:
+        logger.info(f"🔍 Report view requested for scan_id: {scan_id} by user: {user.get('username', 'unknown')}")
+        
         # Get client info
         client = get_client_by_user_id(user['user_id'])
         
@@ -951,19 +952,37 @@ def report_view(user, scan_id):
             flash('Please complete your client profile', 'info')
             return redirect(url_for('auth.complete_profile'))
         
-        # Get scan details
-        from db import get_scan_results
-        scan = get_scan_results(scan_id)
+        # Get scan details from database
+        scan = None
+        try:
+            from database_utils import get_scan_results
+            scan = get_scan_results(scan_id)
+        except Exception as e:
+            logger.error(f"Error getting scan from database_utils: {e}")
+        
+        # If not found in main database, try client-specific databases
+        if not scan:
+            try:
+                from client_database_manager import get_scan_by_id
+                scan = get_scan_by_id(scan_id)
+            except Exception as e:
+                logger.error(f"Error getting scan from client databases: {e}")
         
         if not scan:
+            logger.warning(f"❌ Scan not found for scan_id: {scan_id}")
             flash('Scan report not found', 'danger')
-            return redirect(url_for('client.reports'))
+            return redirect(url_for('client.scan_reports'))
         
-        # Verify this scan belongs to the client
-        # TODO: Implement proper ownership verification
+        logger.info(f"✅ Found scan {scan_id}: {scan.get('lead_email', 'unknown')} -> {scan.get('target_domain', 'unknown')}")
         
-        # Format scan results for client-friendly display
-        formatted_scan = format_scan_results_for_client(scan)
+        # Verify this scan belongs to the client (basic check)
+        if hasattr(scan, 'get') and scan.get('client_id') and scan.get('client_id') != client['id']:
+            logger.warning(f"❌ Access denied: scan {scan_id} belongs to client {scan.get('client_id')} but user is client {client['id']}")
+            flash('Access denied to this scan report', 'danger')
+            return redirect(url_for('client.scan_reports'))
+        
+        # Use the scan data as-is (it should already be formatted from our database functions)
+        formatted_scan = scan
         
         return render_template(
             'client/report-view.html',
