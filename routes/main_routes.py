@@ -59,7 +59,9 @@ def health_check():
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
-            'service': 'CybrScan'
+            'service': 'CybrScan',
+            'version': 'modular-v2.0',
+            'structure': 'modular'
         })
     except Exception as e:
         logging.error(f"Health check error: {e}")
@@ -207,6 +209,52 @@ def clear_session():
             'status': 'error',
             'message': 'Error clearing session'
         }), 500
+
+
+@main_bp.route('/debug/routes')
+def debug_routes():
+    """Debug route to show all available routes"""
+    try:
+        from flask import current_app
+        
+        routes = []
+        for rule in current_app.url_map.iter_rules():
+            methods = ','.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+            routes.append({
+                'endpoint': rule.endpoint,
+                'methods': methods,
+                'path': str(rule)
+            })
+        
+        return jsonify({
+            'routes': sorted(routes, key=lambda x: x['path']),
+            'total_routes': len(routes),
+            'auth_routes': [r for r in routes if 'auth' in r['endpoint']],
+            'main_routes': [r for r in routes if 'main' in r['endpoint']]
+        })
+    except Exception as e:
+        logging.error(f"Error listing routes: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@main_bp.route('/auth/register', methods=['GET', 'POST'])
+def auth_register_fallback():
+    """Fallback auth register route"""
+    if request.method == 'POST':
+        # For now, redirect to existing auth system
+        flash('Registration temporarily unavailable. Please try again later.', 'warning')
+        return redirect(url_for('main.landing_page'))
+    return render_template('auth/register.html')
+
+
+@main_bp.route('/auth/login', methods=['GET', 'POST'])
+def auth_login_fallback():
+    """Fallback auth login route"""
+    if request.method == 'POST':
+        # For now, redirect to existing auth system
+        flash('Login temporarily unavailable. Please try again later.', 'warning')
+        return redirect(url_for('main.landing_page'))
+    return render_template('auth/login.html')
 
 
 @main_bp.route('/customize', methods=['GET', 'POST'])
