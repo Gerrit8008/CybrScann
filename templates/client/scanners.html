@@ -144,9 +144,90 @@
                         <p class="text-muted">Manage and monitor your security scanners</p>
                     </div>
                     <div>
+                        {% if pagination.total_count >= scanner_limit %}
+                        <button class="btn btn-primary" disabled title="Scanner limit reached ({{ pagination.total_count }}/{{ scanner_limit }}). Please upgrade your plan to create more scanners.">
+                            <i class="bi bi-plus-circle me-2"></i>Scanner Limit Reached
+                        </button>
+                        {% else %}
                         <a href="/customize" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i>Create New Scanner
                         </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Usage Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">
+                                    <i class="bi bi-bar-chart me-2 text-primary"></i>Plan Usage
+                                </h6>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted">Scans Used</span>
+                                        <span class="fw-bold {% if scans_used >= scans_limit %}text-danger{% elif scans_used >= scans_limit * 0.8 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ scans_used }}/{{ scans_limit }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if scans_used >= scans_limit %}bg-danger{% elif scans_used >= scans_limit * 0.8 %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ (scans_used / scans_limit * 100) if scans_limit > 0 else 0 }}%">
+                                        </div>
+                                    </div>
+                                    {% if scans_used >= scans_limit %}
+                                    <small class="text-danger">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        Scan limit reached. <a href="/client/upgrade" class="text-decoration-none">Upgrade plan</a> to continue scanning.
+                                    </small>
+                                    {% elif scans_used >= scans_limit * 0.8 %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Approaching scan limit. Consider <a href="/client/upgrade" class="text-decoration-none">upgrading</a>.
+                                    </small>
+                                    {% else %}
+                                    <small class="text-muted">
+                                        {{ scans_limit - scans_used }} scans remaining this billing cycle.
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">
+                                    <i class="bi bi-shield-check me-2 text-primary"></i>Scanner Usage
+                                </h6>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted">Scanners Active</span>
+                                        <span class="fw-bold {% if pagination.total_count >= scanner_limit %}text-warning{% else %}text-success{% endif %}">
+                                            {{ pagination.total_count }}/{{ scanner_limit }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if pagination.total_count >= scanner_limit %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ (pagination.total_count / scanner_limit * 100) if scanner_limit > 0 else 0 }}%">
+                                        </div>
+                                    </div>
+                                    {% if pagination.total_count >= scanner_limit %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Scanner limit reached. <a href="/client/upgrade" class="text-decoration-none">Upgrade</a> to create more scanners.
+                                    </small>
+                                    {% else %}
+                                    <small class="text-muted">
+                                        {{ scanner_limit - pagination.total_count }} scanner slots available.
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -210,7 +291,7 @@
                                             <strong>Domain:</strong> {{ scanner.domain }}<br>
                                             <strong>Created:</strong> {{ scanner.created_at }}<br>
                                             <strong>Status:</strong> {{ scanner.status|title }}<br>
-                                            <strong>Scans:</strong> {{ scanner.scan_count }} total
+                                            <strong>Scans:</strong> {{ scans_used }}/{{ scans_limit }} total
                                         </p>
                                     </div>
                                     <div class="card-footer bg-light">
