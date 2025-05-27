@@ -1,6 +1,7 @@
 """
 CybrScan - Modular Flask Application
 Main application file with organized route imports
+Updated: 2025-05-27 - Auth routes fixed
 """
 
 import logging
@@ -86,9 +87,8 @@ except ImportError as e:
     client_bp = None
 
 try:
-    from auth import auth_blueprint
+    from auth import auth_bp as auth_existing_bp
     logger.info("✅ Auth blueprint imported successfully")
-    auth_existing_bp = auth_blueprint
 except ImportError as e:
     logger.warning(f"⚠️ Auth blueprint not available: {e}")
     auth_existing_bp = None
@@ -158,7 +158,7 @@ def create_app():
     
     # Keep existing auth blueprint as primary since it has more functionality
     if auth_existing_bp:
-        app.register_blueprint(auth_existing_bp, url_prefix='/auth')
+        app.register_blueprint(auth_existing_bp)  # No url_prefix since it's already defined in the blueprint
         logger.info("✅ Existing auth blueprint registered")
     
     if admin_existing_bp:
@@ -192,6 +192,14 @@ def create_app():
             'current_year': datetime.now().year,
             'app_name': 'CybrScan'
         }
+    
+    # Emergency auth fix for deployment issues
+    try:
+        from emergency_auth_fix import add_emergency_auth_routes
+        app = add_emergency_auth_routes(app)
+        logger.info("✅ Emergency auth routes added")
+    except Exception as e:
+        logger.warning(f"⚠️ Emergency auth fix not applied: {e}")
     
     logger.info("✅ CybrScan modular application created successfully")
     return app
