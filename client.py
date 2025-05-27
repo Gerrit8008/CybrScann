@@ -1012,7 +1012,7 @@ def report_view(user, scan_id):
                     
                     # Create client branding object using COALESCED final values (same as scanner_routes.py)
                     scanner_branding = {
-                        'business_name': scanner_data.get('business_name', ''),
+                        'business_name': scanner_data.get('name', scanner_data.get('business_name', '')),  # Use scanner name first
                         'primary_color': scanner_data.get('final_primary_color', '#02054c'),
                         'secondary_color': scanner_data.get('final_secondary_color', '#35a310'),
                         'button_color': scanner_data.get('final_primary_color', '#02054c'),

@@ -198,6 +198,8 @@ def save_scan_to_client_db(client_id, scan_data):
         
         logger.info(f"✅ Saved scan {scan_id} for scanner {scanner_id} to client {client_id} database")
         logger.info(f"   📊 Scan details: email={lead_email}, target={target_domain}, score={security_score}")
+        logger.info(f"   🔍 Saved comprehensive data: findings={len(scan_data.get('findings', []))}, recommendations={len(scan_data.get('recommendations', []))}")
+        logger.info(f"   📝 Scan data keys: {list(scan_data.keys())}")
         
         # Update or insert lead information
         if lead_email:
