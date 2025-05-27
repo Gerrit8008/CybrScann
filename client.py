@@ -1214,6 +1214,30 @@ def scanner_create(user):
             return redirect(url_for('client.upgrade_subscription'))
         
         if request.method == 'POST':
+            # Handle file upload
+            logo_url = None
+            if 'logo_upload' in request.files and request.files['logo_upload'].filename:
+                logo_file = request.files['logo_upload']
+                try:
+                    from werkzeug.utils import secure_filename
+                    import uuid
+                    
+                    # Create upload directory if it doesn't exist
+                    upload_dir = os.path.join('static', 'uploads')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Generate unique filename
+                    file_ext = os.path.splitext(logo_file.filename)[1]
+                    filename = f"logo_{client['id']}_{uuid.uuid4().hex[:8]}{file_ext}"
+                    file_path = os.path.join(upload_dir, filename)
+                    
+                    logo_file.save(file_path)
+                    logo_url = f'/static/uploads/{filename}'
+                    logger.info(f"Logo uploaded successfully: {logo_url}")
+                except Exception as e:
+                    logger.error(f"Error uploading logo: {e}")
+                    flash('Error uploading logo, but scanner will be created without it', 'warning')
+            
             # Get form data
             scanner_data = {
                 'name': request.form.get('scanner_name', '').strip(),
@@ -1221,7 +1245,7 @@ def scanner_create(user):
                 'domain': request.form.get('domain', '').strip(),
                 'primary_color': request.form.get('primary_color', '#02054c'),
                 'secondary_color': request.form.get('secondary_color', '#35a310'),
-                'logo_url': request.form.get('logo_url', ''),
+                'logo_url': logo_url or '',
                 'contact_email': request.form.get('contact_email', client['contact_email']),
                 'contact_phone': request.form.get('contact_phone', client.get('contact_phone', '')),
                 'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
