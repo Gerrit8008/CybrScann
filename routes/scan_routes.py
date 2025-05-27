@@ -306,45 +306,65 @@ def results():
                             # Use the parsed JSON results (only if they have proper structure)
                             converted_results = scan_data['parsed_results']
                         else:
-                            # Create results from database fields with proper structure for template
+                            # Preserve comprehensive scan data while adding missing template structure
                             logger.info(f"Converting scan data to template format for scan_id: {scan_data.get('scan_id')}")
-                            converted_results = {
-                                'scan_id': scan_data.get('scan_id'),
-                                'timestamp': scan_data.get('timestamp'),
-                                'email': scan_data.get('lead_email'),
-                                'name': scan_data.get('lead_name'),
-                                'company': scan_data.get('lead_company'),
-                                'target': scan_data.get('target_domain'),
-                                'scan_type': scan_data.get('scan_type', 'comprehensive'),
-                                'status': scan_data.get('status', 'completed'),
-                                'security_score': scan_data.get('security_score', 75),
-                                'risk_level': scan_data.get('risk_level', 'Medium'),
-                                'vulnerabilities_found': scan_data.get('vulnerabilities_found', 0),
-                                'findings': [],
-                                'recommendations': ['Implement comprehensive security monitoring', 'Regular security assessments'],
-                                'client_info': {
-                                    'name': scan_data.get('lead_name', 'N/A'),
-                                    'email': scan_data.get('lead_email', 'N/A'),
-                                    'company': scan_data.get('lead_company', 'N/A'),
-                                    'phone': scan_data.get('lead_phone', 'N/A'),
-                                    'os': scan_data.get('user_agent', 'N/A'),  # Use user_agent as OS info
-                                    'browser': scan_data.get('user_agent', 'N/A')  # Use user_agent as browser info
-                                },
-                                'risk_assessment': {
+                            
+                            # Check if comprehensive data exists in scan_results field
+                            converted_results = None
+                            if scan_data.get('scan_results'):
+                                try:
+                                    import json
+                                    logger.info(f"Raw scan_results field: {scan_data.get('scan_results', '')[:200]}...")
+                                    comprehensive_data = json.loads(scan_data.get('scan_results', '{}'))
+                                    logger.info(f"Parsed scan_results keys: {list(comprehensive_data.keys())}")
+                                    if comprehensive_data.get('findings'):
+                                        converted_results = comprehensive_data
+                                        logger.info(f"Using comprehensive scan_results with {len(comprehensive_data.get('findings', []))} findings")
+                                    else:
+                                        logger.warning("No findings found in parsed scan_results")
+                                except Exception as parse_error:
+                                    logger.error(f"Error parsing scan_results JSON: {parse_error}")
+                                    logger.error(f"Raw data: {scan_data.get('scan_results', '')}")
+                            else:
+                                logger.warning("No scan_results field found in scan_data")
+                            
+                            # If no comprehensive data found, create minimal structure
+                            if not converted_results:
+                                converted_results = dict(scan_data)  # Start with database data
+                                logger.info("No comprehensive data found, using database fields")
+                            
+                            # Add missing client_info structure
+                            converted_results['client_info'] = {
+                                'name': scan_data.get('lead_name', 'N/A'),
+                                'email': scan_data.get('lead_email', 'N/A'),
+                                'company': scan_data.get('lead_company', 'N/A'),
+                                'phone': scan_data.get('lead_phone', 'N/A'),
+                                'os': scan_data.get('user_agent', 'N/A'),
+                                'browser': scan_data.get('user_agent', 'N/A')
+                            }
+                            
+                            # Ensure risk_assessment structure exists
+                            if not converted_results.get('risk_assessment') or not isinstance(converted_results.get('risk_assessment'), dict):
+                                converted_results['risk_assessment'] = {
                                     'overall_score': scan_data.get('security_score', 75),
                                     'risk_level': scan_data.get('risk_level', 'Medium'),
-                                    'color': '#28a745' if scan_data.get('security_score', 75) > 75 else '#ffc107' if scan_data.get('security_score', 75) > 50 else '#dc3545'
-                                },
-                                # Add optional fields that template might check for
-                                'network': {},
-                                'ssl_certificate': {},
-                                'security_headers': {},
-                                'email_security': {},
-                                'system': {},
-                                'threat_scenarios': [],
-                                'service_categories': {},
-                                'industry': {}
-                            }
+                                    'color': '#28a745' if scan_data.get('security_score', 75) > 75 else '#ffc107' if scan_data.get('security_score', 75) > 50 else '#dc3545',
+                                    'critical_issues': 0,
+                                    'high_issues': 1,
+                                    'medium_issues': 1,
+                                    'low_issues': 1
+                                }
+                            
+                            # Ensure basic fields are present
+                            converted_results.update({
+                                'scan_id': scan_data.get('scan_id'),
+                                'timestamp': scan_data.get('timestamp'),
+                                'target': scan_data.get('target_domain'),
+                                'scan_type': scan_data.get('scan_type', 'comprehensive'),
+                                'status': scan_data.get('status', 'completed')
+                            })
+                            
+                            logger.info(f"Final conversion: findings={len(converted_results.get('findings', []))}, recommendations={len(converted_results.get('recommendations', []))}")
                         logger.info(f"Final converted_results keys: {list(converted_results.keys())}")
                         logger.info(f"Has client_info: {'client_info' in converted_results}")
                         return render_template('results.html', scan=converted_results)
