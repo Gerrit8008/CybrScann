@@ -1038,51 +1038,56 @@ def report_view(user, scan_id):
                 import traceback
                 logger.error(traceback.format_exc())
         
-        # Format scan data for template (same logic as in scan_routes.py)
+        # Format scan data for template - preserve comprehensive scan data
         formatted_scan = scan
         if scan and not scan.get('client_info'):
-            # Convert database format to template format if needed
-            formatted_scan = {
-                'scan_id': scan.get('scan_id'),
-                'timestamp': scan.get('timestamp'),
-                'email': scan.get('lead_email'),
-                'name': scan.get('lead_name'),
-                'company': scan.get('lead_company'),
-                'target': scan.get('target_domain'),
-                'scan_type': scan.get('scan_type', 'comprehensive'),
-                'status': scan.get('status', 'completed'),
-                'security_score': scan.get('security_score', 75),
-                'risk_level': scan.get('risk_level', 'Medium'),
-                'vulnerabilities_found': scan.get('vulnerabilities_found', 0),
-                'findings': [],
-                'recommendations': ['Implement comprehensive security monitoring', 'Regular security assessments'],
-                'client_info': {
-                    'name': scan.get('lead_name', 'N/A'),
-                    'email': scan.get('lead_email', 'N/A'),
-                    'company': scan.get('lead_company', 'N/A'),
+            # Check if this is from parsed_results (comprehensive) or raw database (minimal)
+            if scan.get('parsed_results') and scan['parsed_results'].get('findings'):
+                # Use the comprehensive parsed_results
+                formatted_scan = scan['parsed_results']
+                logger.info(f"Using comprehensive parsed_results with {len(formatted_scan.get('findings', []))} findings")
+            elif scan.get('scan_results'):
+                # Try to parse scan_results JSON field
+                try:
+                    import json
+                    comprehensive_data = json.loads(scan.get('scan_results', '{}'))
+                    if comprehensive_data.get('findings'):
+                        formatted_scan = comprehensive_data
+                        logger.info(f"Using comprehensive scan_results with {len(formatted_scan.get('findings', []))} findings")
+                except:
+                    pass
+            
+            # If we still don't have client_info, add it while preserving existing data
+            if not formatted_scan.get('client_info'):
+                # Copy the original scan data to preserve comprehensive results
+                if isinstance(formatted_scan, dict):
+                    formatted_scan = dict(formatted_scan)  # Make a copy
+                else:
+                    formatted_scan = dict(scan)
+                
+                # Add missing client_info structure without overriding existing comprehensive data
+                formatted_scan['client_info'] = {
+                    'name': scan.get('lead_name', formatted_scan.get('name', 'N/A')),
+                    'email': scan.get('lead_email', formatted_scan.get('email', 'N/A')),
+                    'company': scan.get('lead_company', formatted_scan.get('company', 'N/A')),
                     'phone': scan.get('lead_phone', 'N/A'),
                     'os': scan.get('user_agent', 'N/A'),
                     'browser': scan.get('user_agent', 'N/A')
-                },
-                'risk_assessment': {
-                    'overall_score': scan.get('security_score', 75),
-                    'risk_level': scan.get('risk_level', 'Medium'),
-                    'color': '#28a745' if scan.get('security_score', 75) > 75 else '#ffc107' if scan.get('security_score', 75) > 50 else '#dc3545',
-                    'critical_issues': 0,
-                    'high_issues': 0,
-                    'medium_issues': 1,
-                    'low_issues': 2
-                },
-                # Add optional fields that template might check for
-                'network': {},
-                'ssl_certificate': {},
-                'security_headers': {},
-                'email_security': {},
-                'system': {},
-                'threat_scenarios': [],
-                'service_categories': {},
-                'industry': {}
-            }
+                }
+                
+                # Ensure risk_assessment has required structure for template
+                if not formatted_scan.get('risk_assessment') or not isinstance(formatted_scan.get('risk_assessment'), dict):
+                    formatted_scan['risk_assessment'] = {
+                        'overall_score': scan.get('security_score', 75),
+                        'risk_level': scan.get('risk_level', 'Medium'),
+                        'color': '#28a745' if scan.get('security_score', 75) > 75 else '#ffc107' if scan.get('security_score', 75) > 50 else '#dc3545',
+                        'critical_issues': 0,
+                        'high_issues': 1,
+                        'medium_issues': 1,
+                        'low_issues': 1
+                    }
+                
+                logger.info(f"Enhanced scan data: findings={len(formatted_scan.get('findings', []))}, recommendations={len(formatted_scan.get('recommendations', []))}")
         
         return render_template(
             'results.html',
