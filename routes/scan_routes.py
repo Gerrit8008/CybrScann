@@ -176,10 +176,21 @@ def scan_page():
                 
                 # Network scanning (gateway)
                 logging.info(f"🌐 Scanning network infrastructure")
-                client_gateway_info = get_client_and_gateway_ip(request)
-                if client_gateway_info and client_gateway_info.get('gateway_ip'):
-                    gateway_scan = scan_gateway_ports(client_gateway_info)
-                    scan_results['network'] = gateway_scan
+                try:
+                    client_gateway_info = get_client_and_gateway_ip(request)
+                    # Handle different return formats from get_client_and_gateway_ip
+                    if client_gateway_info:
+                        if isinstance(client_gateway_info, dict) and client_gateway_info.get('gateway_ip'):
+                            gateway_scan = scan_gateway_ports(client_gateway_info)
+                            scan_results['network'] = gateway_scan
+                        else:
+                            logging.warning(f"Gateway info format issue: {type(client_gateway_info)}")
+                            scan_results['network'] = {'status': 'skipped', 'reason': 'gateway_info_format_error'}
+                    else:
+                        scan_results['network'] = {'status': 'skipped', 'reason': 'no_gateway_info'}
+                except Exception as network_error:
+                    logging.warning(f"Network scanning error: {network_error}")
+                    scan_results['network'] = {'status': 'error', 'message': str(network_error)}
                 
                 # DNS and email security
                 logging.info(f"📧 Analyzing email security for {target}")
@@ -231,19 +242,75 @@ def scan_page():
                     percentile_info = calculate_industry_percentile(risk_score, industry_type)
                     scan_results['industry']['percentile_info'] = percentile_info
                 
-                # Count vulnerabilities
-                vulnerabilities_found = 0
-                for key in ['ssl_certificate', 'security_headers', 'network', 'email_security']:
-                    if key in scan_results and scan_results[key]:
-                        if isinstance(scan_results[key], dict) and scan_results[key].get('severity') in ['High', 'Critical']:
-                            vulnerabilities_found += 1
+                # Convert scan results to findings format for template compatibility
+                findings = []
                 
-                scan_results['vulnerabilities_found'] = vulnerabilities_found
+                # SSL Certificate findings
+                if 'ssl_certificate' in scan_results and scan_results['ssl_certificate']:
+                    ssl_data = scan_results['ssl_certificate']
+                    if isinstance(ssl_data, dict):
+                        if ssl_data.get('error') or ssl_data.get('severity') in ['High', 'Critical']:
+                            findings.append({
+                                'category': 'SSL/TLS Security',
+                                'severity': ssl_data.get('severity', 'Medium'),
+                                'title': ssl_data.get('status', 'SSL Certificate Issue'),
+                                'description': ssl_data.get('error', 'SSL certificate configuration issue detected'),
+                                'recommendation': 'Review SSL certificate configuration and ensure proper security'
+                            })
+                
+                # Security Headers findings
+                if 'security_headers' in scan_results and scan_results['security_headers']:
+                    headers_data = scan_results['security_headers']
+                    if isinstance(headers_data, dict) and headers_data.get('missing_critical'):
+                        for header in headers_data.get('missing_critical', []):
+                            findings.append({
+                                'category': 'Security Headers',
+                                'severity': 'High',
+                                'title': f'Missing {header} Header',
+                                'description': f'Critical security header {header} is not configured',
+                                'recommendation': f'Implement {header} header to improve security'
+                            })
+                
+                # Network findings
+                if 'network' in scan_results and scan_results['network']:
+                    network_data = scan_results['network']
+                    if isinstance(network_data, dict) and network_data.get('open_ports'):
+                        open_ports = network_data['open_ports']
+                        if isinstance(open_ports, dict) and open_ports.get('count', 0) > 0:
+                            findings.append({
+                                'category': 'Network Security',
+                                'severity': open_ports.get('severity', 'Medium'),
+                                'title': 'Open Ports Detected',
+                                'description': f"Found {open_ports.get('count', 0)} open ports that could be security risks",
+                                'recommendation': 'Review open ports and close unnecessary services'
+                            })
+                
+                # Email Security findings
+                if 'email_security' in scan_results and scan_results['email_security']:
+                    email_data = scan_results['email_security']
+                    if isinstance(email_data, dict):
+                        for record_type in ['spf', 'dmarc', 'dkim']:
+                            record_data = email_data.get(record_type, {})
+                            if isinstance(record_data, dict) and record_data.get('severity') in ['High', 'Critical']:
+                                findings.append({
+                                    'category': 'Email Security',
+                                    'severity': record_data.get('severity', 'Medium'),
+                                    'title': f'{record_type.upper()} Configuration Issue',
+                                    'description': record_data.get('status', f'{record_type.upper()} record issue'),
+                                    'recommendation': f'Configure proper {record_type.upper()} record for email security'
+                                })
+                
+                scan_results['findings'] = findings
+                scan_results['vulnerabilities_found'] = len(findings)
                 
                 logging.info(f"✅ Comprehensive scan completed for {target} with score {risk_score}")
+                logging.info(f"📋 Generated {len(findings)} security findings")
+                logging.info(f"💡 Generated {len(scan_results.get('recommendations', []))} recommendations")
                 
             except Exception as scan_error:
                 logging.error(f"Error during comprehensive scan: {scan_error}")
+                import traceback
+                logging.error(traceback.format_exc())
                 # Provide fallback minimal results
                 scan_results.update({
                     'security_score': 75,
