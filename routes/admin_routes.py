@@ -30,6 +30,10 @@ def admin_dashboard():
         # Get comprehensive dashboard data
         dashboard_data = get_admin_dashboard_data()
         
+        # Add datetime for template
+        from datetime import datetime
+        dashboard_data['datetime'] = datetime
+        
         return render_template('admin/admin-dashboard.html', **dashboard_data)
     except Exception as e:
         logging.error(f"Error loading admin dashboard: {e}")
@@ -52,26 +56,46 @@ def get_admin_dashboard_data():
         
         # === OVERVIEW STATISTICS ===
         
-        # Total counts
-        cursor.execute('SELECT COUNT(*) FROM users')
-        total_users = cursor.fetchone()[0]
+        # Total counts with error handling
+        try:
+            cursor.execute('SELECT COUNT(*) FROM users')
+            result = cursor.fetchone()
+            total_users = result[0] if result else 0
+        except:
+            total_users = 0
         
-        cursor.execute('SELECT COUNT(*) FROM clients')
-        total_clients = cursor.fetchone()[0]
+        try:
+            cursor.execute('SELECT COUNT(*) FROM clients')
+            result = cursor.fetchone()
+            total_clients = result[0] if result else 0
+        except:
+            total_clients = 0
         
-        cursor.execute('SELECT COUNT(*) FROM scanners')
-        total_scanners = cursor.fetchone()[0]
+        try:
+            cursor.execute('SELECT COUNT(*) FROM scanners')
+            result = cursor.fetchone()
+            total_scanners = result[0] if result else 0
+        except:
+            total_scanners = 0
         
         # Get total scans from all client databases
-        total_scans = get_total_scans_across_all_clients()
+        try:
+            total_scans = get_total_scans_across_all_clients()
+        except Exception as e:
+            logger.warning(f"Error getting total scans: {e}")
+            total_scans = 0
         
         # Revenue calculations (assuming subscription levels)
-        cursor.execute('''
-            SELECT subscription_level, COUNT(*) as count
-            FROM clients 
-            GROUP BY subscription_level
-        ''')
-        subscription_stats = cursor.fetchall()
+        try:
+            cursor.execute('''
+                SELECT subscription_level, COUNT(*) as count
+                FROM clients 
+                GROUP BY subscription_level
+            ''')
+            subscription_stats = cursor.fetchall()
+        except Exception as e:
+            logger.warning(f"Error getting subscription stats: {e}")
+            subscription_stats = []
         
         # Calculate monthly revenue
         plan_prices = {
@@ -99,11 +123,19 @@ def get_admin_dashboard_data():
         # Recent activity (last 30 days)
         thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
         
-        cursor.execute('SELECT COUNT(*) FROM clients WHERE created_at > ?', (thirty_days_ago,))
-        new_clients_30d = cursor.fetchone()[0] if cursor.fetchone() else 0
+        try:
+            cursor.execute('SELECT COUNT(*) FROM clients WHERE created_at > ?', (thirty_days_ago,))
+            result = cursor.fetchone()
+            new_clients_30d = result[0] if result else 0
+        except:
+            new_clients_30d = 0
         
-        cursor.execute('SELECT COUNT(*) FROM scanners WHERE created_at > ?', (thirty_days_ago,))
-        new_scanners_30d = cursor.fetchone()[0] if cursor.fetchone() else 0
+        try:
+            cursor.execute('SELECT COUNT(*) FROM scanners WHERE created_at > ?', (thirty_days_ago,))
+            result = cursor.fetchone()
+            new_scanners_30d = result[0] if result else 0
+        except:
+            new_scanners_30d = 0
         
         data['overview'] = {
             'total_users': total_users,

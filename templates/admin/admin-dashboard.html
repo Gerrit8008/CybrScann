@@ -123,7 +123,7 @@
                     </h1>
                     <div class="text-muted">
                         <i class="bi bi-clock me-1"></i>
-                        Last updated: {{ moment().format('MMMM Do YYYY, h:mm:ss a') }}
+                        Last updated: {{ datetime.now().strftime('%B %d, %Y at %I:%M:%S %p') }}
                     </div>
                 </div>
 
