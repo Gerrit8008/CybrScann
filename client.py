@@ -981,14 +981,57 @@ def report_view(user, scan_id):
             flash('Access denied to this scan report', 'danger')
             return redirect(url_for('client.scan_reports'))
         
-        # Use the scan data as-is (it should already be formatted from our database functions)
+        # Format scan data for template (same logic as in scan_routes.py)
         formatted_scan = scan
+        if scan and not scan.get('client_info'):
+            # Convert database format to template format if needed
+            formatted_scan = {
+                'scan_id': scan.get('scan_id'),
+                'timestamp': scan.get('timestamp'),
+                'email': scan.get('lead_email'),
+                'name': scan.get('lead_name'),
+                'company': scan.get('lead_company'),
+                'target': scan.get('target_domain'),
+                'scan_type': scan.get('scan_type', 'comprehensive'),
+                'status': scan.get('status', 'completed'),
+                'security_score': scan.get('security_score', 75),
+                'risk_level': scan.get('risk_level', 'Medium'),
+                'vulnerabilities_found': scan.get('vulnerabilities_found', 0),
+                'findings': [],
+                'recommendations': ['Implement comprehensive security monitoring', 'Regular security assessments'],
+                'client_info': {
+                    'name': scan.get('lead_name', 'N/A'),
+                    'email': scan.get('lead_email', 'N/A'),
+                    'company': scan.get('lead_company', 'N/A'),
+                    'phone': scan.get('lead_phone', 'N/A'),
+                    'os': scan.get('user_agent', 'N/A'),
+                    'browser': scan.get('user_agent', 'N/A')
+                },
+                'risk_assessment': {
+                    'overall_score': scan.get('security_score', 75),
+                    'risk_level': scan.get('risk_level', 'Medium'),
+                    'color': '#28a745' if scan.get('security_score', 75) > 75 else '#ffc107' if scan.get('security_score', 75) > 50 else '#dc3545',
+                    'critical_issues': 0,
+                    'high_issues': 0,
+                    'medium_issues': 1,
+                    'low_issues': 2
+                },
+                # Add optional fields that template might check for
+                'network': {},
+                'ssl_certificate': {},
+                'security_headers': {},
+                'email_security': {},
+                'system': {},
+                'threat_scenarios': [],
+                'service_categories': {},
+                'industry': {}
+            }
         
         return render_template(
             'client/report-view.html',
             user=user,
             client=client,
-            scan=formatted_scan or scan
+            scan=formatted_scan
         )
     except Exception as e:
         logger.error(f"Error displaying report: {str(e)}")
