@@ -67,7 +67,14 @@ def scan_page():
             
             # Basic validation
             if not lead_data["email"]:
-                return render_template('scan.html', error="Please enter your email address to receive the scan report.")
+                is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                if is_ajax:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Please enter your email address to receive the scan report.'
+                    }), 400
+                else:
+                    return render_template('scan.html', error="Please enter your email address to receive the scan report.")
             
             # Save lead data to database
             logging.info("Saving lead data...")
@@ -210,16 +217,40 @@ def scan_page():
                 except Exception as session_error:
                     logging.error(f"Error checking session for scan logging: {session_error}")
             
-            # Store scan results in session and redirect to results page
-            session['scan_results'] = scan_results
-            return redirect(url_for('scan.results'))
+            # Check if this is an AJAX request (from JavaScript)
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+            
+            if is_ajax:
+                # Return JSON response for AJAX requests
+                return jsonify({
+                    'status': 'success',
+                    'scan_id': scan_results.get('scan_id'),
+                    'message': 'Scan completed successfully',
+                    'results_url': url_for('scan.results')
+                })
+            else:
+                # Store scan results in session and redirect to results page for regular requests
+                session['scan_results'] = scan_results
+                return redirect(url_for('scan.results'))
             
         except Exception as e:
             logging.error(f"Error during scan: {e}")
             import traceback
             logging.error(traceback.format_exc())
-            return render_template('scan.html', 
-                                 error=f"An error occurred during the scan: {str(e)}")
+            
+            # Check if this is an AJAX request for error handling too
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+            
+            if is_ajax:
+                # Return JSON error response for AJAX requests
+                return jsonify({
+                    'status': 'error',
+                    'message': f"An error occurred during the scan: {str(e)}"
+                }), 500
+            else:
+                # Return HTML error page for regular requests
+                return render_template('scan.html', 
+                                     error=f"An error occurred during the scan: {str(e)}")
     
     # GET request - display scan form
     return render_template('scan.html')
