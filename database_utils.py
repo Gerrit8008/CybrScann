@@ -112,6 +112,10 @@ def save_lead_data(lead_data):
             if 'windows_version' not in columns:
                 cursor.execute("ALTER TABLE leads ADD COLUMN windows_version TEXT")
                 logging.info("Added windows_version column to existing leads table")
+            
+            if 'timestamp' not in columns:
+                cursor.execute("ALTER TABLE leads ADD COLUMN timestamp TEXT")
+                logging.info("Added timestamp column to existing leads table")
         
         # Generate unique lead ID
         lead_id = f"lead_{uuid.uuid4().hex[:12]}"

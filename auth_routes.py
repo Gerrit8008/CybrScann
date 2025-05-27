@@ -158,7 +158,7 @@ def login():
             
             # Always redirect to appropriate dashboard based on role
             if result['role'] == 'admin':
-                return redirect(url_for('admin.dashboard'))
+                return redirect(url_for('admin.admin_dashboard'))
             else:
                 # For clients, try client dashboard, fallback to admin if not available
                 try:
@@ -339,7 +339,7 @@ def admin_users(user):
     
     if result['status'] != 'success':
         flash(f'Error loading users: {result["message"]}', 'danger')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('admin.admin_dashboard'))
     
     return render_template('admin/user-management.html',
                           user=user,
