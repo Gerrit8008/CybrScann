@@ -251,12 +251,11 @@ def scan_page():
                     'status': 'success',
                     'scan_id': scan_results.get('scan_id'),
                     'message': 'Scan completed successfully',
-                    'results_url': url_for('scan.results')
+                    'results_url': url_for('client.report_view', scan_id=scan_results.get('scan_id'))
                 })
             else:
-                # Store scan results in session and redirect to results page for regular requests
-                session['scan_results'] = scan_results
-                return redirect(url_for('scan.results'))
+                # Redirect to client report view for regular requests
+                return redirect(url_for('client.report_view', scan_id=scan_results.get('scan_id')))
             
         except Exception as e:
             logging.error(f"Error during scan: {e}")
