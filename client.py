@@ -1198,6 +1198,21 @@ def scanner_create(user):
             flash('Please complete your profile first', 'warning')
             return redirect(url_for('client.profile'))
         
+        # Check scanner limits based on subscription
+        from client_db import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM scanners WHERE client_id = ? AND status != "deleted"', (client['id'],))
+        current_scanners = cursor.fetchone()[0]
+        conn.close()
+        
+        scanner_limit = get_client_scanner_limit(client)
+        
+        # If at limit, redirect to upgrade page
+        if current_scanners >= scanner_limit:
+            flash(f'Scanner limit reached ({current_scanners}/{scanner_limit}). Please upgrade your subscription to create more scanners.', 'warning')
+            return redirect(url_for('client.upgrade_subscription'))
+        
         if request.method == 'POST':
             # Get form data
             scanner_data = {
@@ -1240,11 +1255,116 @@ def scanner_create(user):
         # GET request - show creation form
         return render_template('client/scanner-create.html', 
                              user=user, 
-                             client=client)
+                             client=client,
+                             current_scanners=current_scanners,
+                             scanner_limit=scanner_limit)
         
     except Exception as e:
         logger.error(f"Error creating scanner: {str(e)}")
         flash('An error occurred while creating the scanner', 'danger')
+
+@client_bp.route('/upgrade')
+@client_required  
+def upgrade_subscription(user):
+    """Subscription upgrade page with payment integration"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        
+        if not client:
+            flash('Please complete your profile first', 'warning')
+            return redirect(url_for('client.profile'))
+        
+        # Get current subscription info
+        current_plan = client.get('subscription_level', 'starter').lower()
+        
+        # Plan details with pricing
+        plans = {
+            'starter': {'name': 'Starter', 'price': 29, 'scanners': 1, 'scans': 50},
+            'basic': {'name': 'Basic', 'price': 59, 'scanners': 3, 'scans': 100}, 
+            'professional': {'name': 'Professional', 'price': 129, 'scanners': 5, 'scans': 250},
+            'business': {'name': 'Business', 'price': 299, 'scanners': 10, 'scans': 500},
+            'enterprise': {'name': 'Enterprise', 'price': 599, 'scanners': 25, 'scans': 1000}
+        }
+        
+        # Get current usage
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM scanners WHERE client_id = ? AND status != "deleted"', (client['id'],))
+        current_scanners = cursor.fetchone()[0]
+        conn.close()
+        
+        return render_template('client/upgrade-subscription.html',
+                             user=user,
+                             client=client,
+                             current_plan=current_plan,
+                             plans=plans,
+                             current_scanners=current_scanners)
+        
+    except Exception as e:
+        logger.error(f"Error loading upgrade page: {str(e)}")
+        flash('An error occurred while loading the upgrade page', 'danger')
+        return redirect(url_for('client.dashboard'))
+
+@client_bp.route('/process-upgrade', methods=['POST'])
+@client_required
+def process_upgrade(user):
+    """Process subscription upgrade payment"""
+    try:
+        # Get client info
+        client = get_client_by_user_id(user['user_id'])
+        
+        if not client:
+            flash('Please complete your profile first', 'warning')
+            return redirect(url_for('client.profile'))
+        
+        # Get form data
+        new_plan = request.form.get('plan')
+        card_name = request.form.get('cardName')
+        card_number = request.form.get('cardNumber')
+        expiry_date = request.form.get('expiryDate')
+        cvv = request.form.get('cvv')
+        
+        # Validate required fields
+        if not all([new_plan, card_name, card_number, expiry_date, cvv]):
+            flash('All payment fields are required', 'danger')
+            return redirect(url_for('client.upgrade_subscription'))
+        
+        # For demo purposes, we'll accept test payment data
+        is_test_payment = (
+            'test' in card_name.lower() or 
+            card_number.replace(' ', '') == '4111111111111111' or
+            card_number.replace(' ', '') == '1234567890123456'
+        )
+        
+        if is_test_payment:
+            # Simulate successful payment for test data
+            logger.info(f"Processing test payment for client {client['id']} to upgrade to {new_plan}")
+            
+            # Update subscription in database
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE clients 
+                SET subscription_level = ?, subscription_status = 'active', 
+                    subscription_start = ?, updated_at = ?
+                WHERE id = ?
+            ''', (new_plan, datetime.now().isoformat(), datetime.now().isoformat(), client['id']))
+            
+            conn.commit()
+            conn.close()
+            
+            flash(f'Subscription successfully upgraded to {new_plan.title()}!', 'success')
+            return redirect(url_for('client.dashboard'))
+        else:
+            # In a real implementation, integrate with Stripe/PayPal here
+            flash('Payment processing is currently in test mode. Please use test data.', 'info')
+            return redirect(url_for('client.upgrade_subscription'))
+        
+    except Exception as e:
+        logger.error(f"Error processing upgrade: {str(e)}")
+        flash('An error occurred while processing your upgrade', 'danger')
+        return redirect(url_for('client.upgrade_subscription'))
 
 @client_bp.route('/debug-dashboard')
 @client_required
