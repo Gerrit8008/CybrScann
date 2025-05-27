@@ -981,6 +981,16 @@ def report_view(user, scan_id):
             flash('Access denied to this scan report', 'danger')
             return redirect(url_for('client.scan_reports'))
         
+        # Get scanner branding information if available
+        scanner_branding = None
+        if scan and scan.get('scanner_id'):
+            try:
+                from scanner_db_functions import get_scanner_with_branding
+                scanner_branding = get_scanner_with_branding(scan.get('scanner_id'))
+                logger.info(f"Retrieved scanner branding for scanner {scan.get('scanner_id')}: {scanner_branding.get('final_primary_color') if scanner_branding else 'None'}")
+            except Exception as e:
+                logger.error(f"Error getting scanner branding: {e}")
+        
         # Format scan data for template (same logic as in scan_routes.py)
         formatted_scan = scan
         if scan and not scan.get('client_info'):
@@ -1028,10 +1038,9 @@ def report_view(user, scan_id):
             }
         
         return render_template(
-            'client/report-view.html',
-            user=user,
-            client=client,
-            scan=formatted_scan
+            'results.html',
+            scan=formatted_scan,
+            client_branding=scanner_branding  # Pass scanner branding as client_branding for template compatibility
         )
     except Exception as e:
         logger.error(f"Error displaying report: {str(e)}")
