@@ -985,11 +985,58 @@ def report_view(user, scan_id):
         scanner_branding = None
         if scan and scan.get('scanner_id'):
             try:
-                from scanner_db_functions import get_scanner_with_branding
-                scanner_branding = get_scanner_with_branding(scan.get('scanner_id'))
-                logger.info(f"Retrieved scanner branding for scanner {scan.get('scanner_id')}: {scanner_branding.get('final_primary_color') if scanner_branding else 'None'}")
+                from client_db import get_db_connection
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('''
+                SELECT s.*, c.business_name,
+                       COALESCE(s.primary_color, cu.primary_color, '#02054c') as final_primary_color,
+                       COALESCE(s.secondary_color, cu.secondary_color, '#35a310') as final_secondary_color,
+                       COALESCE(s.logo_url, cu.logo_path, '') as final_logo_url,
+                       COALESCE(s.email_subject, cu.email_subject, 'Your Security Scan Report') as final_email_subject,
+                       COALESCE(s.email_intro, cu.email_intro, '') as final_email_intro,
+                       cu.scanner_description, cu.cta_button_text, cu.company_tagline, 
+                       cu.support_email, cu.custom_footer_text, cu.favicon_path
+                FROM scanners s 
+                JOIN clients c ON s.client_id = c.id 
+                LEFT JOIN customizations cu ON c.id = cu.client_id
+                WHERE s.scanner_id = ?
+                ''', (scan.get('scanner_id'),))
+                
+                scanner_row = cursor.fetchone()
+                conn.close()
+                
+                if scanner_row:
+                    # Convert to dict for easier access
+                    scanner_data = dict(scanner_row) if hasattr(scanner_row, 'keys') else dict(zip([col[0] for col in cursor.description], scanner_row))
+                    
+                    # Create client branding object using COALESCED final values (same as scanner_routes.py)
+                    scanner_branding = {
+                        'business_name': scanner_data.get('business_name', ''),
+                        'primary_color': scanner_data.get('final_primary_color', '#02054c'),
+                        'secondary_color': scanner_data.get('final_secondary_color', '#35a310'),
+                        'button_color': scanner_data.get('final_primary_color', '#02054c'),
+                        'logo_path': scanner_data.get('final_logo_url', ''),
+                        'logo_url': scanner_data.get('final_logo_url', ''),
+                        'favicon_path': scanner_data.get('favicon_path', ''),
+                        'scanner_name': scanner_data.get('name', 'Security Scanner'),
+                        'email_subject': scanner_data.get('final_email_subject', 'Your Security Scan Report'),
+                        'email_intro': scanner_data.get('final_email_intro', ''),
+                        'scanner_description': scanner_data.get('scanner_description', ''),
+                        'cta_button_text': scanner_data.get('cta_button_text', 'Start Security Scan'),
+                        'company_tagline': scanner_data.get('company_tagline', ''),
+                        'support_email': scanner_data.get('support_email', ''),
+                        'custom_footer_text': scanner_data.get('custom_footer_text', '')
+                    }
+                    
+                    logger.info(f"Retrieved scanner branding for scanner {scan.get('scanner_id')}: primary={scanner_branding['primary_color']}, secondary={scanner_branding['secondary_color']}, logo={scanner_branding['logo_url']}")
+                else:
+                    logger.warning(f"No scanner found for scanner_id: {scan.get('scanner_id')}")
+                    
             except Exception as e:
                 logger.error(f"Error getting scanner branding: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
         
         # Format scan data for template (same logic as in scan_routes.py)
         formatted_scan = scan
