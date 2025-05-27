@@ -291,7 +291,7 @@
                                             <strong>Domain:</strong> {{ scanner.domain }}<br>
                                             <strong>Created:</strong> {{ scanner.created_at }}<br>
                                             <strong>Status:</strong> {{ scanner.status|title }}<br>
-                                            <strong>Scans:</strong> {{ scans_used }}/{{ scans_limit }} total
+                                            <strong>Scans:</strong> {{ scanner.scan_count|default(0) }} scans
                                         </p>
                                     </div>
                                     <div class="card-footer bg-light">
@@ -307,7 +307,7 @@
                                                     <i class="bi bi-graph-up"></i>
                                                 </a>
                                             </div>
-                                            <a href="/scan" class="btn btn-sm btn-primary">
+                                            <a href="/scanner/{{ scanner.scanner_id }}/embed" class="btn btn-sm btn-primary" target="_blank">
                                                 <i class="bi bi-play-fill me-1"></i>Open Scanner
                                             </a>
                                         </div>

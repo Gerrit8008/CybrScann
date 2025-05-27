@@ -663,9 +663,9 @@
                                                         <i class="bi bi-play-circle text-muted"></i>
                                                     </button>
                                                     {% else %}
-                                                    <button class="scanner-action" onclick="runQuickScan('{{ scanner.id }}')" data-bs-toggle="tooltip" title="Run Quick Scan">
+                                                    <a href="/scanner/{{ scanner.scanner_id }}/embed" target="_blank" class="scanner-action" data-bs-toggle="tooltip" title="Open Scanner">
                                                         <i class="bi bi-play-circle"></i>
-                                                    </button>
+                                                    </a>
                                                     {% endif %}
                                                     <a href="/client/scanners/{{ scanner.id }}/stats" class="scanner-action" data-bs-toggle="tooltip" title="View Statistics">
                                                         <i class="bi bi-graph-up"></i>
