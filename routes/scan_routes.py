@@ -1,0 +1,465 @@
+"""
+Scan-related routes for CybrScan
+Handles scan execution, results display, and scanning APIs
+"""
+
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
+import os
+import logging
+import json
+import uuid
+from datetime import datetime
+import sqlite3
+
+# Create scan blueprint
+scan_bp = Blueprint('scan', __name__)
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+@scan_bp.route('/scan', methods=['GET', 'POST'])
+def scan_page():
+    """Main scan page - handles both form display and scan submission"""
+    if request.method == 'POST':
+        try:
+            # Get form data including client OS info and new fields
+            lead_data = {
+                'name': request.form.get('name', ''),
+                'email': request.form.get('email', ''),
+                'company': request.form.get('company', ''),
+                'phone': request.form.get('phone', ''),
+                'industry': request.form.get('industry', ''),
+                'company_size': request.form.get('company_size', ''),
+                'company_website': request.form.get('company_website', ''),
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'client_os': request.form.get('client_os', 'Unknown'),
+                'client_browser': request.form.get('client_browser', 'Unknown'),
+                'windows_version': request.form.get('windows_version', ''),
+                'target': ''  # Will be set based on priority logic below
+            }
+            
+            # Determine target domain with priority: company_website > email domain
+            target_domain = None
+            
+            # Priority 1: Company website from form
+            company_website = request.form.get('company_website', '').strip()
+            if company_website:
+                # Clean up the domain (remove http/https if present)
+                if company_website.startswith(('http://', 'https://')):
+                    company_website = company_website.split('://', 1)[1]
+                target_domain = company_website
+                logging.info(f"Using company website domain: {target_domain}")
+            
+            # Priority 2: Extract domain from email if no company website
+            elif lead_data["email"]:
+                from security_scanner import extract_domain_from_email
+                target_domain = extract_domain_from_email(lead_data["email"])
+                logging.info(f"Using domain extracted from email: {target_domain}")
+            
+            # Set the target for scanning
+            if target_domain:
+                lead_data["target"] = target_domain
+                # Also store company website in lead data
+                lead_data["company_website"] = target_domain
+            else:
+                logging.warning("No target domain found from company website or email")
+            
+            # Basic validation
+            if not lead_data["email"]:
+                return render_template('scan.html', error="Please enter your email address to receive the scan report.")
+            
+            # Save lead data to database
+            logging.info("Saving lead data...")
+            from database_utils import save_lead_data
+            lead_id = save_lead_data(lead_data)
+            logging.info(f"Lead data saved with ID: {lead_id}")
+            
+            # Check for client_id in query parameters or form data (used for client-specific scanner)
+            client_id = request.args.get('client_id') or request.form.get('client_id')
+            scanner_id = request.args.get('scanner_id') or request.form.get('scanner_id')
+            
+            # If client_id is provided, get client customizations and check scan limits
+            client = None
+            if client_id:
+                try:
+                    from client_db import get_db_connection
+                    conn = get_db_connection()
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+                    client_row = cursor.fetchone()
+                    conn.close()
+                    
+                    if client_row:
+                        client = dict(client_row)
+                        logging.info(f"Using client {client_id} for scan tracking (scanner: {scanner_id})")
+                        
+                        # Check scan limits before proceeding
+                        try:
+                            from client import get_client_total_scans, get_client_scan_limit
+                            
+                            current_scans = get_client_total_scans(client_id)
+                            scan_limit = get_client_scan_limit(client)
+                            
+                            if current_scans >= scan_limit:
+                                logging.warning(f"Client {client_id} has reached scan limit: {current_scans}/{scan_limit}")
+                                return render_template('scan.html', 
+                                    error=f"You have reached your scan limit of {scan_limit} scans for this billing period. Please upgrade your plan or wait for the next billing cycle to continue scanning.",
+                                    client_id=client_id,
+                                    scanner_id=scanner_id)
+                        except Exception as limit_error:
+                            logging.error(f"Error checking scan limits for client {client_id}: {limit_error}")
+                            # Continue with scan if limit check fails to avoid breaking existing functionality
+                        
+                    else:
+                        logging.warning(f"Client {client_id} not found")
+                except Exception as client_error:
+                    logging.error(f"Error getting client {client_id}: {client_error}")
+                    client = None
+            
+            # Run the full consolidated scan
+            logging.info(f"Starting scan for {lead_data.get('email')} targeting {lead_data.get('target')}...")
+            from security_scanner import run_consolidated_scan
+            scan_results = run_consolidated_scan(lead_data)
+            
+            # Log scan to client scan_history if client_id and scanner_id are provided
+            if client_id and scanner_id and scan_results:
+                try:
+                    from client_db import get_db_connection
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    
+                    # Log to scan_history table
+                    cursor.execute('''
+                        INSERT INTO scan_history (scanner_id, scan_id, target_url, scan_type, status, results, created_at, completed_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        scanner_id,
+                        scan_results.get('scan_id', ''),
+                        lead_data.get('target', ''),
+                        'comprehensive',
+                        'completed',
+                        json.dumps(scan_results),
+                        datetime.now().isoformat(),
+                        datetime.now().isoformat()
+                    ))
+                    
+                    conn.commit()
+                    conn.close()
+                    logging.info(f"Logged scan to client scan_history: client_id={client_id}, scanner_id={scanner_id}")
+                except Exception as scan_log_error:
+                    logging.error(f"Error logging scan to client scan_history: {scan_log_error}")
+            
+            # Add client tracking information to scan results
+            if client:
+                scan_results['client_id'] = client['id']
+                scan_results['scanner_id'] = scanner_id
+                
+                # Regenerate scanner deployment if customizations changed recently
+                try:
+                    from scanner_deployment import regenerate_scanner_if_needed
+                    regenerate_scanner_if_needed(scanner_id, client['id'])
+                except Exception as regen_error:
+                    logging.warning(f"Could not regenerate scanner deployment: {regen_error}")
+                # Copy lead data into scan results for tracking
+                scan_results.update(lead_data)
+                
+                # Legacy client logging (keeping for compatibility)
+                from client_db import log_scan
+                try:
+                    log_scan(client['id'], scan_results['scan_id'], lead_data.get('target', ''), 'comprehensive')
+                except Exception as log_error:
+                    logging.error(f"Legacy log_scan error: {log_error}")
+                
+                # Save to client-specific database for reporting
+                try:
+                    from client_database_manager import save_scan_to_client_db
+                    save_scan_to_client_db(client['id'], scan_results)
+                    logging.info(f"Saved scan to client-specific database for client {client['id']}")
+                except Exception as client_db_error:
+                    logging.error(f"Error saving to client-specific database: {client_db_error}")
+                    import traceback
+                    logging.error(traceback.format_exc())
+            else:
+                # Check if current user is logged in and link scan to their client
+                try:
+                    from client_db import verify_session, get_client_by_user_id
+                    session_token = session.get('session_token')
+                    if session_token:
+                        result = verify_session(session_token)
+                        # Handle different return formats from verify_session
+                        if isinstance(result, dict):
+                            user_data = result
+                        elif isinstance(result, tuple) and len(result) >= 2:
+                            user_data = result[1]  # Get user data from tuple
+                        else:
+                            user_data = None
+                        
+                        if user_data:
+                            logged_in_client = get_client_by_user_id(user_data['user_id'])
+                            if logged_in_client:
+                                scan_results['client_id'] = logged_in_client['id']
+                                # Save to client-specific database
+                                try:
+                                    from client_database_manager import save_scan_to_client_db
+                                    save_scan_to_client_db(logged_in_client['id'], scan_results)
+                                    logging.info(f"Saved scan to logged-in client database: {logged_in_client['id']}")
+                                except Exception as logged_client_db_error:
+                                    logging.error(f"Error saving to logged-in client database: {logged_client_db_error}")
+                except Exception as session_error:
+                    logging.error(f"Error checking session for scan logging: {session_error}")
+            
+            # Store scan results in session and redirect to results page
+            session['scan_results'] = scan_results
+            return redirect(url_for('scan.results'))
+            
+        except Exception as e:
+            logging.error(f"Error during scan: {e}")
+            import traceback
+            logging.error(traceback.format_exc())
+            return render_template('scan.html', 
+                                 error=f"An error occurred during the scan: {str(e)}")
+    
+    # GET request - display scan form
+    return render_template('scan.html')
+
+
+@scan_bp.route('/results')
+def results():
+    """Display scan results"""
+    scan_results = session.get('scan_results')
+    
+    if not scan_results:
+        flash('No scan results found. Please run a scan first.', 'warning')
+        return redirect(url_for('scan.scan_page'))
+    
+    return render_template('results.html', scan_results=scan_results)
+
+
+@scan_bp.route('/results_direct')
+def results_direct():
+    """Display scan results directly from query parameter"""
+    scan_id = request.args.get('scan_id')
+    
+    if not scan_id:
+        return "No scan ID provided", 400
+    
+    try:
+        # Get results from database
+        from database_utils import get_scan_results
+        scan_results = get_scan_results(scan_id)
+        
+        if not scan_results:
+            return f"No results found for scan ID: {scan_id}", 404
+        
+        # Return a simplified view of the results
+        return f"""
+        <html>
+            <head>
+                <title>Scan Results</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                    .section {{ margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }}
+                </style>
+            </head>
+            <body>
+                <h1>Scan Results</h1>
+                
+                <div class="section">
+                    <h2>Scan Information</h2>
+                    <p><strong>Scan ID:</strong> {scan_results['scan_id']}</p>
+                    <p><strong>Timestamp:</strong> {scan_results['timestamp']}</p>
+                    <p><strong>Email:</strong> {scan_results['email']}</p>
+                </div>
+                
+                <div class="section">
+                    <h2>Risk Assessment</h2>
+                    <p><strong>Overall Score:</strong> {scan_results['risk_assessment']['overall_score']}</p>
+                    <p><strong>Risk Level:</strong> {scan_results['risk_assessment']['risk_level']}</p>
+                </div>
+                
+                <div class="section">
+                    <h2>Recommendations</h2>
+                    <ul>
+                        {''.join([f'<li>{r}</li>' for r in scan_results['recommendations']])}
+                    </ul>
+                </div>
+                
+                <a href="/scan">Run another scan</a>
+            </body>
+        </html>
+        """
+    except Exception as e:
+        return f"Error loading results: {str(e)}", 500
+
+
+@scan_bp.route('/quick_scan', methods=['GET', 'POST'])
+def quick_scan():
+    """Quick scan with minimal input"""
+    if request.method == 'POST':
+        try:
+            # Get the target domain from form
+            target = request.form.get('target', '').strip()
+            email = request.form.get('email', '').strip()
+            
+            if not target or not email:
+                return render_template('quick_scan.html', error="Please provide both target domain and email address.")
+            
+            # Create basic lead data
+            lead_data = {
+                'name': 'Quick Scan User',
+                'email': email,
+                'company': '',
+                'phone': '',
+                'industry': '',
+                'company_size': '',
+                'company_website': target,
+                'target': target,
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'client_os': 'Unknown',
+                'client_browser': 'Unknown',
+                'windows_version': ''
+            }
+            
+            # Run quick scan
+            from security_scanner import run_quick_scan
+            scan_results = run_quick_scan(lead_data)
+            
+            # Store results and redirect
+            session['scan_results'] = scan_results
+            return redirect(url_for('scan.results'))
+            
+        except Exception as e:
+            logging.error(f"Error during quick scan: {e}")
+            return render_template('quick_scan.html', error=f"An error occurred: {str(e)}")
+    
+    # GET request - show quick scan form
+    return render_template('quick_scan.html')
+
+
+@scan_bp.route('/simple_scan')
+def simple_scan():
+    """Simple scan interface for testing"""
+    return render_template('simple_scan.html')
+
+
+@scan_bp.route('/api/scan', methods=['POST'])
+def api_scan():
+    """API endpoint for scan requests"""
+    try:
+        from flask import current_app
+        limiter = getattr(current_app, 'limiter', None)
+        if limiter:
+            limiter.limit("5 per minute")(lambda: None)()
+        
+        # Get client info from authentication
+        from database_utils import get_client_id_from_request
+        client_id = get_client_id_from_request()
+        scanner_id = request.form.get('scanner_id')
+        
+        # Check scan limits if client_id is available
+        if client_id:
+            try:
+                from client_db import get_db_connection
+                from client import get_client_total_scans, get_client_scan_limit
+                
+                # Get client information
+                conn = get_db_connection()
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+                client_row = cursor.fetchone()
+                conn.close()
+                
+                if client_row:
+                    client = dict(client_row)
+                    
+                    # Check scan limits
+                    current_scans = get_client_total_scans(client_id)
+                    scan_limit = get_client_scan_limit(client)
+                    
+                    if current_scans >= scan_limit:
+                        logging.warning(f"API scan blocked: Client {client_id} has reached scan limit: {current_scans}/{scan_limit}")
+                        return jsonify({
+                            'status': 'error', 
+                            'message': f'You have reached your scan limit of {scan_limit} scans for this billing period. Please upgrade your plan or wait for the next billing cycle.',
+                            'current_scans': current_scans,
+                            'scan_limit': scan_limit
+                        }), 403
+            except Exception as limit_error:
+                logging.error(f"Error checking scan limits for API scan (client {client_id}): {limit_error}")
+                # Continue with scan if limit check fails to avoid breaking existing functionality
+        
+        # Run the scan
+        from security_scanner import run_consolidated_scan
+        scan_results = run_consolidated_scan(request.form)
+        
+        # Save to client's database
+        if client_id:
+            try:
+                from database_utils import get_client_db
+                with get_client_db(database_manager, client_id) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute('''
+                        INSERT INTO scans (
+                            scanner_id, scan_timestamp, target, 
+                            scan_type, status, results, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        scanner_id,
+                        datetime.now().isoformat(),
+                        scan_results['target'],
+                        scan_results['type'],
+                        'completed',
+                        json.dumps(scan_results['results']),
+                        datetime.now().isoformat()
+                    ))
+                    conn.commit()
+            except Exception as db_error:
+                logging.error(f"Error saving API scan to client database: {db_error}")
+            
+        return jsonify({
+            "status": "success",
+            "scan_id": scan_results['scan_id'],
+            "message": "Scan completed successfully."
+        })
+            
+    except Exception as e:
+        logging.error(f"Error in API scan: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred during the scan: {str(e)}"
+        }), 500
+
+
+@scan_bp.route('/api/email_report', methods=['POST'])
+def api_email_report():
+    """API endpoint to email scan reports"""
+    try:
+        data = request.get_json()
+        scan_id = data.get('scan_id')
+        email = data.get('email')
+        
+        if not scan_id or not email:
+            return jsonify({'status': 'error', 'message': 'Missing scan_id or email'}), 400
+        
+        # Get scan results
+        from database_utils import get_scan_results
+        scan_results = get_scan_results(scan_id)
+        
+        if not scan_results:
+            return jsonify({'status': 'error', 'message': 'Scan not found'}), 404
+        
+        # Send email report
+        from email_handler import send_scan_report_email
+        success = send_scan_report_email(email, scan_results)
+        
+        if success:
+            return jsonify({'status': 'success', 'message': 'Report sent successfully'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Failed to send report'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error sending email report: {e}")
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
