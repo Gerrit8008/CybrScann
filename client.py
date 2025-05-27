@@ -541,6 +541,7 @@ def scanner_edit(user, scanner_id):
                     # Save file
                     logo_file.save(file_path)
                     scanner_data['logo_path'] = f"/static/uploads/{unique_filename}"
+                    scanner_data['logo_url'] = f"/static/uploads/{unique_filename}"  # Add both for compatibility
                     
                     # Also update the scanner variable for immediate display
                     scanner['logo_path'] = scanner_data['logo_path']

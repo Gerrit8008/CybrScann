@@ -3187,7 +3187,12 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
         'scanner_name': 'name',
         'contact_email': 'contact_email',
         'contact_phone': 'contact_phone',
-        'business_domain': 'domain'
+        'business_domain': 'domain',
+        'primary_color': 'primary_color',
+        'secondary_color': 'secondary_color', 
+        'logo_url': 'logo_url',
+        'email_subject': 'email_subject',
+        'email_intro': 'email_intro'
     }
     
     for key, db_field in scanner_mapping.items():
@@ -3258,18 +3263,13 @@ def update_scanner_config(conn, scanner_id, scanner_data, user_id):
         custom_values.append(client_id)
         cursor.execute(query, custom_values)
     elif custom_fields:
-        # Insert new record
-        fields = [db_field for key, db_field in custom_mapping.items() if key in scanner_data]
-        # Skip default_scans as column may not exist
-        # if 'default_scans' in scanner_data:
-        #     fields.append('default_scans')
+        # Insert new record - need to match fields with values exactly
+        fields = [db_field for key, db_field in custom_mapping.items() if key in scanner_data and scanner_data[key] is not None]
         fields.extend(['client_id', 'created_at', 'updated_at', 'updated_by'])
         
-        values = custom_values
-        values.append(client_id)
-        values.append(datetime.now().isoformat())
-        values.append(datetime.now().isoformat())
-        values.append(user_id)
+        # Build values list to match fields exactly
+        values = [scanner_data[key] for key, db_field in custom_mapping.items() if key in scanner_data and scanner_data[key] is not None]
+        values.extend([client_id, datetime.now().isoformat(), datetime.now().isoformat(), user_id])
         
         query = f'''
         INSERT INTO customizations 
