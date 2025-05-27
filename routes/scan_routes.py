@@ -301,12 +301,14 @@ def results():
                     from client_database_manager import get_scan_by_id
                     scan_data = get_scan_by_id(scan_id)
                     if scan_data:
+                        logger.info(f"Retrieved scan data keys: {list(scan_data.keys())}")
                         # Convert client database format to results format
                         if 'parsed_results' in scan_data and scan_data['parsed_results']:
                             # Use the parsed JSON results
                             converted_results = scan_data['parsed_results']
                         else:
-                            # Create results from database fields
+                            # Create results from database fields with proper structure for template
+                            logger.info(f"Converting scan data to template format for scan_id: {scan_data.get('scan_id')}")
                             converted_results = {
                                 'scan_id': scan_data.get('scan_id'),
                                 'timestamp': scan_data.get('timestamp'),
@@ -321,10 +323,28 @@ def results():
                                 'vulnerabilities_found': scan_data.get('vulnerabilities_found', 0),
                                 'findings': [],
                                 'recommendations': ['Implement comprehensive security monitoring', 'Regular security assessments'],
+                                'client_info': {
+                                    'name': scan_data.get('lead_name', 'N/A'),
+                                    'email': scan_data.get('lead_email', 'N/A'),
+                                    'company': scan_data.get('lead_company', 'N/A'),
+                                    'phone': scan_data.get('lead_phone', 'N/A'),
+                                    'os': scan_data.get('user_agent', 'N/A'),  # Use user_agent as OS info
+                                    'browser': scan_data.get('user_agent', 'N/A')  # Use user_agent as browser info
+                                },
                                 'risk_assessment': {
                                     'overall_score': scan_data.get('security_score', 75),
-                                    'risk_level': scan_data.get('risk_level', 'Medium')
-                                }
+                                    'risk_level': scan_data.get('risk_level', 'Medium'),
+                                    'color': '#28a745' if scan_data.get('security_score', 75) > 75 else '#ffc107' if scan_data.get('security_score', 75) > 50 else '#dc3545'
+                                },
+                                # Add optional fields that template might check for
+                                'network': {},
+                                'ssl_certificate': {},
+                                'security_headers': {},
+                                'email_security': {},
+                                'system': {},
+                                'threat_scenarios': [],
+                                'service_categories': {},
+                                'industry': {}
                             }
                         return render_template('results.html', scan=converted_results)
                 except Exception as e:
