@@ -112,13 +112,17 @@ def get_scanners_by_client_id(client_id):
                 from client_database_manager import get_scanner_scan_count
                 scan_count = get_scanner_scan_count(client_id, scanner['scanner_id'])
                 scanner['scan_count'] = scan_count
+                logger.info(f"Scanner {scanner['scanner_id']} scan count from client DB: {scan_count}")
             except Exception as e:
+                logger.warning(f"Error getting scan count from client DB for scanner {scanner['scanner_id']}: {e}")
                 # Fallback to main database scan_history table
                 try:
                     cursor.execute('SELECT COUNT(*) FROM scan_history WHERE scanner_id = ?', (scanner['scanner_id'],))
                     result = cursor.fetchone()
                     scanner['scan_count'] = result[0] if result else 0
-                except Exception:
+                    logger.info(f"Scanner {scanner['scanner_id']} scan count from main DB fallback: {scanner['scan_count']}")
+                except Exception as fallback_error:
+                    logger.error(f"Error getting scan count from main DB for scanner {scanner['scanner_id']}: {fallback_error}")
                     scanner['scan_count'] = 0
             
             # Add fields expected by the template (for both dict and tuple cases)
