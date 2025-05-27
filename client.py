@@ -75,6 +75,52 @@ def client_required(f):
     
     return decorated_function
 
+def get_client_total_scans(client_id):
+    """Get total number of scans used by a client in the current billing period"""
+    try:
+        from client_database_manager import get_client_scan_statistics
+        stats = get_client_scan_statistics(client_id)
+        return stats.get('total_scans', 0)
+    except Exception as e:
+        logger.error(f"Error getting client total scans: {e}")
+        return 0
+
+def get_client_scan_limit(client):
+    """Get scan limit based on client's subscription level"""
+    if not client:
+        return 50  # Default starter plan
+    
+    subscription_level = client.get('subscription_level', 'starter').lower()
+    
+    # Define plan limits
+    plan_limits = {
+        'starter': 50,
+        'basic': 100,
+        'professional': 250,
+        'business': 500,
+        'enterprise': 1000
+    }
+    
+    return plan_limits.get(subscription_level, 50)
+
+def get_client_scanner_limit(client):
+    """Get scanner limit based on client's subscription level"""
+    if not client:
+        return 1  # Default starter plan
+    
+    subscription_level = client.get('subscription_level', 'starter').lower()
+    
+    # Define scanner limits
+    scanner_limits = {
+        'starter': 1,
+        'basic': 3,
+        'professional': 5,
+        'business': 10,
+        'enterprise': 25
+    }
+    
+    return scanner_limits.get(subscription_level, 1)
+
 @client_bp.route('/dashboard')
 @client_required
 def dashboard(user):
@@ -199,9 +245,9 @@ def dashboard(user):
             'high_issues': stats.get('high_issues', 0),
             'medium_issues': stats.get('medium_issues', 0),
             'recommendations': [],  # Default empty recommendations
-            'scans_used': 0,  # Default scans used
-            'scans_limit': 50,  # Default scans limit
-            'scanner_limit': 1  # Default scanner limit
+            'scans_used': get_client_total_scans(client['id']),  # Get actual scans used
+            'scans_limit': get_client_scan_limit(client),  # Get client's scan limit based on plan
+            'scanner_limit': get_client_scanner_limit(client)  # Get client's scanner limit based on plan
         }
         
         # IMPORTANT: Ensure the correct URL for the "Create New Scanner" button

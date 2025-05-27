@@ -1503,6 +1503,36 @@ def api_scanner_scan(scanner_uid):
             conn.close()
             return jsonify({'status': 'error', 'message': 'Invalid scanner or API key'}), 401
         
+        # Check scan limits for the client
+        client_id = scanner[2]  # client_id is the third column
+        try:
+            # Get client information
+            cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+            client_row = cursor.fetchone()
+            
+            if client_row:
+                # Convert to dict for easier access
+                client = dict(zip([col[0] for col in cursor.description], client_row))
+                
+                # Check scan limits
+                from client import get_client_total_scans, get_client_scan_limit
+                
+                current_scans = get_client_total_scans(client_id)
+                scan_limit = get_client_scan_limit(client)
+                
+                if current_scans >= scan_limit:
+                    conn.close()
+                    logging.warning(f"API scan blocked: Client {client_id} has reached scan limit: {current_scans}/{scan_limit}")
+                    return jsonify({
+                        'status': 'error', 
+                        'message': f'You have reached your scan limit of {scan_limit} scans for this billing period. Please upgrade your plan or wait for the next billing cycle.',
+                        'current_scans': current_scans,
+                        'scan_limit': scan_limit
+                    }), 403
+        except Exception as limit_error:
+            logging.error(f"Error checking scan limits for API scan (client {client_id}): {limit_error}")
+            # Continue with scan if limit check fails to avoid breaking existing functionality
+        
         # Get scan data
         scan_data = request.get_json()
         
@@ -2962,7 +2992,7 @@ def scan_page():
             client_id = request.args.get('client_id') or request.form.get('client_id')
             scanner_id = request.args.get('scanner_id') or request.form.get('scanner_id')
             
-            # If client_id is provided, get client customizations
+            # If client_id is provided, get client customizations and check scan limits
             client = None
             if client_id:
                 try:
@@ -2977,6 +3007,24 @@ def scan_page():
                     if client_row:
                         client = dict(client_row)
                         logging.info(f"Using client {client_id} for scan tracking (scanner: {scanner_id})")
+                        
+                        # Check scan limits before proceeding
+                        try:
+                            from client import get_client_total_scans, get_client_scan_limit
+                            
+                            current_scans = get_client_total_scans(client_id)
+                            scan_limit = get_client_scan_limit(client)
+                            
+                            if current_scans >= scan_limit:
+                                logging.warning(f"Client {client_id} has reached scan limit: {current_scans}/{scan_limit}")
+                                return render_template('scan.html', 
+                                    error=f"You have reached your scan limit of {scan_limit} scans for this billing period. Please upgrade your plan or wait for the next billing cycle to continue scanning.",
+                                    client_id=client_id,
+                                    scanner_id=scanner_id)
+                        except Exception as limit_error:
+                            logging.error(f"Error checking scan limits for client {client_id}: {limit_error}")
+                            # Continue with scan if limit check fails to avoid breaking existing functionality
+                        
                     else:
                         logging.warning(f"Client {client_id} not found")
                 except Exception as client_error:
@@ -3695,6 +3743,39 @@ def api_scan():
         # Get client info from authentication
         client_id = get_client_id_from_request()
         scanner_id = request.form.get('scanner_id')
+        
+        # Check scan limits if client_id is available
+        if client_id:
+            try:
+                from client_db import get_db_connection
+                from client import get_client_total_scans, get_client_scan_limit
+                
+                # Get client information
+                conn = get_db_connection()
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+                client_row = cursor.fetchone()
+                conn.close()
+                
+                if client_row:
+                    client = dict(client_row)
+                    
+                    # Check scan limits
+                    current_scans = get_client_total_scans(client_id)
+                    scan_limit = get_client_scan_limit(client)
+                    
+                    if current_scans >= scan_limit:
+                        logging.warning(f"API scan blocked: Client {client_id} has reached scan limit: {current_scans}/{scan_limit}")
+                        return jsonify({
+                            'status': 'error', 
+                            'message': f'You have reached your scan limit of {scan_limit} scans for this billing period. Please upgrade your plan or wait for the next billing cycle.',
+                            'current_scans': current_scans,
+                            'scan_limit': scan_limit
+                        }), 403
+            except Exception as limit_error:
+                logging.error(f"Error checking scan limits for API scan (client {client_id}): {limit_error}")
+                # Continue with scan if limit check fails to avoid breaking existing functionality
         
         # Run the scan
         scan_results = run_consolidated_scan(request.form)
