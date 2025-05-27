@@ -315,7 +315,10 @@ def scanners(user):
                 },
                 scanners=[],
                 pagination={'page': 1, 'per_page': 10, 'total_pages': 1, 'total_count': 0},
-                filters={}
+                filters={},
+                scans_used=0,
+                scans_limit=50,
+                scanner_limit=1
             )
         
         # Get pagination parameters
@@ -358,13 +361,21 @@ def scanners(user):
             paginated_scanners = []
             pagination = {'page': 1, 'per_page': 10, 'total_pages': 1, 'total_count': 0}
         
+        # Add scan usage information
+        scans_used = get_client_total_scans(client['id']) if client else 0
+        scans_limit = get_client_scan_limit(client) if client else 50
+        scanner_limit = get_client_scanner_limit(client) if client else 1
+        
         return render_template(
             'client/scanners.html',
             user=user,
             client=client,
             scanners=paginated_scanners,
             pagination=pagination,
-            filters=filters
+            filters=filters,
+            scans_used=scans_used,
+            scans_limit=scans_limit,
+            scanner_limit=scanner_limit
         )
     except Exception as e:
         logger.error(f"Error displaying client scanners: {str(e)}")
