@@ -330,6 +330,15 @@
                         </div>
                     </div>
                     <div class="col-md-3">
+                        {% if scans_used >= scans_limit %}
+                        <div class="card quick-action-card h-100 opacity-50" style="cursor: not-allowed;" title="Scan limit reached ({{ scans_used }}/{{ scans_limit }}). Please upgrade your plan to continue scanning.">
+                            <div class="card-body text-center">
+                                <i class="bi bi-play-circle display-5 text-muted mb-2"></i>
+                                <h6 class="text-muted">Run Scan</h6>
+                                <p class="text-muted small mb-0">Scan limit reached</p>
+                            </div>
+                        </div>
+                        {% else %}
                         <a href="/scan" class="text-decoration-none">
                             <div class="card quick-action-card h-100">
                                 <div class="card-body text-center">
@@ -339,6 +348,7 @@
                                 </div>
                             </div>
                         </a>
+                        {% endif %}
                     </div>
                     <div class="col-md-3">
                         <div class="card quick-action-card h-100" onclick="window.location.href='/client/reports'">
@@ -648,9 +658,15 @@
                                                     <a href="/client/scanners/{{ scanner.id }}/view" class="scanner-action" data-bs-toggle="tooltip" title="View Details">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
+                                                    {% if scans_used >= scans_limit %}
+                                                    <button class="scanner-action opacity-50" disabled data-bs-toggle="tooltip" title="Scan limit reached ({{ scans_used }}/{{ scans_limit }}). Please upgrade your plan.">
+                                                        <i class="bi bi-play-circle text-muted"></i>
+                                                    </button>
+                                                    {% else %}
                                                     <button class="scanner-action" onclick="runQuickScan('{{ scanner.id }}')" data-bs-toggle="tooltip" title="Run Quick Scan">
                                                         <i class="bi bi-play-circle"></i>
                                                     </button>
+                                                    {% endif %}
                                                     <a href="/client/scanners/{{ scanner.id }}/stats" class="scanner-action" data-bs-toggle="tooltip" title="View Statistics">
                                                         <i class="bi bi-graph-up"></i>
                                                     </a>
@@ -810,6 +826,105 @@
                     </div>
                 </div>
                 {% endif %}
+                
+                <!-- Plan Usage Section -->
+                <div class="mt-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Current Plan Usage</h5>
+                            <span class="badge bg-primary">{{ client.subscription_level|default('Starter')|title }} Plan</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Scans Usage -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted">Scans Used</span>
+                                        <span class="fw-bold {% if scans_used >= scans_limit %}text-danger{% elif scans_used >= scans_limit * 0.8 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ scans_used }}/{{ scans_limit }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if scans_used >= scans_limit %}bg-danger{% elif scans_used >= scans_limit * 0.8 %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ (scans_used / scans_limit * 100) if scans_limit > 0 else 0 }}%"
+                                             aria-valuenow="{{ scans_used }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="{{ scans_limit }}">
+                                        </div>
+                                    </div>
+                                    {% if scans_used >= scans_limit %}
+                                    <small class="text-danger">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        Scan limit reached. <a href="/client/upgrade" class="text-decoration-none">Upgrade plan</a> or wait for next billing cycle.
+                                    </small>
+                                    {% elif scans_used >= scans_limit * 0.8 %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Approaching scan limit. Consider <a href="/client/upgrade" class="text-decoration-none">upgrading your plan</a>.
+                                    </small>
+                                    {% else %}
+                                    <small class="text-muted">
+                                        {{ scans_limit - scans_used }} scans remaining this billing cycle.
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Scanners Usage -->
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted">Scanners Active</span>
+                                        <span class="fw-bold {% if stats.scanners_count >= scanner_limit %}text-warning{% else %}text-success{% endif %}">
+                                            {{ stats.scanners_count|default(0) }}/{{ scanner_limit }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if stats.scanners_count >= scanner_limit %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ (stats.scanners_count / scanner_limit * 100) if scanner_limit > 0 else 0 }}%"
+                                             aria-valuenow="{{ stats.scanners_count|default(0) }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="{{ scanner_limit }}">
+                                        </div>
+                                    </div>
+                                    {% if stats.scanners_count >= scanner_limit %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Scanner limit reached. <a href="/client/upgrade" class="text-decoration-none">Upgrade</a> to create more scanners.
+                                    </small>
+                                    {% else %}
+                                    <small class="text-muted">
+                                        {{ scanner_limit - (stats.scanners_count|default(0)) }} scanner slots available.
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Plan Actions -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <hr class="my-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                Billing cycle resets {{ client.next_billing_date|default('at the end of the month') }}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <a href="/client/upgrade" class="btn btn-outline-primary btn-sm me-2">
+                                                <i class="bi bi-arrow-up-circle me-1"></i>Upgrade Plan
+                                            </a>
+                                            <a href="/client/billing" class="btn btn-outline-secondary btn-sm">
+                                                <i class="bi bi-receipt me-1"></i>View Billing
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -860,9 +975,15 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        {% if scans_used >= scans_limit %}
+                        <button type="button" class="btn btn-primary" disabled title="Scan limit reached ({{ scans_used }}/{{ scans_limit }}). Please upgrade your plan.">
+                            <i class="bi bi-play-circle me-2"></i>Scan Limit Reached
+                        </button>
+                        {% else %}
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-play-circle me-2"></i>Run Scan
                         </button>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -1027,6 +1148,12 @@
         
         // Run quick scan for a specific scanner
         function runQuickScan(scannerId) {
+            // Check scan limits before proceeding
+            if ({{ scans_used }} >= {{ scans_limit }}) {
+                alert('You have reached your scan limit of {{ scans_limit }} scans for this billing period. Please upgrade your plan or wait for the next billing cycle to continue scanning.');
+                return;
+            }
+            
             fetch('/api/quick_scan', {
                 method: 'POST',
                 headers: {
