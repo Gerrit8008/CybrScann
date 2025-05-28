@@ -94,6 +94,16 @@ def get_client_scan_limit(client):
     
     subscription_level = client.get('subscription_level', 'starter').lower()
     
+    # Handle legacy plan names
+    legacy_plan_mapping = {
+        'basic': 'starter',
+        'business': 'professional',
+        'pro': 'professional'
+    }
+    
+    if subscription_level in legacy_plan_mapping:
+        subscription_level = legacy_plan_mapping[subscription_level]
+    
     # Define plan limits
     plan_limits = {
         'starter': 50,
@@ -109,6 +119,16 @@ def get_client_scanner_limit(client):
         return 1  # Default starter plan
     
     subscription_level = client.get('subscription_level', 'starter').lower()
+    
+    # Handle legacy plan names
+    legacy_plan_mapping = {
+        'basic': 'starter',
+        'business': 'professional',
+        'pro': 'professional'
+    }
+    
+    if subscription_level in legacy_plan_mapping:
+        subscription_level = legacy_plan_mapping[subscription_level]
     
     # Define scanner limits
     scanner_limits = {
@@ -137,7 +157,7 @@ def dashboard(user):
             client = {
                 'id': 0,
                 'business_name': user.get('full_name', '') or user.get('username', 'New Client'),
-                'subscription_level': 'basic'
+                'subscription_level': 'starter'
             }
             
             # Set default data for the dashboard
@@ -310,7 +330,7 @@ def scanners(user):
                 client={
                     'id': 0,
                     'business_name': user.get('full_name', '') or user.get('username', 'New Client'),
-                    'subscription_level': 'basic'
+                    'subscription_level': 'starter'
                 },
                 scanners=[],
                 pagination={'page': 1, 'per_page': 10, 'total_pages': 1, 'total_count': 0},
@@ -1515,6 +1535,20 @@ def upgrade_subscription(user):
             'professional': {'name': 'Professional', 'price': 99, 'scanners': 3, 'scans': 500},
             'enterprise': {'name': 'Enterprise', 'price': 149, 'scanners': 10, 'scans': 1000}
         }
+        
+        # Handle legacy plan names - map them to new plans
+        legacy_plan_mapping = {
+            'basic': 'starter',
+            'business': 'professional',
+            'pro': 'professional'
+        }
+        
+        if current_plan in legacy_plan_mapping:
+            current_plan = legacy_plan_mapping[current_plan]
+        
+        # Ensure current_plan exists in plans dictionary
+        if current_plan not in plans:
+            current_plan = 'starter'
         
         # Get current usage
         conn = get_db_connection()
