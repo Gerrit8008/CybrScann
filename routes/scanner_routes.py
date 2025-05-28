@@ -88,6 +88,9 @@ def scanner_embed(scanner_uid):
         SELECT s.*, c.business_name,
                COALESCE(s.primary_color, cu.primary_color, '#02054c') as final_primary_color,
                COALESCE(s.secondary_color, cu.secondary_color, '#35a310') as final_secondary_color,
+               COALESCE(s.button_color, cu.button_color, '#28a745') as final_button_color,
+               COALESCE(s.font_family, cu.font_family, 'Inter') as final_font_family,
+               COALESCE(s.color_style, cu.color_style, 'gradient') as final_color_style,
                COALESCE(s.logo_url, cu.logo_path, '') as final_logo_url,
                COALESCE(s.email_subject, cu.email_subject, 'Your Security Scan Report') as final_email_subject,
                COALESCE(s.email_intro, cu.email_intro, '') as final_email_intro,
@@ -111,7 +114,9 @@ def scanner_embed(scanner_uid):
                 'business_name': scanner_data.get('business_name', ''),
                 'primary_color': scanner_data.get('final_primary_color', '#02054c'),
                 'secondary_color': scanner_data.get('final_secondary_color', '#35a310'),
-                'button_color': scanner_data.get('final_primary_color', '#02054c'),  # Use primary as button color
+                'button_color': scanner_data.get('final_button_color', '#28a745'),
+                'font_family': scanner_data.get('final_font_family', 'Inter'),
+                'color_style': scanner_data.get('final_color_style', 'gradient'),
                 'logo_path': scanner_data.get('final_logo_url', ''),
                 'logo_url': scanner_data.get('final_logo_url', ''),  # Also set logo_url for template compatibility
                 'favicon_path': scanner_data.get('favicon_path', ''),

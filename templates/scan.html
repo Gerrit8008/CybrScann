@@ -33,6 +33,35 @@
             --button-color: {{ client_branding.button_color }};
         }
         
+        /* Font Family Styling */
+        {% if client_branding.font_family %}
+        body, .card, .form-control, .btn, h1, h2, h3, h4, h5, h6 {
+            font-family: {{ client_branding.font_family }}, -apple-system, BlinkMacSystemFont, sans-serif !important;
+        }
+        {% endif %}
+        
+        /* Color Style - Gradient or Solid */
+        {% if client_branding.color_style == 'solid' %}
+        .header {
+            background-color: {{ client_branding.primary_color }};
+        }
+        
+        .btn-primary {
+            background-color: {{ client_branding.button_color }};
+            border-color: {{ client_branding.button_color }};
+        }
+        
+        .btn-primary:hover {
+            background-color: {{ client_branding.button_color }}dd;
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background-color: {{ client_branding.primary_color }}22;
+            border-bottom: 2px solid {{ client_branding.primary_color }};
+        }
+        {% else %}
+        /* Default gradient style */
         .header {
             background: linear-gradient(135deg, {{ client_branding.primary_color }}, {{ client_branding.secondary_color }});
         }
@@ -51,6 +80,7 @@
             background: linear-gradient(135deg, {{ client_branding.primary_color }}22, {{ client_branding.secondary_color }}22);
             border-bottom: 2px solid {{ client_branding.primary_color }};
         }
+        {% endif %}
         
         .step-bullet.active {
             background-color: {{ client_branding.primary_color }};

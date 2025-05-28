@@ -202,7 +202,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="primary_color" class="form-label">Primary Color</label>
                                     <div class="input-group">
                                         <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" 
@@ -212,7 +212,7 @@
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="secondary_color" class="form-label">Secondary Color</label>
                                     <div class="input-group">
                                         <input type="color" class="form-control form-control-color" id="secondary_color" name="secondary_color" 
@@ -221,14 +221,35 @@
                                                value="{{ form_data.secondary_color if form_data else '#35a310' }}" readonly>
                                     </div>
                                 </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="button_color" class="form-label">Button Color</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="button_color" name="button_color" 
+                                               value="{{ form_data.button_color if form_data else '#28a745' }}">
+                                        <input type="text" class="form-control" id="button_color_hex" 
+                                               value="{{ form_data.button_color if form_data else '#28a745' }}" readonly>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="logo_upload" class="form-label">Company Logo</label>
-                                <input type="file" class="form-control" id="logo_upload" name="logo_upload" accept="image/*">
-                                <div class="form-text">Recommended size: 200px × 50px (PNG, JPG)</div>
-                                <div id="logo_preview_container" class="mt-2" style="display: none;">
-                                    <img id="logo_preview" class="file-preview">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="logo_upload" class="form-label">Company Logo</label>
+                                    <input type="file" class="form-control" id="logo_upload" name="logo_upload" accept="image/*">
+                                    <div class="form-text">Recommended size: 200px × 50px (PNG, JPG)</div>
+                                    <div id="logo_preview_container" class="mt-2" style="display: none;">
+                                        <img id="logo_preview" class="file-preview">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="favicon_upload" class="form-label">Favicon</label>
+                                    <input type="file" class="form-control" id="favicon_upload" name="favicon_upload" accept="image/*">
+                                    <div class="form-text">ICO, PNG 16x16 or 32x32</div>
+                                    <div id="favicon_preview_container" class="mt-2" style="display: none;">
+                                        <img id="favicon_preview" class="file-preview" style="width: 32px; height: 32px;">
+                                    </div>
                                 </div>
                             </div>
                             
@@ -418,9 +439,19 @@
                     this.updatePreview();
                 });
                 
+                document.getElementById('button_color').addEventListener('input', (e) => {
+                    document.getElementById('button_color_hex').value = e.target.value;
+                    this.updatePreview();
+                });
+                
                 // Logo upload
                 document.getElementById('logo_upload').addEventListener('change', (e) => {
                     this.handleLogoUpload(e);
+                });
+                
+                // Favicon upload
+                document.getElementById('favicon_upload').addEventListener('change', (e) => {
+                    this.handleFaviconUpload(e);
                 });
                 
                 // Text inputs
@@ -452,6 +483,7 @@
             updatePreview() {
                 const primaryColor = document.getElementById('primary_color').value;
                 const secondaryColor = document.getElementById('secondary_color').value;
+                const buttonColor = document.getElementById('button_color').value;
                 const scannerName = document.getElementById('scanner_name').value;
                 const domain = document.getElementById('domain').value;
                 const fontFamily = document.getElementById('font_family').value;
@@ -460,6 +492,7 @@
                 // Update CSS variables
                 document.documentElement.style.setProperty('--primary-color', primaryColor);
                 document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+                document.documentElement.style.setProperty('--button-color', buttonColor);
                 document.documentElement.style.setProperty('--font-family', fontFamily);
                 
                 // Update font family
@@ -468,12 +501,12 @@
                 
                 // Update preview colors based on style
                 if (colorStyle === 'solid') {
-                    document.querySelector('.scanner-preview').style.background = secondaryColor;
-                    document.querySelector('.preview-button').style.background = primaryColor;
+                    document.querySelector('.scanner-preview').style.background = primaryColor;
+                    document.querySelector('.preview-button').style.background = buttonColor;
                 } else {
                     // Gradient style (default)
                     document.querySelector('.scanner-preview').style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
-                    document.querySelector('.preview-button').style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    document.querySelector('.preview-button').style.background = `linear-gradient(135deg, ${buttonColor}, ${secondaryColor})`;
                 }
                 
                 // Update scanner name
@@ -503,6 +536,19 @@
                         document.getElementById('preview_logo').innerHTML = `
                             <img src="${event.target.result}" alt="Logo" class="preview-logo">
                         `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            handleFaviconUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const imgPreview = document.getElementById('favicon_preview');
+                        imgPreview.src = event.target.result;
+                        document.getElementById('favicon_preview_container').style.display = 'block';
                     };
                     reader.readAsDataURL(file);
                 }

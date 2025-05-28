@@ -209,6 +209,35 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="font_family" class="form-label">Font Style</label>
+                                                    <select class="form-select" id="font_family" name="font_family">
+                                                        <option value="Inter" {{ 'selected' if scanner.font_family == 'Inter' else '' }}>Inter (Default)</option>
+                                                        <option value="Arial" {{ 'selected' if scanner.font_family == 'Arial' else '' }}>Arial</option>
+                                                        <option value="Helvetica" {{ 'selected' if scanner.font_family == 'Helvetica' else '' }}>Helvetica</option>
+                                                        <option value="Georgia" {{ 'selected' if scanner.font_family == 'Georgia' else '' }}>Georgia</option>
+                                                        <option value="Times New Roman" {{ 'selected' if scanner.font_family == 'Times New Roman' else '' }}>Times New Roman</option>
+                                                        <option value="Roboto" {{ 'selected' if scanner.font_family == 'Roboto' else '' }}>Roboto</option>
+                                                        <option value="Open Sans" {{ 'selected' if scanner.font_family == 'Open Sans' else '' }}>Open Sans</option>
+                                                        <option value="Lato" {{ 'selected' if scanner.font_family == 'Lato' else '' }}>Lato</option>
+                                                        <option value="Montserrat" {{ 'selected' if scanner.font_family == 'Montserrat' else '' }}>Montserrat</option>
+                                                        <option value="Source Sans Pro" {{ 'selected' if scanner.font_family == 'Source Sans Pro' else '' }}>Source Sans Pro</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="color_style" class="form-label">Color Style</label>
+                                                    <select class="form-select" id="color_style" name="color_style">
+                                                        <option value="gradient" {{ 'selected' if scanner.color_style == 'gradient' else '' }}>Gradient Blend (Default)</option>
+                                                        <option value="solid" {{ 'selected' if scanner.color_style == 'solid' else '' }}>Solid Colors</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
