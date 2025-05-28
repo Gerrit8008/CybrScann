@@ -26,7 +26,8 @@ from client_db import (
     format_scan_results_for_client,
     register_client,
     get_scan_reports_for_client,
-    get_scan_statistics_for_client
+    get_scan_statistics_for_client,
+    get_db_connection
 )
 
 # Define client blueprint
