@@ -8,6 +8,7 @@ import os
 import logging
 import json
 import uuid
+import re
 from datetime import datetime
 import sqlite3
 
@@ -174,20 +175,28 @@ def scan_page():
                 headers_results = check_security_headers(target)
                 scan_results['security_headers'] = headers_results
                 
-                # Network scanning (gateway)
-                logging.info(f"🌐 Scanning network infrastructure")
+                # Network scanning (gateway and target)
+                logging.info(f"🌐 Scanning network infrastructure for {target}")
                 try:
                     client_gateway_info = get_client_and_gateway_ip(request)
-                    # Handle different return formats from get_client_and_gateway_ip
-                    if client_gateway_info:
-                        if isinstance(client_gateway_info, dict) and client_gateway_info.get('gateway_ip'):
-                            gateway_scan = scan_gateway_ports(client_gateway_info)
-                            scan_results['network'] = gateway_scan
-                        else:
-                            logging.warning(f"Gateway info format issue: {type(client_gateway_info)}")
-                            scan_results['network'] = {'status': 'skipped', 'reason': 'gateway_info_format_error'}
+                    
+                    # Enhanced gateway info with target domain
+                    enhanced_gateway_info = client_gateway_info
+                    if isinstance(client_gateway_info, dict):
+                        enhanced_gateway_info['target_domain'] = target
+                    elif isinstance(client_gateway_info, str):
+                        enhanced_gateway_info = {
+                            'raw_info': client_gateway_info,
+                            'target_domain': target
+                        }
                     else:
-                        scan_results['network'] = {'status': 'skipped', 'reason': 'no_gateway_info'}
+                        enhanced_gateway_info = {'target_domain': target}
+                    
+                    # Perform comprehensive network scan
+                    gateway_scan = scan_gateway_ports(enhanced_gateway_info)
+                    scan_results['network'] = gateway_scan
+                    logging.info(f"Network scan completed: {len(gateway_scan) if isinstance(gateway_scan, list) else 'unknown'} findings")
+                    
                 except Exception as network_error:
                     logging.warning(f"Network scanning error: {network_error}")
                     scan_results['network'] = {'status': 'error', 'message': str(network_error)}
@@ -346,18 +355,58 @@ def scan_page():
                     else:
                         logging.warning(f"Security headers data is not a dict: {type(headers_data)}")
                 
-                # Network findings
+                # Network findings - Handle actual scan_gateway_ports output format
                 if 'network' in scan_results and scan_results['network']:
                     network_data = scan_results['network']
-                    if isinstance(network_data, dict) and network_data.get('open_ports'):
-                        open_ports = network_data['open_ports']
-                        if isinstance(open_ports, dict) and open_ports.get('count', 0) > 0:
+                    logging.info(f"Processing network data: {network_data}")
+                    
+                    if isinstance(network_data, list):
+                        # scan_gateway_ports returns list of (message, severity) tuples
+                        open_ports_count = 0
+                        high_risk_ports = []
+                        
+                        for item in network_data:
+                            if isinstance(item, tuple) and len(item) >= 2:
+                                message, severity = item[0], item[1]
+                                
+                                # Count open ports
+                                if "Port" in message and "is open" in message:
+                                    open_ports_count += 1
+                                    if severity in ['High', 'Critical']:
+                                        # Extract port number for specific warnings
+                                        port_match = re.search(r'Port (\d+)', message)
+                                        if port_match:
+                                            high_risk_ports.append(port_match.group(1))
+                                
+                                # Add findings for high/critical severity items
+                                if severity in ['High', 'Critical', 'Medium']:
+                                    findings.append({
+                                        'category': 'Network Security',
+                                        'severity': severity,
+                                        'title': 'Network Security Issue',
+                                        'description': message,
+                                        'recommendation': 'Review network configuration and close unnecessary services'
+                                    })
+                        
+                        # Add summary finding if open ports detected
+                        if open_ports_count > 0:
                             findings.append({
                                 'category': 'Network Security',
-                                'severity': open_ports.get('severity', 'Medium'),
-                                'title': 'Open Ports Detected',
-                                'description': f"Found {open_ports.get('count', 0)} open ports that could be security risks",
-                                'recommendation': 'Review open ports and close unnecessary services'
+                                'severity': 'High' if high_risk_ports else 'Medium',
+                                'title': f'Open Ports Detected ({open_ports_count} total)',
+                                'description': f"Found {open_ports_count} open ports. High-risk ports: {', '.join(high_risk_ports) if high_risk_ports else 'None'}",
+                                'recommendation': 'Review all open ports and close unnecessary services to reduce attack surface'
+                            })
+                    
+                    elif isinstance(network_data, dict):
+                        # Handle dictionary format (error cases, etc.)
+                        if network_data.get('status') == 'error':
+                            findings.append({
+                                'category': 'Network Security',
+                                'severity': 'Medium',
+                                'title': 'Network Scan Issue',
+                                'description': network_data.get('message', 'Unable to complete network scan'),
+                                'recommendation': 'Network scanning may be limited. Consider running scan from target network.'
                             })
                 
                 # Email Security findings
