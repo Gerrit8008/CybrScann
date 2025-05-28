@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if client_branding %}
+    <title>{{ client_branding.business_name }} - Enhanced Security Scan</title>
+    {% if client_branding.favicon_path %}
+    <link rel="icon" type="image/png" href="{{ client_branding.favicon_path }}">
+    {% else %}
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    {% endif %}
+    {% else %}
+    <title>Enhanced Security Scan - CybrScan</title>
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    {% endif %}
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        {% if client_branding %}
+        :root {
+            --primary-color: {{ client_branding.primary_color or '#1a237e' }};
+            --secondary-color: {{ client_branding.secondary_color or '#d96c33' }};
+            --button-color: {{ client_branding.button_color or '#02054c' }};
+        }
+        {% else %}
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #d96c33;
+            --button-color: #02054c;
+        }
+        {% endif %}
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .scan-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .scan-header {
+            {% if client_branding and client_branding.color_style == 'solid' %}
+            background: var(--primary-color);
+            {% else %}
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            {% endif %}
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .scan-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .scan-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .logo-container {
+            margin-bottom: 1rem;
+        }
+        
+        .logo-container img {
+            max-height: 60px;
+            max-width: 200px;
+        }
+        
+        .scan-content {
+            padding: 3rem;
+        }
+        
+        .scan-options {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .scan-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .scan-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .scan-option.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-color)10;
+        }
+        
+        .scan-option-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .scan-option-content h5 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .scan-option-content p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem var(--primary-color)33;
+        }
+        
+        .btn-scan {
+            {% if client_branding and client_branding.color_style == 'solid' %}
+            background: var(--button-color);
+            {% else %}
+            background: linear-gradient(135deg, var(--button-color), var(--secondary-color));
+            {% endif %}
+            border: none;
+            color: white;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-scan:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .btn-scan:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+        
+        /* Progress Section */
+        .progress-section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-top: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .progress-section.active {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .progress-header h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-wrapper {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-bar-container {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .progress-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-task {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #495057;
+            margin-bottom: 2rem;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-phases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .progress-phase {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-phase.active {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .progress-phase.completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .progress-phase-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-phase h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        /* Loading Animation */
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e9ecef;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Results Section */
+        .results-section {
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .results-section.active {
+            display: block;
+        }
+        
+        .security-score {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-color) 0deg, var(--secondary-color) 180deg, #e9ecef 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+        
+        .score-inner {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+        
+        .score-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .scan-content {
+                padding: 2rem 1.5rem;
+            }
+            
+            .scan-header {
+                padding: 1.5rem;
+            }
+            
+            .scan-header h1 {
+                font-size: 2rem;
+            }
+            
+            .progress-phases {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Scan Form Section -->
+        <div class="scan-card" id="scanForm">
+            <div class="scan-header">
+                {% if client_branding and client_branding.logo_path %}
+                <div class="logo-container">
+                    <img src="{{ client_branding.logo_path }}" alt="{{ client_branding.business_name }}">
+                </div>
+                <h1>{{ client_branding.business_name }}</h1>
+                <p>Enhanced Security Assessment</p>
+                {% else %}
+                <h1><i class="bi bi-shield-check me-3"></i>Enhanced Security Scan</h1>
+                <p>Comprehensive cybersecurity assessment in real-time</p>
+                {% endif %}
+            </div>
+            
+            <div class="scan-content">
+                <div id="alertContainer"></div>
+                
+                <form id="enhancedScanForm">
+                    {% if client_id %}
+                    <input type="hidden" name="client_id" value="{{ client_id }}">
+                    {% endif %}
+                    {% if scanner_id %}
+                    <input type="hidden" name="scanner_id" value="{{ scanner_id }}">
+                    {% endif %}
+                    
+                    <!-- Contact Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="company" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="company" name="company">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="company_website" class="form-label">Company Website *</label>
+                            <input type="url" class="form-control" id="company_website" name="company_website" 
+                                   placeholder="https://example.com" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="industry" class="form-label">Industry</label>
+                            <select class="form-control" id="industry" name="industry">
+                                <option value="">Select Industry</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="financial">Financial Services</option>
+                                <option value="retail">Retail</option>
+                                <option value="education">Education</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="government">Government</option>
+                                <option value="technology">Technology</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Scan Options -->
+                    <div class="scan-options">
+                        <h4 class="mb-3"><i class="bi bi-gear me-2"></i>Scan Configuration</h4>
+                        <p class="text-muted mb-4">Select the security areas you want to assess:</p>
+                        
+                        <div class="scan-option selected" data-option="network_scan">
+                            <input type="checkbox" name="network_scan" id="network_scan" checked hidden>
+                            <div class="scan-option-icon">
+                                <i class="bi bi-hdd-network"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h5>Network Security</h5>
+                                <p>Open port detection, gateway analysis, firewall assessment</p>
+                            </div>
+                        </div>
+                        
+                        <div class="scan-option selected" data-option="web_scan">
+                            <input type="checkbox" name="web_scan" id="web_scan" checked hidden>
+                            <div class="scan-option-icon">
+                                <i class="bi bi-globe"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h5>Web Security</h5>
+                                <p>SSL/TLS analysis, security headers, CMS vulnerabilities</p>
+                            </div>
+                        </div>
+                        
+                        <div class="scan-option selected" data-option="email_scan">
+                            <input type="checkbox" name="email_scan" id="email_scan" checked hidden>
+                            <div class="scan-option-icon">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h5>Email Security</h5>
+                                <p>SPF records, DKIM signing, DMARC policy</p>
+                            </div>
+                        </div>
+                        
+                        <div class="scan-option selected" data-option="ssl_scan">
+                            <input type="checkbox" name="ssl_scan" id="ssl_scan" checked hidden>
+                            <div class="scan-option-icon">
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h5>SSL/TLS Security</h5>
+                                <p>Certificate analysis, protocol testing, cipher evaluation</p>
+                            </div>
+                        </div>
+                        
+                        <div class="scan-option" data-option="advanced_options">
+                            <input type="checkbox" name="advanced_options" id="advanced_options" hidden>
+                            <div class="scan-option-icon">
+                                <i class="bi bi-cpu"></i>
+                            </div>
+                            <div class="scan-option-content">
+                                <h5>Advanced Analysis</h5>
+                                <p>Deep technology stack analysis, comprehensive reporting</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-scan" id="startScanBtn">
+                            <i class="bi bi-play-circle me-2"></i>Start Enhanced Scan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Progress Section -->
+        <div class="progress-section" id="progressSection">
+            <div class="progress-header">
+                <h2><i class="bi bi-activity me-2"></i>Scanning in Progress</h2>
+                <p class="text-muted">Please wait while we perform a comprehensive security assessment</p>
+            </div>
+            
+            <div class="progress-wrapper">
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-task" id="progressTask">Initializing scan...</div>
+            </div>
+            
+            <div class="loading-spinner"></div>
+            
+            <div class="progress-phases">
+                <div class="progress-phase" id="phase-network">
+                    <div class="progress-phase-icon">
+                        <i class="bi bi-hdd-network"></i>
+                    </div>
+                    <h5>Network Security</h5>
+                </div>
+                <div class="progress-phase" id="phase-web">
+                    <div class="progress-phase-icon">
+                        <i class="bi bi-globe"></i>
+                    </div>
+                    <h5>Web Security</h5>
+                </div>
+                <div class="progress-phase" id="phase-email">
+                    <div class="progress-phase-icon">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                    <h5>Email Security</h5>
+                </div>
+                <div class="progress-phase" id="phase-ssl">
+                    <div class="progress-phase-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h5>SSL/TLS Security</h5>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="security-score">
+                <h2><i class="bi bi-award me-2"></i>Security Assessment Complete</h2>
+                <div class="score-circle" id="scoreCircle">
+                    <div class="score-inner">
+                        <div class="score-number" id="scoreNumber">--</div>
+                        <div class="score-label">Security Score</div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-scan" id="viewReportBtn">
+                        <i class="bi bi-file-text me-2"></i>View Detailed Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class EnhancedScanManager {
+            constructor() {
+                this.currentScanId = null;
+                this.progressInterval = null;
+                this.init();
+            }
+            
+            init() {
+                this.setupFormHandlers();
+                this.setupScanOptionHandlers();
+            }
+            
+            setupFormHandlers() {
+                const form = document.getElementById('enhancedScanForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.startScan();
+                });
+            }
+            
+            setupScanOptionHandlers() {
+                const scanOptions = document.querySelectorAll('.scan-option');
+                scanOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        this.toggleScanOption(option);
+                    });
+                });
+            }
+            
+            toggleScanOption(option) {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                const isSelected = option.classList.contains('selected');
+                
+                if (isSelected) {
+                    option.classList.remove('selected');
+                    checkbox.checked = false;
+                } else {
+                    option.classList.add('selected');
+                    checkbox.checked = true;
+                }
+            }
+            
+            async startScan() {
+                try {
+                    const formData = new FormData(document.getElementById('enhancedScanForm'));
+                    
+                    // Show loading state
+                    const startBtn = document.getElementById('startScanBtn');
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Starting Scan...';
+                    
+                    // Submit scan request
+                    const response = await fetch('/enhanced-scan', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'started') {
+                        this.currentScanId = result.scan_id;
+                        this.showProgressSection();
+                        this.startProgressTracking();
+                        this.showAlert('Scan started successfully!', 'success');
+                    } else {
+                        this.showAlert(result.message || 'Failed to start scan', 'error');
+                        startBtn.disabled = false;
+                        startBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Start Enhanced Scan';
+                    }
+                    
+                } catch (error) {
+                    console.error('Error starting scan:', error);
+                    this.showAlert('Network error: Failed to start scan', 'error');
+                    
+                    const startBtn = document.getElementById('startScanBtn');
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i class="bi bi-play-circle me-2"></i>Start Enhanced Scan';
+                }
+            }
+            
+            showProgressSection() {
+                document.getElementById('scanForm').style.display = 'none';
+                document.getElementById('progressSection').classList.add('active');
+            }
+            
+            startProgressTracking() {
+                this.progressInterval = setInterval(() => {
+                    this.updateProgress();
+                }, 1000);
+            }
+            
+            async updateProgress() {
+                if (!this.currentScanId) return;
+                
+                try {
+                    const response = await fetch(`/scan-progress/${this.currentScanId}`);
+                    const progressData = await response.json();
+                    
+                    this.displayProgress(progressData);
+                    
+                    if (progressData.status === 'completed') {
+                        clearInterval(this.progressInterval);
+                        setTimeout(() => {
+                            this.showResults();
+                        }, 2000);
+                    } else if (progressData.status === 'failed') {
+                        clearInterval(this.progressInterval);
+                        this.showAlert(`Scan failed: ${progressData.error || 'Unknown error'}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error fetching progress:', error);
+                }
+            }
+            
+            displayProgress(progressData) {
+                const progressBar = document.getElementById('progressBar');
+                const progressPercentage = document.getElementById('progressPercentage');
+                const progressTask = document.getElementById('progressTask');
+                
+                const progress = progressData.progress || 0;
+                progressBar.style.width = `${progress}%`;
+                progressPercentage.textContent = `${Math.round(progress)}%`;
+                progressTask.textContent = progressData.task || 'Processing...';
+                
+                // Update phase indicators
+                this.updatePhaseIndicators(progressData.task);
+            }
+            
+            updatePhaseIndicators(currentTask) {
+                const phases = {
+                    'network': ['network', 'port', 'gateway', 'firewall'],
+                    'web': ['web', 'security headers', 'cms', 'https', 'cookie'],
+                    'email': ['email', 'spf', 'dkim', 'dmarc', 'mx'],
+                    'ssl': ['ssl', 'tls', 'certificate', 'cipher']
+                };
+                
+                const taskLower = currentTask.toLowerCase();
+                
+                Object.keys(phases).forEach(phase => {
+                    const element = document.getElementById(`phase-${phase}`);
+                    element.classList.remove('active', 'completed');
+                    
+                    if (phases[phase].some(keyword => taskLower.includes(keyword))) {
+                        element.classList.add('active');
+                    }
+                });
+            }
+            
+            async showResults() {
+                try {
+                    const response = await fetch(`/scan-results/${this.currentScanId}`);
+                    const results = await response.json();
+                    
+                    document.getElementById('progressSection').style.display = 'none';
+                    document.getElementById('resultsSection').classList.add('active');
+                    
+                    this.displaySecurityScore(results);
+                    
+                } catch (error) {
+                    console.error('Error fetching results:', error);
+                    this.showAlert('Failed to load scan results', 'error');
+                }
+            }
+            
+            displaySecurityScore(results) {
+                const scoreElement = document.getElementById('scoreNumber');
+                const circleElement = document.getElementById('scoreCircle');
+                
+                const score = results.risk_assessment?.overall_score || 75;
+                scoreElement.textContent = Math.round(score);
+                
+                // Update circle color based on score
+                const scoreColor = this.getScoreColor(score);
+                circleElement.style.background = `conic-gradient(${scoreColor} 0deg, ${scoreColor} ${score * 3.6}deg, #e9ecef ${score * 3.6}deg)`;
+                
+                // Setup view report button
+                document.getElementById('viewReportBtn').onclick = () => {
+                    window.open(`/scan-report/${this.currentScanId}`, '_blank');
+                };
+            }
+            
+            getScoreColor(score) {
+                if (score >= 80) return '#28a745';
+                if (score >= 60) return '#ffc107';
+                if (score >= 40) return '#fd7e14';
+                return '#dc3545';
+            }
+            
+            showAlert(message, type) {
+                const container = document.getElementById('alertContainer');
+                const alertClass = type === 'success' ? 'success-message' : 'error-message';
+                
+                container.innerHTML = `
+                    <div class="${alertClass}">
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                        ${message}
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+        
+        // Initialize scan manager when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new EnhancedScanManager();
+        });
+    </script>
+</body>
+</html>
