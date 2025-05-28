@@ -86,6 +86,14 @@ except ImportError as e:
     logger.warning(f"⚠️ Enhanced scan routes not available: {e}")
     enhanced_scan_bp = None
 
+# Import fixed scan routes
+try:
+    from fixed_scan_routes import fixed_scan_bp
+    logger.info("✅ Fixed scan routes imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Fixed scan routes not available: {e}")
+    fixed_scan_bp = None
+
 # Import existing blueprints
 try:
     from client import client_bp
@@ -163,6 +171,11 @@ def create_app():
     if enhanced_scan_bp:
         app.register_blueprint(enhanced_scan_bp)
         logger.info("✅ Enhanced scan routes registered")
+        
+    # Register fixed scan routes if available
+    if fixed_scan_bp:
+        app.register_blueprint(fixed_scan_bp)
+        logger.info("✅ Fixed scan routes registered")
     
     # Register existing blueprints if available
     if client_bp:
