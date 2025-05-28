@@ -90,13 +90,12 @@ def get_client_total_scans(client_id):
 def get_client_scan_limit(client):
     """Get scan limit based on client's subscription level"""
     if not client:
-        return 50  # Default starter plan
+        return 10  # Default basic plan
     
-    subscription_level = client.get('subscription_level', 'starter').lower()
+    subscription_level = client.get('subscription_level', 'basic').lower()
     
     # Handle legacy plan names
     legacy_plan_mapping = {
-        'basic': 'starter',
         'business': 'professional',
         'pro': 'professional'
     }
@@ -106,23 +105,23 @@ def get_client_scan_limit(client):
     
     # Define plan limits
     plan_limits = {
+        'basic': 10,
         'starter': 50,
         'professional': 500,
         'enterprise': 1000
     }
     
-    return plan_limits.get(subscription_level, 50)
+    return plan_limits.get(subscription_level, 10)
 
 def get_client_scanner_limit(client):
     """Get scanner limit based on client's subscription level"""
     if not client:
-        return 1  # Default starter plan
+        return 1  # Default basic plan
     
-    subscription_level = client.get('subscription_level', 'starter').lower()
+    subscription_level = client.get('subscription_level', 'basic').lower()
     
     # Handle legacy plan names
     legacy_plan_mapping = {
-        'basic': 'starter',
         'business': 'professional',
         'pro': 'professional'
     }
@@ -132,6 +131,7 @@ def get_client_scanner_limit(client):
     
     # Define scanner limits
     scanner_limits = {
+        'basic': 1,
         'starter': 1,
         'professional': 3,
         'enterprise': 10
@@ -157,7 +157,7 @@ def dashboard(user):
             client = {
                 'id': 0,
                 'business_name': user.get('full_name', '') or user.get('username', 'New Client'),
-                'subscription_level': 'starter'
+                'subscription_level': 'basic'
             }
             
             # Set default data for the dashboard
@@ -330,7 +330,7 @@ def scanners(user):
                 client={
                     'id': 0,
                     'business_name': user.get('full_name', '') or user.get('username', 'New Client'),
-                    'subscription_level': 'starter'
+                    'subscription_level': 'basic'
                 },
                 scanners=[],
                 pagination={'page': 1, 'per_page': 10, 'total_pages': 1, 'total_count': 0},
@@ -1527,18 +1527,18 @@ def upgrade_subscription(user):
             return redirect(url_for('client.profile'))
         
         # Get current subscription info
-        current_plan = client.get('subscription_level', 'starter').lower()
+        current_plan = client.get('subscription_level', 'basic').lower()
         
         # Plan details with pricing
         plans = {
-            'starter': {'name': 'Starter', 'price': 59, 'scanners': 1, 'scans': 50},
-            'professional': {'name': 'Professional', 'price': 99, 'scanners': 3, 'scans': 500},
-            'enterprise': {'name': 'Enterprise', 'price': 149, 'scanners': 10, 'scans': 1000}
+            'basic': {'name': 'Basic', 'price': 0, 'scanners': 1, 'scans': 10, 'api_access': False},
+            'starter': {'name': 'Starter', 'price': 59, 'scanners': 1, 'scans': 50, 'api_access': True},
+            'professional': {'name': 'Professional', 'price': 99, 'scanners': 3, 'scans': 500, 'api_access': True},
+            'enterprise': {'name': 'Enterprise', 'price': 149, 'scanners': 10, 'scans': 1000, 'api_access': True}
         }
         
         # Handle legacy plan names - map them to new plans
         legacy_plan_mapping = {
-            'basic': 'starter',
             'business': 'professional',
             'pro': 'professional'
         }
@@ -1548,7 +1548,7 @@ def upgrade_subscription(user):
         
         # Ensure current_plan exists in plans dictionary
         if current_plan not in plans:
-            current_plan = 'starter'
+            current_plan = 'basic'
         
         # Get current usage
         conn = get_db_connection()
@@ -1587,22 +1587,39 @@ def process_upgrade(user):
         
         # Get form data
         new_plan = request.form.get('plan')
-        card_name = request.form.get('cardName')
-        card_number = request.form.get('cardNumber')
-        expiry_date = request.form.get('expiryDate')
-        cvv = request.form.get('cvv')
         
-        # Validate required fields
-        if not all([new_plan, card_name, card_number, expiry_date, cvv]):
-            flash('All payment fields are required', 'danger')
-            return redirect(url_for('client.upgrade_subscription'))
+        # Define plan pricing to check if payment is needed
+        plans = {
+            'basic': {'name': 'Basic', 'price': 0},
+            'starter': {'name': 'Starter', 'price': 59},
+            'professional': {'name': 'Professional', 'price': 99},
+            'enterprise': {'name': 'Enterprise', 'price': 149}
+        }
         
-        # For demo purposes, we'll accept test payment data
-        is_test_payment = (
-            'test' in card_name.lower() or 
-            card_number.replace(' ', '') == '4111111111111111' or
-            card_number.replace(' ', '') == '1234567890123456'
-        )
+        # Check if this is a free plan
+        is_free_plan = plans.get(new_plan, {}).get('price', 0) == 0
+        
+        if not is_free_plan:
+            # For paid plans, validate payment fields
+            card_name = request.form.get('cardName')
+            card_number = request.form.get('cardNumber')
+            expiry_date = request.form.get('expiryDate')
+            cvv = request.form.get('cvv')
+            
+            # Validate required fields for paid plans
+            if not all([new_plan, card_name, card_number, expiry_date, cvv]):
+                flash('All payment fields are required', 'danger')
+                return redirect(url_for('client.upgrade_subscription'))
+        
+        # For free plans or demo purposes, we'll accept test payment data
+        if is_free_plan:
+            is_test_payment = True
+        else:
+            is_test_payment = (
+                'test' in card_name.lower() or 
+                card_number.replace(' ', '') == '4111111111111111' or
+                card_number.replace(' ', '') == '1234567890123456'
+            )
         
         if is_test_payment:
             # Simulate successful payment for test data
@@ -1621,7 +1638,10 @@ def process_upgrade(user):
             conn.commit()
             conn.close()
             
-            flash(f'Subscription successfully upgraded to {new_plan.title()}!', 'success')
+            if is_free_plan:
+                flash(f'Subscription successfully changed to {new_plan.title()}!', 'success')
+            else:
+                flash(f'Subscription successfully upgraded to {new_plan.title()}!', 'success')
             
             # Check if coming from scanner creation
             scanner_created = request.form.get('scanner_created') or request.args.get('scanner_created')
