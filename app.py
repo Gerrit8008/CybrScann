@@ -78,6 +78,14 @@ except ImportError as e:
     logger.error("Make sure all route files are properly created in the routes/ directory")
     raise
 
+# Import enhanced scan routes
+try:
+    from enhanced_scan_routes import enhanced_scan_bp
+    logger.info("✅ Enhanced scan routes imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Enhanced scan routes not available: {e}")
+    enhanced_scan_bp = None
+
 # Import existing blueprints
 try:
     from client import client_bp
@@ -150,6 +158,11 @@ def create_app():
     
     app.register_blueprint(admin_bp)
     logger.info("✅ Admin routes registered")
+    
+    # Register enhanced scan routes if available
+    if enhanced_scan_bp:
+        app.register_blueprint(enhanced_scan_bp)
+        logger.info("✅ Enhanced scan routes registered")
     
     # Register existing blueprints if available
     if client_bp:
