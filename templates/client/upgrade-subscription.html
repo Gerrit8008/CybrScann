@@ -140,7 +140,7 @@
         <!-- Pricing Plans -->
         <div class="row g-4">
             {% for plan_id, plan in plans.items() %}
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card plan-card h-100 {% if plan_id == current_plan %}current-plan{% elif plan_id == 'professional' %}recommended{% endif %}">
                     {% if plan_id == current_plan %}
                     <div class="current-badge">Current Plan</div>
@@ -150,8 +150,20 @@
                     
                     <div class="plan-header">
                         <h3>{{ plan.name }}</h3>
-                        <div class="plan-price">${{ plan.price }}</div>
-                        <small>per month</small>
+                        <div class="plan-price">
+                            {% if plan.price == 0 %}
+                                Free
+                            {% else %}
+                                ${{ plan.price }}
+                            {% endif %}
+                        </div>
+                        <small>
+                            {% if plan.price == 0 %}
+                                forever
+                            {% else %}
+                                per month
+                            {% endif %}
+                        </small>
                     </div>
                     
                     <div class="plan-features">
@@ -172,10 +184,17 @@
                                 <i class="bi bi-check-circle text-success me-2"></i>
                                 Email reports
                             </li>
+                            {% if plan.api_access %}
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
                                 API access
                             </li>
+                            {% else %}
+                            <li class="mb-2">
+                                <i class="bi bi-x-circle text-muted me-2"></i>
+                                No API access
+                            </li>
+                            {% endif %}
                             {% if plan_id in ['professional', 'enterprise'] %}
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
@@ -214,6 +233,17 @@
                                 <i class="bi bi-check-lg"></i> Current Plan
                             </button>
                             {% else %}
+                            {% if plan.price == 0 %}
+                            <form method="POST" action="/client/process-upgrade" style="display: inline;">
+                                <input type="hidden" name="plan" value="{{ plan_id }}">
+                                {% if scanner_created %}
+                                <input type="hidden" name="scanner_created" value="{{ scanner_created }}">
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-arrow-down"></i> Switch to {{ plan.name }}
+                                </button>
+                            </form>
+                            {% else %}
                             <button class="btn btn-primary" onclick="selectPlan('{{ plan_id }}', '{{ plan.name }}', {{ plan.price }})">
                                 {% if plans[plan_id].price > plans[current_plan].price %}
                                 <i class="bi bi-arrow-up"></i> Upgrade to {{ plan.name }}
@@ -221,6 +251,7 @@
                                 <i class="bi bi-arrow-down"></i> Downgrade to {{ plan.name }}
                                 {% endif %}
                             </button>
+                            {% endif %}
                             {% endif %}
                         </div>
                     </div>

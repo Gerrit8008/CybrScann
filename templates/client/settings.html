@@ -260,7 +260,32 @@
                                 </div>
                                 
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <div class="card h-100">
+                                            <div class="card-header text-center">
+                                                <h5>Basic</h5>
+                                                <h4 class="text-success">Free<span class="text-muted">/forever</span></h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="feature-list">
+                                                    <li>1 scanner</li>
+                                                    <li>10 scans per month</li>
+                                                    <li>Basic branding</li>
+                                                    <li>Email reports</li>
+                                                    <li>Community support</li>
+                                                    <li class="text-muted">No API access</li>
+                                                </ul>
+                                                <div class="text-center mt-3">
+                                                    {% if client.subscription_level == 'basic' %}
+                                                        <button class="btn btn-outline-success" disabled>Current Plan</button>
+                                                    {% else %}
+                                                        <a href="/client/billing/upgrade?plan=basic" class="btn btn-outline-primary">Switch to Basic</a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
                                         <div class="card h-100">
                                             <div class="card-header text-center">
                                                 <h5>Starter</h5>
@@ -286,7 +311,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card h-100 border-primary">
                                             <div class="card-header text-center bg-primary text-white">
                                                 <h5>Professional</h5>
@@ -315,7 +340,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card h-100">
                                             <div class="card-header text-center">
                                                 <h5>Enterprise</h5>
