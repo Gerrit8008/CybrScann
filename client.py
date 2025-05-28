@@ -513,6 +513,8 @@ def scanner_edit(user, scanner_id):
                 'primary_color': request.form.get('primary_color'),
                 'secondary_color': request.form.get('secondary_color'),
                 'button_color': request.form.get('button_color'),
+                'font_family': request.form.get('font_family', 'Inter'),
+                'color_style': request.form.get('color_style', 'gradient'),
                 'email_subject': request.form.get('email_subject'),
                 'email_intro': request.form.get('email_intro'),
                 'scanner_description': request.form.get('scanner_description'),
@@ -1411,6 +1413,30 @@ def scanner_create(user):
                     logger.error(f"Error uploading logo: {e}")
                     flash('Error uploading logo, but scanner will be created without it', 'warning')
             
+            # Handle favicon upload
+            favicon_url = None
+            if 'favicon_upload' in request.files and request.files['favicon_upload'].filename:
+                favicon_file = request.files['favicon_upload']
+                try:
+                    from werkzeug.utils import secure_filename
+                    import uuid
+                    
+                    # Create upload directory if it doesn't exist
+                    upload_dir = os.path.join('static', 'uploads')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Generate unique filename
+                    file_ext = os.path.splitext(favicon_file.filename)[1]
+                    filename = f"favicon_{client['id']}_{uuid.uuid4().hex[:8]}{file_ext}"
+                    file_path = os.path.join(upload_dir, filename)
+                    
+                    favicon_file.save(file_path)
+                    favicon_url = f'/static/uploads/{filename}'
+                    logger.info(f"Favicon uploaded successfully: {favicon_url}")
+                except Exception as e:
+                    logger.error(f"Error uploading favicon: {e}")
+                    flash('Error uploading favicon, but scanner will be created without it', 'warning')
+            
             # Get form data
             scanner_data = {
                 'name': request.form.get('scanner_name', '').strip(),
@@ -1420,9 +1446,11 @@ def scanner_create(user):
                 'contact_phone': request.form.get('contact_phone', '').strip(),
                 'primary_color': request.form.get('primary_color', '#02054c'),
                 'secondary_color': request.form.get('secondary_color', '#35a310'),
+                'button_color': request.form.get('button_color', '#28a745'),
                 'font_family': request.form.get('font_family', 'Inter'),
                 'color_style': request.form.get('color_style', 'gradient'),
                 'logo_url': logo_url or '',
+                'favicon_url': favicon_url or '',
                 'contact_email': request.form.get('contact_email', client['contact_email']),
                 'contact_phone': request.form.get('contact_phone', client.get('contact_phone', '')),
                 'email_subject': request.form.get('email_subject', 'Your Security Scan Report'),
