@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 """
-Update legacy plan names in the database to new plan structure
+Restore basic plans - convert any 'starter' plans back to 'basic' 
+since they were incorrectly converted by the legacy plan mapping
 """
 import sqlite3
 import os
 
-def update_legacy_plans():
-    """Update legacy plan names in clients database"""
+def restore_basic_plans():
+    """Restore all clients to basic plan as the default free tier"""
     # Main client database
-    databases_to_check = ['cybrscan.db', 'client_scanner.db']
-    
-    # Plan mapping - only map truly legacy plans, NOT basic
-    legacy_plan_mapping = {
-        'business': 'professional',
-        'pro': 'professional'
-    }
+    databases_to_check = ['client_scanner.db']
     
     for db_name in databases_to_check:
         if os.path.exists(db_name):
@@ -31,15 +26,13 @@ def update_legacy_plans():
                     current_plans = cursor.fetchall()
                     print(f"  Current plan distribution: {current_plans}")
                     
-                    # Update legacy plan names
-                    for old_plan, new_plan in legacy_plan_mapping.items():
-                        cursor.execute(
-                            "UPDATE clients SET subscription_level = ? WHERE subscription_level = ?",
-                            (new_plan, old_plan)
-                        )
-                        updated = cursor.rowcount
-                        if updated > 0:
-                            print(f"  ✅ Updated {updated} clients from '{old_plan}' to '{new_plan}'")
+                    # Convert all 'starter' plans back to 'basic' since they were incorrectly mapped
+                    cursor.execute(
+                        "UPDATE clients SET subscription_level = 'basic' WHERE subscription_level = 'starter'",
+                    )
+                    updated = cursor.rowcount
+                    if updated > 0:
+                        print(f"  ✅ Restored {updated} clients from 'starter' back to 'basic'")
                     
                     # Get updated plan distribution
                     cursor.execute("SELECT subscription_level, COUNT(*) FROM clients GROUP BY subscription_level")
@@ -59,6 +52,6 @@ def update_legacy_plans():
             print(f"  ⚠️  Database {db_name} not found")
 
 if __name__ == "__main__":
-    print("Updating legacy plan names...")
-    update_legacy_plans()
-    print("\nPlan update completed!")
+    print("Restoring basic plans...")
+    restore_basic_plans()
+    print("\nBasic plan restoration completed!")
