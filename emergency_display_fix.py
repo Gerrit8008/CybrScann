@@ -28,7 +28,7 @@ def fix_scan_results(scan_id, client_id):
     """
     try:
         # Construct database path
-        db_path = f"client_{client_id}_scans.db"
+        db_path = f"client_databases/client_{client_id}_scans.db"
         
         if not os.path.exists(db_path):
             logger.error(f"Database file not found: {db_path}")
@@ -265,7 +265,7 @@ def fix_latest_scan(client_id):
     """
     try:
         # Construct database path
-        db_path = f"client_{client_id}_scans.db"
+        db_path = f"client_databases/client_{client_id}_scans.db"
         
         if not os.path.exists(db_path):
             logger.error(f"Database file not found: {db_path}")
