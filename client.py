@@ -1472,8 +1472,13 @@ def scanner_create(user):
             result = create_scanner_for_client(client['id'], scanner_data, user['user_id'])
             
             if result.get('status') == 'success':
+                scanner_uid = result.get('scanner_uid')
                 flash(f'Scanner "{scanner_data["name"]}" created successfully!', 'success')
-                return redirect(url_for('client.scanners'))
+                if scanner_uid:
+                    # Redirect to the newly created scanner
+                    return redirect(f'/scanner/{scanner_uid}/embed')
+                else:
+                    return redirect(url_for('client.scanners'))
             else:
                 flash(f'Error creating scanner: {result.get("message", "Unknown error")}', 'danger')
                 return render_template('client/scanner-create.html', 
