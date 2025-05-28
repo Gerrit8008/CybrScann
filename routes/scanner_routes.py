@@ -111,7 +111,7 @@ def scanner_embed(scanner_uid):
             
             # Create client branding object using COALESCED final values
             client_branding = {
-                'business_name': scanner_data.get('business_name', ''),
+                'business_name': scanner_data.get('name', 'Security Scanner'),
                 'primary_color': scanner_data.get('final_primary_color', '#02054c'),
                 'secondary_color': scanner_data.get('final_secondary_color', '#35a310'),
                 'button_color': scanner_data.get('final_button_color', '#28a745'),

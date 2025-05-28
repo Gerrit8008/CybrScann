@@ -107,8 +107,17 @@
 
     <div class="container py-5">
         <div class="text-center mb-5">
+            {% if scanner_created %}
+            <h1><i class="bi bi-check-circle text-success me-2"></i>Scanner Created Successfully!</h1>
+            <p class="lead text-muted">Choose a subscription plan to unlock more features and scanners</p>
+            <div class="alert alert-success">
+                <i class="bi bi-info-circle me-2"></i>
+                Your scanner is ready! You can upgrade now or try it first with the current plan.
+            </div>
+            {% else %}
             <h1><i class="bi bi-rocket-takeoff me-2"></i>Upgrade Your Subscription</h1>
             <p class="lead text-muted">Choose a plan that fits your security scanning needs</p>
+            {% endif %}
         </div>
 
         <!-- Current Usage Info -->
@@ -206,6 +215,27 @@
             {% endfor %}
         </div>
 
+        <!-- Scanner Created Actions -->
+        {% if scanner_created %}
+        <div class="text-center my-5">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Ready to test your scanner?</h5>
+                    <p class="card-text">You can upgrade now for more features, or try your scanner first with the current plan.</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="/scanner/{{ scanner_created }}/embed" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>View My Scanner
+                        </a>
+                        <a href="/client/dashboard" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-skip-end me-2"></i>Skip for Now
+                        </a>
+                    </div>
+                    <small class="text-muted d-block mt-2">You can upgrade anytime from your dashboard</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Payment Section -->
         <div class="payment-section" id="paymentSection" style="display: none;">
             <h4><i class="bi bi-credit-card me-2"></i>Complete Your Upgrade</h4>
@@ -213,6 +243,9 @@
                 <div class="col-md-8">
                     <form id="upgradeForm" method="POST" action="/client/process-upgrade">
                         <input type="hidden" id="selectedPlan" name="plan" value="">
+                        {% if scanner_created %}
+                        <input type="hidden" name="scanner_created" value="{{ scanner_created }}">
+                        {% endif %}
                         
                         <div class="row mb-3">
                             <div class="col-md-6">
