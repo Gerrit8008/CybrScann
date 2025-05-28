@@ -176,20 +176,34 @@
                                 <i class="bi bi-check-circle text-success me-2"></i>
                                 API access
                             </li>
-                            {% if plan_id in ['business', 'enterprise'] %}
+                            {% if plan_id in ['professional', 'enterprise'] %}
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
                                 Priority support
                             </li>
                             {% endif %}
+                            {% if plan_id == 'professional' %}
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Advanced white-labeling
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                API access
+                            </li>
+                            {% endif %}
                             {% if plan_id == 'enterprise' %}
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
-                                White-label options
+                                Complete white-label options
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-check-circle text-success me-2"></i>
                                 Custom integrations
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                24/7 dedicated support
                             </li>
                             {% endif %}
                         </ul>
