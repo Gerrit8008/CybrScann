@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Comprehensive Security Scan{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Comprehensive Security Scan</h2>
+                    <p class="mb-0">Identify vulnerabilities across your network, web, and email security</p>
+                </div>
+                <div class="card-body">
+                    <form id="fixedScanForm" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if client_id %}
+                        <input type="hidden" name="client_id" value="{{ client_id }}">
+                        {% endif %}
+                        {% if scanner_id %}
+                        <input type="hidden" name="scanner_id" value="{{ scanner_id }}">
+                        {% endif %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h4>Your Information</h4>
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="company" class="form-label">Company Name</label>
+                                    <input type="text" class="form-control" id="company" name="company">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Target Information</h4>
+                                <div class="mb-3">
+                                    <label for="company_website" class="form-label">Website to Scan</label>
+                                    <input type="text" class="form-control" id="company_website" name="company_website" 
+                                           placeholder="example.com" required>
+                                    <div class="form-text">Enter the domain you want to scan (e.g., example.com)</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="industry" class="form-label">Industry</label>
+                                    <select class="form-select" id="industry" name="industry">
+                                        <option value="default">General Business</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="financial">Financial Services</option>
+                                        <option value="retail">Retail</option>
+                                        <option value="education">Education</option>
+                                        <option value="manufacturing">Manufacturing</option>
+                                        <option value="government">Government</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="company_size" class="form-label">Company Size</label>
+                                    <select class="form-select" id="company_size" name="company_size">
+                                        <option value="1-10">1-10 employees</option>
+                                        <option value="11-50">11-50 employees</option>
+                                        <option value="51-200">51-200 employees</option>
+                                        <option value="201-500">201-500 employees</option>
+                                        <option value="501-1000">501-1000 employees</option>
+                                        <option value="1000+">1000+ employees</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4>Scan Options</h4>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="network_scan" name="network_scan" checked>
+                                            <label class="form-check-label" for="network_scan">
+                                                Network Security
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="web_scan" name="web_scan" checked>
+                                            <label class="form-check-label" for="web_scan">
+                                                Web Security
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="email_scan" name="email_scan" checked>
+                                            <label class="form-check-label" for="email_scan">
+                                                Email Security
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="ssl_scan" name="ssl_scan" checked>
+                                            <label class="form-check-label" for="ssl_scan">
+                                                SSL/TLS Security
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="startScanBtn">
+                                        <i class="bi bi-shield-check me-2"></i>Start Security Scan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Progress Section (initially hidden) -->
+                    <div id="scanProgress" style="display: none;">
+                        <div class="text-center mb-4 mt-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h4 class="mt-3" id="progressTask">Initializing scan...</h4>
+                        </div>
+                        
+                        <div class="progress" style="height: 25px;">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-2">
+                            <span id="progressTime">Elapsed: 0s</span>
+                            <span id="progressPercentage">0%</span>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <span id="progressMessage">We're scanning your systems for security vulnerabilities. This may take a few minutes.</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Section (initially hidden) -->
+                    <div id="scanResults" style="display: none;">
+                        <div class="text-center mt-4 mb-4">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                            <h3 class="mt-3">Scan Completed!</h3>
+                            <p>Your security scan has completed successfully.</p>
+                            
+                            <div class="d-grid gap-2 col-md-8 mx-auto mt-4">
+                                <a href="#" id="viewReportBtn" class="btn btn-success btn-lg">
+                                    <i class="bi bi-file-earmark-text me-2"></i>View Detailed Report
+                                </a>
+                                <button id="newScanBtn" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-repeat me-2"></i>Run Another Scan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Section (initially hidden) -->
+                    <div id="scanError" style="display: none;">
+                        <div class="text-center mt-4 mb-4">
+                            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                            <h3 class="mt-3">Scan Error</h3>
+                            <p id="errorMessage">There was an error during the scan.</p>
+                            
+                            <div class="d-grid gap-2 col-md-8 mx-auto mt-4">
+                                <button id="tryAgainBtn" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-arrow-repeat me-2"></i>Try Again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const scanForm = document.getElementById('fixedScanForm');
+        const scanProgress = document.getElementById('scanProgress');
+        const scanResults = document.getElementById('scanResults');
+        const scanError = document.getElementById('scanError');
+        const progressBar = document.getElementById('progressBar');
+        const progressTask = document.getElementById('progressTask');
+        const progressTime = document.getElementById('progressTime');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressMessage = document.getElementById('progressMessage');
+        const viewReportBtn = document.getElementById('viewReportBtn');
+        const newScanBtn = document.getElementById('newScanBtn');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        let scanId = null;
+        let progressInterval = null;
+        let startTime = null;
+        
+        // Form submission
+        scanForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show progress section
+            scanForm.style.display = 'none';
+            scanProgress.style.display = 'block';
+            scanResults.style.display = 'none';
+            scanError.style.display = 'none';
+            
+            // Reset progress
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            progressTask.textContent = 'Initializing scan...';
+            
+            // Record start time
+            startTime = new Date();
+            
+            // Submit form data
+            const formData = new FormData(scanForm);
+            
+            fetch('/fixed-scan', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    scanId = data.scan_id;
+                    // Start progress polling
+                    startProgressPolling();
+                } else {
+                    // Show error
+                    showError(data.message || 'Failed to start scan');
+                }
+            })
+            .catch(error => {
+                showError('Error: ' + error.message);
+            });
+        });
+        
+        // Start progress polling
+        function startProgressPolling() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            
+            progressInterval = setInterval(checkProgress, 1000);
+        }
+        
+        // Check scan progress
+        function checkProgress() {
+            if (!scanId) return;
+            
+            fetch('/fixed-scan-progress/' + scanId)
+            .then(response => response.json())
+            .then(data => {
+                // Update progress UI
+                const progress = data.progress || 0;
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = progress + '%';
+                progressPercentage.textContent = progress + '%';
+                
+                if (data.task) {
+                    progressTask.textContent = data.task;
+                }
+                
+                // Update elapsed time
+                const elapsed = Math.floor((new Date() - startTime) / 1000);
+                progressTime.textContent = 'Elapsed: ' + formatTime(elapsed);
+                
+                // Update message based on progress
+                if (progress < 25) {
+                    progressMessage.textContent = 'We are analyzing your network security. This may take a few minutes.';
+                } else if (progress < 50) {
+                    progressMessage.textContent = 'Checking web security configuration and vulnerabilities...';
+                } else if (progress < 75) {
+                    progressMessage.textContent = 'Analyzing email security measures and DNS configurations...';
+                } else {
+                    progressMessage.textContent = 'Almost done! Finalizing security assessment and generating recommendations...';
+                }
+                
+                // Check if scan is complete or failed
+                if (data.status === 'completed') {
+                    clearInterval(progressInterval);
+                    showResults();
+                } else if (data.status === 'failed') {
+                    clearInterval(progressInterval);
+                    showError(data.task || 'Scan failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking progress:', error);
+            });
+        }
+        
+        // Format time in seconds to MM:SS
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return minutes + ':' + (remainingSeconds < 10 ? '0' : '') + remainingSeconds;
+        }
+        
+        // Show results section
+        function showResults() {
+            scanProgress.style.display = 'none';
+            scanResults.style.display = 'block';
+            
+            // Set report URL
+            viewReportBtn.href = '/scan-report/' + scanId;
+        }
+        
+        // Show error section
+        function showError(message) {
+            scanProgress.style.display = 'none';
+            scanError.style.display = 'block';
+            errorMessage.textContent = message;
+        }
+        
+        // New scan button
+        newScanBtn.addEventListener('click', function() {
+            scanForm.reset();
+            scanForm.style.display = 'block';
+            scanResults.style.display = 'none';
+        });
+        
+        // Try again button
+        tryAgainBtn.addEventListener('click', function() {
+            scanForm.style.display = 'block';
+            scanError.style.display = 'none';
+        });
+    });
+</script>
+{% endblock %}
