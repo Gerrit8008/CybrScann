@@ -97,9 +97,7 @@ def get_client_scan_limit(client):
     # Define plan limits
     plan_limits = {
         'starter': 50,
-        'basic': 100,
-        'professional': 250,
-        'business': 500,
+        'professional': 500,
         'enterprise': 1000
     }
     
@@ -115,10 +113,8 @@ def get_client_scanner_limit(client):
     # Define scanner limits
     scanner_limits = {
         'starter': 1,
-        'basic': 3,
-        'professional': 5,
-        'business': 10,
-        'enterprise': 25
+        'professional': 3,
+        'enterprise': 10
     }
     
     return scanner_limits.get(subscription_level, 1)
@@ -1515,11 +1511,9 @@ def upgrade_subscription(user):
         
         # Plan details with pricing
         plans = {
-            'starter': {'name': 'Starter', 'price': 29, 'scanners': 1, 'scans': 50},
-            'basic': {'name': 'Basic', 'price': 59, 'scanners': 3, 'scans': 100}, 
-            'professional': {'name': 'Professional', 'price': 129, 'scanners': 5, 'scans': 250},
-            'business': {'name': 'Business', 'price': 299, 'scanners': 10, 'scans': 500},
-            'enterprise': {'name': 'Enterprise', 'price': 599, 'scanners': 25, 'scans': 1000}
+            'starter': {'name': 'Starter', 'price': 59, 'scanners': 1, 'scans': 50},
+            'professional': {'name': 'Professional', 'price': 99, 'scanners': 3, 'scans': 500},
+            'enterprise': {'name': 'Enterprise', 'price': 149, 'scanners': 10, 'scans': 1000}
         }
         
         # Get current usage
