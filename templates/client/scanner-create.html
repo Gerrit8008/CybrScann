@@ -231,6 +231,34 @@
                                     <img id="logo_preview" class="file-preview">
                                 </div>
                             </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="font_family" class="form-label">Font Style</label>
+                                    <select class="form-select" id="font_family" name="font_family">
+                                        <option value="Inter" {{ 'selected' if form_data and form_data.font_family == 'Inter' else '' }}>Inter (Default)</option>
+                                        <option value="Arial" {{ 'selected' if form_data and form_data.font_family == 'Arial' else '' }}>Arial</option>
+                                        <option value="Helvetica" {{ 'selected' if form_data and form_data.font_family == 'Helvetica' else '' }}>Helvetica</option>
+                                        <option value="Georgia" {{ 'selected' if form_data and form_data.font_family == 'Georgia' else '' }}>Georgia</option>
+                                        <option value="Times New Roman" {{ 'selected' if form_data and form_data.font_family == 'Times New Roman' else '' }}>Times New Roman</option>
+                                        <option value="Roboto" {{ 'selected' if form_data and form_data.font_family == 'Roboto' else '' }}>Roboto</option>
+                                        <option value="Open Sans" {{ 'selected' if form_data and form_data.font_family == 'Open Sans' else '' }}>Open Sans</option>
+                                        <option value="Lato" {{ 'selected' if form_data and form_data.font_family == 'Lato' else '' }}>Lato</option>
+                                        <option value="Montserrat" {{ 'selected' if form_data and form_data.font_family == 'Montserrat' else '' }}>Montserrat</option>
+                                        <option value="Source Sans Pro" {{ 'selected' if form_data and form_data.font_family == 'Source Sans Pro' else '' }}>Source Sans Pro</option>
+                                    </select>
+                                    <div class="form-text">Choose the font for your scanner</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="color_style" class="form-label">Color Style</label>
+                                    <select class="form-select" id="color_style" name="color_style">
+                                        <option value="gradient" {{ 'selected' if form_data and form_data.color_style == 'gradient' else '' }}>Gradient Blend (Default)</option>
+                                        <option value="solid" {{ 'selected' if form_data and form_data.color_style == 'solid' else '' }}>Solid Colors</option>
+                                    </select>
+                                    <div class="form-text">How colors are applied</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -404,6 +432,15 @@
                     this.updatePreview();
                 });
                 
+                // Font and color style
+                document.getElementById('font_family').addEventListener('change', () => {
+                    this.updatePreview();
+                });
+                
+                document.getElementById('color_style').addEventListener('change', () => {
+                    this.updatePreview();
+                });
+                
                 // Scan options
                 document.querySelectorAll('input[name="scan_types[]"]').forEach(checkbox => {
                     checkbox.addEventListener('change', () => {
@@ -417,14 +454,27 @@
                 const secondaryColor = document.getElementById('secondary_color').value;
                 const scannerName = document.getElementById('scanner_name').value;
                 const domain = document.getElementById('domain').value;
+                const fontFamily = document.getElementById('font_family').value;
+                const colorStyle = document.getElementById('color_style').value;
                 
                 // Update CSS variables
                 document.documentElement.style.setProperty('--primary-color', primaryColor);
                 document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+                document.documentElement.style.setProperty('--font-family', fontFamily);
                 
-                // Update preview colors
-                document.querySelector('.scanner-preview').style.backgroundColor = secondaryColor;
-                document.querySelector('.preview-button').style.backgroundColor = primaryColor;
+                // Update font family
+                document.querySelector('.preview-content').style.fontFamily = fontFamily;
+                document.querySelector('.scanner-preview').style.fontFamily = fontFamily;
+                
+                // Update preview colors based on style
+                if (colorStyle === 'solid') {
+                    document.querySelector('.scanner-preview').style.background = secondaryColor;
+                    document.querySelector('.preview-button').style.background = primaryColor;
+                } else {
+                    // Gradient style (default)
+                    document.querySelector('.scanner-preview').style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                    document.querySelector('.preview-button').style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+                }
                 
                 // Update scanner name
                 if (!document.getElementById('logo_upload').files.length) {
