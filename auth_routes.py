@@ -108,7 +108,7 @@ def register():
                     'contact_email': email,
                     'contact_phone': '',
                     'scanner_name': f"{business_name}'s Scanner",
-                    'subscription_level': 'basic'
+                    'subscription_level': 'basic'  # Always default to basic plan for new registrations
                 }
                 
                 from auth_utils import register_client

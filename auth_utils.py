@@ -437,7 +437,7 @@ def register_client(user_id, business_data):
             business_data.get('contact_email'),
             business_data.get('contact_phone', ''),
             business_data.get('scanner_name', business_data.get('business_name') + ' Scanner'),
-            business_data.get('subscription_level', 'basic'),
+            'basic',  # Always default to basic plan for new registrations
             'active',
             now,
             api_key,
