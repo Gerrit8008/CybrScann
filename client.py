@@ -1475,8 +1475,8 @@ def scanner_create(user):
                 scanner_uid = result.get('scanner_uid')
                 flash(f'Scanner "{scanner_data["name"]}" created successfully!', 'success')
                 if scanner_uid:
-                    # Redirect to the newly created scanner
-                    return redirect(f'/scanner/{scanner_uid}/embed')
+                    # Redirect to package selection after scanner creation
+                    return redirect(url_for('client.upgrade_subscription', scanner_created=scanner_uid))
                 else:
                     return redirect(url_for('client.scanners'))
             else:
@@ -1528,12 +1528,16 @@ def upgrade_subscription(user):
         current_scanners = cursor.fetchone()[0]
         conn.close()
         
+        # Check if coming from scanner creation
+        scanner_created = request.args.get('scanner_created')
+        
         return render_template('client/upgrade-subscription.html',
                              user=user,
                              client=client,
                              current_plan=current_plan,
                              plans=plans,
-                             current_scanners=current_scanners)
+                             current_scanners=current_scanners,
+                             scanner_created=scanner_created)
         
     except Exception as e:
         logger.error(f"Error loading upgrade page: {str(e)}")
@@ -1589,7 +1593,14 @@ def process_upgrade(user):
             conn.close()
             
             flash(f'Subscription successfully upgraded to {new_plan.title()}!', 'success')
-            return redirect(url_for('client.dashboard'))
+            
+            # Check if coming from scanner creation
+            scanner_created = request.form.get('scanner_created') or request.args.get('scanner_created')
+            if scanner_created:
+                # Redirect to the newly created scanner
+                return redirect(f'/scanner/{scanner_created}/embed')
+            else:
+                return redirect(url_for('client.dashboard'))
         else:
             # In a real implementation, integrate with Stripe/PayPal here
             flash('Payment processing is currently in test mode. Please use test data.', 'info')
