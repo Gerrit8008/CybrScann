@@ -1,7 +1,7 @@
 # settings_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from client_db import get_db_connection
-from auth_utils import verify_session, generate_password_hash
+from auth_utils import verify_session, hash_password
 import sqlite3
 from datetime import datetime
 import os
