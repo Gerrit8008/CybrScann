@@ -35,6 +35,10 @@ def create_scanner_for_client(client_id, scanner_data, created_by_user_id):
         scan_types = ','.join(scanner_data.get('scan_types', ['port_scan', 'ssl_check']))
         
         # Insert into scanners table
+        # Ensure name doesn\'t have client 6 prefix
+        if "name" in scanner_data and isinstance(scanner_data["name"], str):
+            scanner_data["name"] = scanner_data["name"].replace("client 6", "").strip()
+        
         cursor.execute('''
         INSERT INTO scanners (
             client_id, scanner_id, name, description, domain, 
@@ -229,7 +233,7 @@ if __name__ == "__main__":
     
     # Test scanner creation
     test_scanner_data = {
-        'name': 'Test Scanner',
+        'name': scanner_data.get("name", "").replace("client 6", "").strip(),
         'description': 'A test scanner',
         'domain': 'test.com',
         'primary_color': '#02054c',
