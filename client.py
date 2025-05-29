@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import os
 import logging
 import json
+import re
 import time
 from datetime import datetime
 from functools import wraps
@@ -167,6 +168,36 @@ def process_scan_data(scan):
             if 'color' not in scan_data['risk_assessment'] and 'overall_score' in scan_data['risk_assessment']:
                 score = scan_data['risk_assessment']['overall_score']
                 scan_data['risk_assessment']['color'] = get_color_for_score(score)
+    
+    # Format risk levels for client-friendly display (from CybrScann-main)
+    if 'risk_assessment' in scan_data:
+        risk_level = scan_data['risk_assessment'].get('risk_level', 'Unknown')
+        if risk_level.lower() == 'critical':
+            scan_data['risk_color'] = 'danger'
+        elif risk_level.lower() == 'high':
+            scan_data['risk_color'] = 'warning'
+        elif risk_level.lower() == 'medium':
+            scan_data['risk_color'] = 'info'
+        else:
+            scan_data['risk_color'] = 'success'
+    
+    # Format dates for display (from CybrScann-main)
+    if 'timestamp' in scan_data:
+        try:
+            dt = datetime.fromisoformat(scan_data['timestamp'])
+            scan_data['formatted_date'] = dt.strftime('%B %d, %Y at %I:%M %p')
+        except:
+            pass
+    
+    # Add summary statistics (from CybrScann-main)
+    if 'risk_assessment' in scan_data:
+        risk_assessment = scan_data['risk_assessment']
+        scan_data['total_issues'] = (
+            risk_assessment.get('critical_issues', 0) +
+            risk_assessment.get('high_issues', 0) +
+            risk_assessment.get('medium_issues', 0) +
+            risk_assessment.get('low_issues', 0)
+        )
     
     return scan_data
 
@@ -1316,6 +1347,36 @@ def report_view(user, scan_id):
                     }
                 
                 logger.info(f"Enhanced scan data: findings={len(formatted_scan.get('findings', []))}, recommendations={len(formatted_scan.get('recommendations', []))}")
+        
+        # Format risk levels for client-friendly display (if not already done)
+        if 'risk_assessment' in formatted_scan and 'risk_color' not in formatted_scan:
+            risk_level = formatted_scan['risk_assessment'].get('risk_level', 'Unknown')
+            if risk_level.lower() == 'critical':
+                formatted_scan['risk_color'] = 'danger'
+            elif risk_level.lower() == 'high':
+                formatted_scan['risk_color'] = 'warning'
+            elif risk_level.lower() == 'medium':
+                formatted_scan['risk_color'] = 'info'
+            else:
+                formatted_scan['risk_color'] = 'success'
+        
+        # Format dates for display (if not already done)
+        if 'timestamp' in formatted_scan and 'formatted_date' not in formatted_scan:
+            try:
+                dt = datetime.fromisoformat(formatted_scan['timestamp'])
+                formatted_scan['formatted_date'] = dt.strftime('%B %d, %Y at %I:%M %p')
+            except:
+                pass
+        
+        # Add summary statistics (if not already done)
+        if 'risk_assessment' in formatted_scan and 'total_issues' not in formatted_scan:
+            risk_assessment = formatted_scan['risk_assessment']
+            formatted_scan['total_issues'] = (
+                risk_assessment.get('critical_issues', 0) +
+                risk_assessment.get('high_issues', 0) +
+                risk_assessment.get('medium_issues', 0) +
+                risk_assessment.get('low_issues', 0)
+            )
         
         return render_template(
             'results.html',
