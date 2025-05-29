@@ -8,7 +8,7 @@ import os
 import json
 
 # Define settings blueprint
-settings_bp = Blueprint('settings', __name__, url_prefix='/admin')
+scanner_bp = Blueprint('scanner', __name__, url_prefix='/scanner')
 
 # Middleware to require admin login
 def admin_required(f):
@@ -33,7 +33,7 @@ def admin_required(f):
     decorated_function.__doc__ = f.__doc__
     return decorated_function
 
-@settings_bp.route('/settings')
+@scanner_bp.route('/settings')
 @admin_required
 def settings_dashboard(user):
     """Settings dashboard"""
@@ -225,7 +225,7 @@ def settings_dashboard(user):
             backup_settings={}
         )
 
-@settings_bp.route('/settings/general', methods=['POST'])
+@scanner_bp.route('/settings/general', methods=['POST'])
 @admin_required
 def update_general_settings(user):
     """Update general system settings"""
@@ -293,7 +293,7 @@ def update_general_settings(user):
     finally:
         conn.close()
 
-@settings_bp.route('/settings/email', methods=['POST'])
+@scanner_bp.route('/settings/email', methods=['POST'])
 @admin_required
 def update_email_settings(user):
     """Update email settings"""
@@ -338,7 +338,7 @@ def update_email_settings(user):
     finally:
         conn.close()
 
-@settings_bp.route('/settings/api', methods=['POST'])
+@scanner_bp.route('/settings/api', methods=['POST'])
 @admin_required
 def update_api_settings(user):
     """Update API settings"""
@@ -389,7 +389,7 @@ def update_api_settings(user):
     finally:
         conn.close()
 
-@settings_bp.route('/settings/backup', methods=['POST'])
+@scanner_bp.route('/settings/backup', methods=['POST'])
 @admin_required
 def update_backup_settings(user):
     """Update backup settings"""
@@ -438,7 +438,7 @@ def update_backup_settings(user):
     finally:
         conn.close()
 
-@settings_bp.route('/settings/backup/run', methods=['POST'])
+@scanner_bp.route('/settings/backup/run', methods=['POST'])
 @admin_required
 def run_backup(user):
     """Run a manual database backup"""
@@ -505,7 +505,7 @@ def run_backup(user):
         if conn:
             conn.close()
 
-@settings_bp.route('/settings/password', methods=['POST'])
+@scanner_bp.route('/settings/password', methods=['POST'])
 @admin_required
 def update_password(user):
     """Update admin password"""
@@ -565,7 +565,7 @@ def update_password(user):
     finally:
         conn.close()
 
-@settings_bp.route('/settings/custom-code', methods=['POST'])
+@scanner_bp.route('/settings/custom-code', methods=['POST'])
 @admin_required
 def update_custom_code(user):
     """Update custom CSS and JavaScript"""
@@ -610,7 +610,7 @@ def update_custom_code(user):
     finally:
         conn.close()
 
-@settings_bp.route('/api/settings/system-info')
+@scanner_bp.route('/api/settings/system-info')
 @admin_required
 def api_system_info(user):
     """API endpoint to get system information"""
