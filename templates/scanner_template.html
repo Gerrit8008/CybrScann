@@ -4,10 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ client.scanner_name }}</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/scanner_styles.css') }}">
     {% if client.favicon_path %}
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     {% endif %}
+
+    <style>
+        :root {
+            --primary-color: {{ scanner.primary_color or '#02054c' }};
+            --secondary-color: {{ scanner.secondary_color or '#35a310' }};
+            --button-color: {{ scanner.button_color or '#28a745' }};
+            --font-family: {{ scanner.font_family or 'Inter, sans-serif' }};
+        }
+        
+        body {
+            font-family: var(--font-family);
+        }
+        
+        .primary-btn {
+            background-color: var(--button-color);
+        }
+        
+        header {
+            background-color: var(--primary-color);
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+    
 </head>
 <body>
     <header>
@@ -98,9 +125,9 @@
     </main>
     
     <footer>
-        <p>&copy; {{ year }} {{ client.business_name }} - Powered by Security Scanner Platform</p>
+        <p>&copy; {{ current_year or '2025' }} {{ client.business_name }} - Powered by Security Scanner Platform</p>
     </footer>
     
-    <script src="scanner.js"></script>
+    <script src="{{ url_for('static', filename='js/scanner_script.js') }}"></script>
 </body>
 </html>
