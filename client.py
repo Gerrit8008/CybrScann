@@ -1074,9 +1074,7 @@ def report_view(user, scan_id):
                 logger.error(traceback.format_exc())
         
         # Format scan data for template - preserve comprehensive scan data
-        # Apply processing to ensure all needed data is present
         formatted_scan = process_scan_data(scan)
-        formatted_scan = scan
         if scan and not scan.get('client_info'):
             # Check if this is from parsed_results (comprehensive) or raw database (minimal)
             if scan.get('parsed_results') and scan['parsed_results'].get('findings'):
