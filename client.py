@@ -30,6 +30,22 @@ from client_db import (
     get_db_connection
 )
 
+
+def get_color_for_score(score):
+    """Get appropriate color based on score"""
+    if score >= 90:
+        return '#28a745'  # green
+    elif score >= 80:
+        return '#5cb85c'  # light green
+    elif score >= 70:
+        return '#17a2b8'  # info blue
+    elif score >= 60:
+        return '#ffc107'  # warning yellow
+    elif score >= 50:
+        return '#fd7e14'  # orange
+    else:
+        return '#dc3545'  # red
+
 # Define client blueprint
 client_bp = Blueprint('client', __name__, url_prefix='/client')
 
@@ -1058,6 +1074,8 @@ def report_view(user, scan_id):
                 logger.error(traceback.format_exc())
         
         # Format scan data for template - preserve comprehensive scan data
+        # Apply processing to ensure all needed data is present
+        formatted_scan = process_scan_data(scan)
         formatted_scan = scan
         if scan and not scan.get('client_info'):
             # Check if this is from parsed_results (comprehensive) or raw database (minimal)
@@ -1099,7 +1117,7 @@ def report_view(user, scan_id):
                     formatted_scan['risk_assessment'] = {
                         'overall_score': scan.get('security_score', 75),
                         'risk_level': scan.get('risk_level', 'Medium'),
-                        'color': '#28a745' if scan.get('security_score', 75) > 75 else '#ffc107' if scan.get('security_score', 75) > 50 else '#dc3545',
+                        'color': get_color_for_score(scan.get('security_score', 75)),
                         'critical_issues': 0,
                         'high_issues': 1,
                         'medium_issues': 1,

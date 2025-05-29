@@ -64,6 +64,59 @@ class ScanProgressTracker:
         self.callbacks.append(callback)
 
 class FixedSecurityScanner:
+    def _detect_os_and_browser(self, user_agent):
+        """Detect OS and browser from user agent string"""
+        os_info = "Unknown"
+        browser_info = "Unknown"
+        
+        # Detect OS
+        if not user_agent:
+            return os_info, browser_info
+            
+        if "Windows" in user_agent:
+            if "Windows NT 10" in user_agent:
+                os_info = "Windows 10/11"
+            elif "Windows NT 6.3" in user_agent:
+                os_info = "Windows 8.1"
+            elif "Windows NT 6.2" in user_agent:
+                os_info = "Windows 8"
+            elif "Windows NT 6.1" in user_agent:
+                os_info = "Windows 7"
+            elif "Windows NT 6.0" in user_agent:
+                os_info = "Windows Vista"
+            elif "Windows NT 5.1" in user_agent:
+                os_info = "Windows XP"
+            else:
+                os_info = "Windows"
+        elif "Mac OS X" in user_agent:
+            if "iPhone" in user_agent or "iPad" in user_agent:
+                os_info = "iOS"
+            else:
+                os_info = "macOS"
+        elif "Linux" in user_agent:
+            if "Android" in user_agent:
+                os_info = "Android"
+            else:
+                os_info = "Linux"
+        elif "FreeBSD" in user_agent:
+            os_info = "FreeBSD"
+        
+        # Detect browser
+        if "Firefox/" in user_agent:
+            browser_info = "Firefox"
+        elif "Edge/" in user_agent or "Edg/" in user_agent:
+            browser_info = "Edge"
+        elif "Chrome/" in user_agent and "Chromium" not in user_agent and "Edge" not in user_agent and "Edg/" not in user_agent:
+            browser_info = "Chrome"
+        elif "Safari/" in user_agent and "Chrome" not in user_agent and "Edge" not in user_agent:
+            browser_info = "Safari"
+        elif "MSIE" in user_agent or "Trident/" in user_agent:
+            browser_info = "Internet Explorer"
+        elif "Opera/" in user_agent or "OPR/" in user_agent:
+            browser_info = "Opera"
+        
+        return os_info, browser_info
+
     def _calculate_risk_assessment(self, scan_results):
         """Calculate risk assessment based on scan results"""
         # Start with a base score of 100 and deduct points for issues
