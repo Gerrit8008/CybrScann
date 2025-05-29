@@ -127,10 +127,10 @@
                         <svg viewBox="0 0 120 120" class="gauge">
                             <circle class="gauge-background" r="54" cx="60" cy="60" stroke-width="12"></circle>
                             <circle class="gauge-value" r="54" cx="60" cy="60" stroke-width="12" 
-                                    style="stroke: {{ scan.risk_assessment.color }}; 
+                                    style="stroke: {{ scan.risk_assessment.color|default('#17a2b8') }}; 
                                            stroke-dasharray: {{ scan.risk_assessment.overall_score * 3.39 }} 339;"></circle>
                             <text class="gauge-text" x="60" y="60" text-anchor="middle" alignment-baseline="middle"
-                                  style="fill: {{ scan.risk_assessment.color }};">
+                                  style="fill: {{ scan.risk_assessment.color|default('#17a2b8') }};">
                                 {{ scan.risk_assessment.overall_score }}
                             </text>
                         </svg>
