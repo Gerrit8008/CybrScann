@@ -763,7 +763,8 @@ def scanner_embed(scanner_id):
             scanner=scanner,
             client=client,
             scan_data=scan_data,
-            standalone=True
+            standalone=True,
+            current_year=datetime.now().year
         )
         
     except Exception as e:
@@ -851,7 +852,8 @@ def scanner_embed(scanner_id):
             scanner=scanner,
             client=client,
             scan_data=scan_data,
-            standalone=True
+            standalone=True,
+            current_year=datetime.now().year
         )
         
     except Exception as e:
