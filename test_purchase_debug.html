@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Complete Purchase</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon.png.png">
+    <link rel="shortcut icon" href="/static/images/favicon.png.png">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .form-control { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .hidden { display: none; }
+        #log { background: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 4px; height: 300px; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <h1>Debug Complete Purchase Flow</h1>
+    
+    <form id="testForm" method="post" action="/customize">
+        <!-- Business fields -->
+        <h3>Business Information</h3>
+        <input type="text" class="form-control" name="business_name" placeholder="Business Name" value="Test Company">
+        <input type="text" class="form-control" name="business_domain" placeholder="Domain" value="testcompany.com">
+        <input type="email" class="form-control" name="contact_email" placeholder="Email" value="test@testcompany.com">
+        <input type="text" class="form-control" name="contact_phone" placeholder="Phone" value="555-1234">
+        
+        <h3>Scanner Configuration</h3>
+        <input type="text" class="form-control" name="scanner_name" placeholder="Scanner Name" value="Test Scanner">
+        <input type="color" class="form-control" name="primary_color" value="#02054c">
+        <input type="color" class="form-control" name="secondary_color" value="#35a310">
+        <select class="form-control" name="subscription">
+            <option value="basic">Basic Plan</option>
+            <option value="pro">Professional Plan</option>
+        </select>
+        
+        <h3>Payment Information</h3>
+        <input type="text" class="form-control" id="cardName" name="cardName" placeholder="Cardholder Name">
+        <input type="text" class="form-control" id="cardNumber" name="cardNumber" placeholder="Card Number" maxlength="19">
+        <input type="text" class="form-control" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5">
+        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="CVV" maxlength="3">
+        <label><input type="checkbox" id="termsAgree" name="termsAgree"> I agree to terms</label>
+        
+        <!-- Hidden fields -->
+        <input type="hidden" id="paymentProcessed" name="payment_processed" value="0">
+        
+        <br><br>
+        <button type="button" class="btn btn-info" id="fillTestData">Use Test Data</button>
+        <button type="submit" class="btn btn-primary" id="submitButton">Complete Purchase</button>
+    </form>
+    
+    <h3>Debug Log</h3>
+    <div id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${message}<br>`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Test data functionality
+        function validateStep4() {
+            addLog('🔍 Starting payment validation...');
+            
+            const cardName = document.getElementById('cardName');
+            const cardNumber = document.getElementById('cardNumber');
+            const expiryDate = document.getElementById('expiryDate');
+            const cvv = document.getElementById('cvv');
+            const termsAgree = document.getElementById('termsAgree');
+            
+            // Allow test data for demonstration purposes
+            const testCardNumbers = ['4111111111111111', '4111 1111 1111 1111', '1234 5678 9012 3456', '1234567890123456'];
+            const isTestMode = testCardNumbers.includes(cardNumber.value.replace(/\s/g, '')) || 
+                             cardName.value.toLowerCase().includes('test') ||
+                             cardName.value.toLowerCase().includes('demo');
+            
+            addLog(`📝 Current values: Name="${cardName.value}", Number="${cardNumber.value}", Expiry="${expiryDate.value}", CVV="${cvv.value}", Terms=${termsAgree.checked}`);
+            
+            if (!cardName.value) {
+                cardName.value = 'Test User';
+                addLog('✏️ Auto-filled test card name');
+            }
+            
+            if (!cardNumber.value) {
+                cardNumber.value = '4111 1111 1111 1111';
+                addLog('✏️ Auto-filled test card number');
+            }
+            
+            if (!expiryDate.value) {
+                const futureDate = new Date();
+                futureDate.setFullYear(futureDate.getFullYear() + 2);
+                const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+                const year = String(futureDate.getFullYear()).slice(-2);
+                expiryDate.value = month + '/' + year;
+                addLog('✏️ Auto-filled test expiry date');
+            }
+            
+            if (!cvv.value) {
+                cvv.value = '123';
+                addLog('✏️ Auto-filled test CVV');
+            }
+            
+            if (!termsAgree.checked) {
+                addLog('❌ Terms not agreed - validation failed');
+                alert('Please agree to the terms and conditions to continue');
+                termsAgree.focus();
+                return false;
+            }
+            
+            if (isTestMode || cardName.value === 'Test User') {
+                addLog('🧪 Test mode detected - proceeding with demo payment');
+            }
+            
+            addLog('✅ Payment validation passed!');
+            return true;
+        }
+
+        // Test data button
+        document.getElementById('fillTestData').addEventListener('click', function() {
+            addLog('🔧 Filling test payment data...');
+            
+            document.getElementById('cardName').value = 'Test User';
+            document.getElementById('cardNumber').value = '4111 1111 1111 1111';
+            
+            const futureDate = new Date();
+            futureDate.setFullYear(futureDate.getFullYear() + 2);
+            const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+            const year = String(futureDate.getFullYear()).slice(-2);
+            document.getElementById('expiryDate').value = month + '/' + year;
+            
+            document.getElementById('cvv').value = '123';
+            document.getElementById('termsAgree').checked = true;
+            
+            addLog('✅ Test payment data filled successfully');
+        });
+
+        // Form submission handler
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            addLog('🚀 Form submission started...');
+            
+            if (!validateStep4()) {
+                addLog('❌ Validation failed - preventing submission');
+                e.preventDefault();
+                return false;
+            }
+            
+            // Set payment processed flag
+            document.getElementById('paymentProcessed').value = '1';
+            addLog('🏷️ Set payment_processed flag to 1');
+            
+            addLog('📤 Form validation passed - submitting to /customize...');
+            addLog('📝 Form data being submitted:');
+            
+            const formData = new FormData(this);
+            for (let [key, value] of formData.entries()) {
+                addLog(`   ${key}: ${value}`);
+            }
+            
+            // For testing, prevent actual submission and show what would happen
+            e.preventDefault();
+            addLog('🛑 Form submission prevented for testing - but validation passed!');
+            addLog('✅ In real environment, this would submit to /customize and redirect to /scan');
+            
+            return false;
+        });
+
+        // Card number formatting
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
+            }
+            this.value = value;
+        });
+
+        // Expiry date formatting
+        document.getElementById('expiryDate').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            this.value = value;
+        });
+
+        // CVV formatting
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '').substring(0, 3);
+        });
+
+        addLog('🎯 Debug page loaded - Ready to test Complete Purchase flow');
+    </script>
+</body>
+</html>

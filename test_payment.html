@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Payment Form</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon.png.png">
+    <link rel="shortcut icon" href="/static/images/favicon.png.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .alert {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Payment Form</h1>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label for="cardName">Cardholder Name:</label>
+            <input type="text" id="cardName" name="cardName">
+        </div>
+        
+        <div class="form-group">
+            <label for="cardNumber">Card Number:</label>
+            <input type="text" id="cardNumber" name="cardNumber" maxlength="19">
+        </div>
+        
+        <div class="form-group">
+            <label for="expiryDate">Expiry Date (MM/YY):</label>
+            <input type="text" id="expiryDate" name="expiryDate" maxlength="5">
+        </div>
+        
+        <div class="form-group">
+            <label for="cvv">CVV:</label>
+            <input type="text" id="cvv" name="cvv" maxlength="3">
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="termsAgree" name="termsAgree">
+                I agree to the terms and conditions
+            </label>
+        </div>
+        
+        <button type="button" class="btn-info" id="fillTestData">Use Test Data</button>
+        <button type="submit" class="btn-primary" id="submitButton">Complete Purchase</button>
+    </form>
+    
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        // Payment validation function (copied from customization-form.html)
+        function validateStep4() {
+            const cardName = document.getElementById('cardName');
+            const cardNumber = document.getElementById('cardNumber');
+            const expiryDate = document.getElementById('expiryDate');
+            const cvv = document.getElementById('cvv');
+            const termsAgree = document.getElementById('termsAgree');
+            
+            // Allow test data for demonstration purposes
+            const testCardNumbers = ['4111111111111111', '4111 1111 1111 1111', '1234 5678 9012 3456', '1234567890123456'];
+            const isTestMode = testCardNumbers.includes(cardNumber.value.replace(/\s/g, '')) || 
+                             cardName.value.toLowerCase().includes('test') ||
+                             cardName.value.toLowerCase().includes('demo');
+            
+            if (!cardName.value) {
+                // Auto-fill test data if empty
+                cardName.value = 'Test User';
+                console.log('Auto-filled test card name');
+            }
+            
+            if (!cardNumber.value) {
+                // Auto-fill test card number if empty
+                cardNumber.value = '4111 1111 1111 1111';
+                console.log('Auto-filled test card number');
+            }
+            
+            if (!expiryDate.value) {
+                // Auto-fill test expiry date if empty
+                const futureDate = new Date();
+                futureDate.setFullYear(futureDate.getFullYear() + 2);
+                const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+                const year = String(futureDate.getFullYear()).slice(-2);
+                expiryDate.value = month + '/' + year;
+                console.log('Auto-filled test expiry date');
+            }
+            
+            if (!cvv.value) {
+                // Auto-fill test CVV if empty
+                cvv.value = '123';
+                console.log('Auto-filled test CVV');
+            }
+            
+            if (!termsAgree.checked) {
+                alert('Please agree to the terms and conditions to continue');
+                termsAgree.focus();
+                return false;
+            }
+            
+            // Show test mode notice
+            if (isTestMode || cardName.value === 'Test User') {
+                console.log('Test mode detected - proceeding with demo payment');
+            }
+            
+            return true;
+        }
+
+        // Test data button handler
+        const fillTestDataBtn = document.getElementById('fillTestData');
+        fillTestDataBtn.addEventListener('click', function() {
+            console.log('Filling test payment data...');
+            
+            // Fill test payment information
+            document.getElementById('cardName').value = 'Test User';
+            document.getElementById('cardNumber').value = '4111 1111 1111 1111';
+            
+            // Set expiry date to 2 years from now
+            const futureDate = new Date();
+            futureDate.setFullYear(futureDate.getFullYear() + 2);
+            const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+            const year = String(futureDate.getFullYear()).slice(-2);
+            document.getElementById('expiryDate').value = month + '/' + year;
+            
+            document.getElementById('cvv').value = '123';
+            
+            // Check terms and conditions
+            document.getElementById('termsAgree').checked = true;
+            
+            // Show success message
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Test Data Filled!';
+            btn.className = 'btn-success';
+            
+            setTimeout(function() {
+                btn.innerHTML = originalText;
+                btn.className = 'btn-info';
+            }, 2000);
+            
+            console.log('Test payment data filled successfully');
+        });
+
+        // Form submission handler
+        const form = document.getElementById('testForm');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateStep4()) {
+                document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Payment validation passed! Form would submit successfully.</div>';
+                console.log('Form validation passed - would submit to /customize');
+            } else {
+                document.getElementById('result').innerHTML = '<div class="alert alert-danger">✗ Payment validation failed!</div>';
+            }
+        });
+
+        // Credit card input formatting
+        const cardNumber = document.getElementById('cardNumber');
+        cardNumber.addEventListener('input', function(e) {
+            // Remove non-digit characters
+            let value = this.value.replace(/\D/g, '');
+            
+            // Add a space after every 4 digits
+            if (value.length > 0) {
+                value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
+            }
+            
+            // Update the input value
+            this.value = value;
+        });
+
+        // Expiry date formatting
+        const expiryDate = document.getElementById('expiryDate');
+        expiryDate.addEventListener('input', function(e) {
+            // Remove non-digit characters
+            let value = this.value.replace(/\D/g, '');
+            
+            // Add a slash after the month
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            
+            // Update the input value
+            this.value = value;
+        });
+
+        // CVV formatting
+        const cvv = document.getElementById('cvv');
+        cvv.addEventListener('input', function(e) {
+            // Remove non-digit characters and limit length
+            this.value = this.value.replace(/\D/g, '').substring(0, 3);
+        });
+    </script>
+</body>
+</html>
