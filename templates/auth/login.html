@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Security Scanner</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon.png.png">
+    <link rel="shortcut icon" href="/static/images/favicon.png.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* Additional login page styles that won't affect functionality */
+        .login-container {
+            animation: fadeIn 0.5s ease-in;
+            border-top: 4px solid var(--primary-color);
+            text-align: center;
+        }
+        
+        .logo-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo {
+            max-width: 150px;
+            height: auto;
+            margin: 0 auto 1rem;
+        }
+        
+        .login-container h2 {
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .login-form {
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        
+        .login-container .form-group {
+            text-align: left;
+            margin-bottom: 1.25rem;
+        }
+        
+        .login-container .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+            color: var(--secondary-color);
+        }
+        
+        .login-container .form-control {
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+        
+        .login-container .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 0, 0.2);
+            outline: none;
+        }
+        
+        .login-container .btn {
+            margin-top: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 3px 6px rgba(255, 105, 0, 0.25);
+            width: 100%;
+        }
+        
+        .login-container .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(255, 105, 0, 0.3);
+        }
+        
+        .register-link a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .register-link a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        /* Alert enhancement */
+        .alert {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease-in;
+            max-width: 320px;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .remember-me-container {
+            display: flex;
+            align-items: center;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .remember-me-container input {
+            margin-right: 0.5rem;
+        }
+        
+        .remember-me-container label {
+            display: flex !important;
+            align-items: center;
+            margin: 0 !important;
+            font-weight: normal !important;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwIiB5PSIzMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmaWxsPSIjRkY2OTAwIj5TZWN1cml0eSBTY2FubmVyPC90ZXh0Pjwvc3ZnPg==';">
+        </div>
+        
+        <h2>{{ role|default('User') }} Login</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="post" action="{{ url_for('auth.login') }}" class="login-form">
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="username">Username or Email</label>
+                <input type="text" id="username" name="username" class="form-control" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="form-group remember-me-container">
+                <label>
+                    <input type="checkbox" name="remember"> Remember me
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn">Login</button>
+            </div>
+        </form>
+        
+        <div class="register-link">
+            <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+        </div>
+    </div>
+</body>
+</html>

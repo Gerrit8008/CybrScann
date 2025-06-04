@@ -1,0 +1,199 @@
+<!-- Subscription Options during Scanner Creation - All 4 tiers -->
+<div class="row g-4">
+    <!-- Basic Plan -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center">
+                <h5 class="plan-name">Basic</h5>
+                <div class="price">Free<span class="price-period">/forever</span></div>
+                <p class="plan-description">Perfect for trying out our platform</p>
+            </div>
+            <div class="card-body">
+                <ul class="features-list">
+                    <li><i class="bi bi-check-circle-fill"></i>1 scanner</li>
+                    <li><i class="bi bi-check-circle-fill"></i>10 scans per month</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Basic branding</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Email reports</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Community support</li>
+                    <li><i class="bi bi-x-circle-fill text-muted"></i><span class="text-muted">No API access</span></li>
+                </ul>
+                <div class="text-center mt-auto">
+                    <a href="/auth/register?plan=basic" class="btn btn-outline-primary btn-pricing">Get Started Free</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Starter Plan -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center">
+                <h5 class="plan-name">Starter</h5>
+                <div class="price">$59<span class="price-period">/month</span></div>
+                <p class="plan-description">Perfect for small MSPs getting started</p>
+            </div>
+            <div class="card-body">
+                <ul class="features-list">
+                    <li><i class="bi bi-check-circle-fill"></i>1 scanner</li>
+                    <li><i class="bi bi-check-circle-fill"></i>50 scans per month</li>
+                    <li><i class="bi bi-check-circle-fill"></i>White-label branding</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Basic reporting</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Email support</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Client portal access</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Basic integrations</li>
+                </ul>
+                <div class="text-center mt-auto">
+                    <a href="/auth/register?plan=starter" class="btn btn-outline-primary btn-pricing">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Plan -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 border-primary featured">
+            <div class="popular-badge">Most Popular</div>
+            <div class="card-header text-center bg-primary text-white">
+                <h5 class="plan-name">Professional</h5>
+                <div class="price">$99<span class="price-period">/month</span></div>
+                <p class="plan-description">Ideal for growing MSPs</p>
+            </div>
+            <div class="card-body">
+                <ul class="features-list">
+                    <li><i class="bi bi-check-circle-fill"></i>3 scanners</li>
+                    <li><i class="bi bi-check-circle-fill"></i>500 scans per month</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Advanced white-labeling</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Professional reporting</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Priority phone support</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Advanced client portal</li>
+                    <li><i class="bi bi-check-circle-fill"></i>API access</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Custom integrations</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Scheduled scanning</li>
+                </ul>
+                <div class="text-center mt-auto">
+                    <a href="/auth/register?plan=professional" class="btn btn-light btn-pricing">Start Free Trial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enterprise Plan -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center">
+                <h5 class="plan-name">Enterprise</h5>
+                <div class="price">$149<span class="price-period">/month</span></div>
+                <p class="plan-description">For large MSPs and enterprises</p>
+            </div>
+            <div class="card-body">
+                <ul class="features-list">
+                    <li><i class="bi bi-check-circle-fill"></i>10 scanners</li>
+                    <li><i class="bi bi-check-circle-fill"></i>1000 scans per month</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Complete white-labeling</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Executive reporting</li>
+                    <li><i class="bi bi-check-circle-fill"></i>24/7 dedicated support</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Multi-tenant management</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Full API access</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Custom development</li>
+                    <li><i class="bi bi-check-circle-fill"></i>SLA guarantees</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Training & onboarding</li>
+                </ul>
+                <div class="text-center mt-auto">
+                    <a href="/contact?plan=enterprise" class="btn btn-outline-primary btn-pricing">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Card Styles -->
+<style>
+.pricing-cards .card {
+    border: 1px solid #dee2e6;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-cards .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(26, 35, 126, 0.15);
+}
+
+.pricing-cards .card.featured {
+    transform: scale(1.05);
+    border-color: var(--primary-color);
+}
+
+.pricing-cards .card.featured:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.pricing-cards .plan-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-cards .plan-description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 0;
+}
+
+.pricing-cards .price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    margin: 0.5rem 0;
+}
+
+.pricing-cards .card.featured .price {
+    color: var(--accent-green);
+}
+
+.pricing-cards .price-period {
+    font-size: 1rem;
+    opacity: 0.7;
+}
+
+.pricing-cards .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.pricing-cards .features-list li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+}
+
+.pricing-cards .features-list li i {
+    color: var(--accent-green);
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.pricing-cards .btn-pricing {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.pricing-cards .popular-badge {
+    position: absolute;
+    top: 20px;
+    right: -35px;
+    background: var(--accent-green);
+    color: var(--primary-color);
+    padding: 5px 40px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transform: rotate(45deg);
+    text-transform: uppercase;
+    z-index: 10;
+}
+</style>
