@@ -1,0 +1,268 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+/* Variables */
+:root {
+    --primary-color: #ff0000;
+    --secondary-color: #00ff00;
+    --light-color: #ffffff;
+    --dark-color: #333333;
+    --gray-color: #f0f0f0;
+    --border-color: #e0e0e0;
+    --text-color: #333333;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+}
+
+/* Layout */
+header {
+    background-color: var(--light-color);
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+section {
+    background-color: var(--light-color);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+footer {
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+/* Logo */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    max-height: 50px;
+    max-width: 200px;
+}
+
+/* Navigation */
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin-left: 1.5rem;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    padding: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    color: var(--primary-color);
+}
+
+nav ul li a.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* Form Elements */
+input[type="text"] {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(255, 105, 0, 0.1);
+}
+
+/* Buttons */
+.primary-btn, .secondary-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: var(--primary-color);
+    opacity: 0.9;
+}
+
+.secondary-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    margin-right: 1rem;
+}
+
+.secondary-btn:hover {
+    background-color: var(--secondary-color);
+    opacity: 0.9;
+}
+
+/* Scanner Specific */
+.scan-form {
+    margin-top: 1rem;
+}
+
+.scan-options {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--gray-color);
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.options-grid label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.options-grid input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Results */
+.results-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: var(--gray-color);
+    border-radius: 4px;
+}
+
+.summary-item {
+    text-align: center;
+}
+
+.score {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.issues span {
+    margin-right: 1rem;
+    font-weight: bold;
+}
+
+#critical-issues {
+    color: #e74c3c;
+}
+
+#warning-issues {
+    color: #f39c12;
+}
+
+#info-issues {
+    color: #3498db;
+}
+
+.results-details {
+    margin-bottom: 2rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+    }
+    
+    nav ul {
+        margin-top: 1rem;
+    }
+    
+    nav ul li {
+        margin: 0 0.75rem;
+    }
+    
+    .results-summary {
+        flex-direction: column;
+    }
+    
+    .summary-item {
+        margin-bottom: 1rem;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .secondary-btn {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}

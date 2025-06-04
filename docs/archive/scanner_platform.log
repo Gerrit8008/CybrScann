@@ -1,0 +1,379 @@
+2025-05-22 16:00:45,536 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:00:45,549 - root - INFO - Schema executed successfully
+2025-05-22 16:00:45,549 - root - INFO - Users table doesn't exist yet - skipping column check
+2025-05-22 16:00:45,549 - root - INFO - Database initialization completed
+2025-05-22 16:36:18,922 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:36:18,934 - root - INFO - Schema executed successfully
+2025-05-22 16:36:18,935 - root - INFO - Database initialization completed
+2025-05-22 16:42:16,148 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:42:16,161 - root - INFO - Schema executed successfully
+2025-05-22 16:42:16,161 - root - INFO - Database initialization completed
+2025-05-22 16:42:16,161 - __main__ - ERROR - Error getting admin reports: no such table: scan_history
+2025-05-22 16:42:16,161 - __main__ - INFO - ✅ Admin database functions patched successfully
+2025-05-22 16:43:06,186 - root - INFO - Initializing database from schema.sql...
+2025-05-22 16:43:06,198 - root - INFO - Schema executed successfully
+2025-05-22 16:43:06,198 - root - INFO - Database initialization completed
+2025-05-22 16:43:06,198 - admin_db_functions - ERROR - Error getting admin reports: no such table: scan_history
+2025-05-22 16:43:06,199 - admin_db_functions - INFO - Admin settings updated: {'test': 'value'}
+2025-05-22 21:13:19,770 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:13:19,787 - root - INFO - Schema executed successfully
+2025-05-22 21:13:19,788 - root - INFO - Database initialization completed
+2025-05-22 21:13:19,789 - scanner_db_functions - ERROR - Error creating scanner: no such table: scanners
+2025-05-22 21:13:46,732 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:13:46,762 - root - INFO - Schema executed successfully
+2025-05-22 21:13:46,763 - root - INFO - Database initialization completed
+2025-05-22 21:13:51,418 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:13:51,431 - root - INFO - Schema executed successfully
+2025-05-22 21:13:51,431 - root - INFO - Database initialization completed
+2025-05-22 21:13:51,438 - scanner_db_functions - INFO - Scanner 'Test Client Scanner' created successfully for client 1
+2025-05-22 21:35:20,573 - root - INFO - Initializing database from schema.sql...
+2025-05-22 21:35:20,590 - root - INFO - Schema executed successfully
+2025-05-22 21:35:20,591 - root - INFO - Database initialization completed
+2025-05-22 21:35:20,591 - scanner_db_functions - INFO - ✅ Scanner database functions patched successfully
+2025-05-22 21:35:20,592 - fix_auth - INFO - Database tables verified
+2025-05-22 21:35:20,592 - fix_auth - INFO - Database tables verified
+2025-05-22 21:35:20,622 - fix_auth - INFO - Updated existing admin user
+2025-05-22 21:35:20,627 - fix_auth - INFO - Admin user created/updated successfully
+2025-05-22 21:35:20,627 - fix_auth - INFO - Authentication fix applied successfully
+2025-05-22 21:35:20,662 - root - INFO - Created user: customizetest with role: client
+2025-05-22 21:35:20,675 - scanner_db_functions - INFO - Scanner 'Customize Route Test Scanner' created successfully for client 7
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated HTML files for scanner scanner_3b720d2e
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-22 21:35:20,678 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-23 08:25:26,737 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:25:26,760 - root - INFO - Schema executed successfully
+2025-05-23 08:25:26,760 - root - INFO - Database initialization completed
+2025-05-23 08:26:13,915 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:26:13,928 - root - INFO - Schema executed successfully
+2025-05-23 08:26:13,929 - root - INFO - Database initialization completed
+2025-05-23 08:34:59,908 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:34:59,923 - root - INFO - Schema executed successfully
+2025-05-23 08:34:59,924 - root - INFO - Database initialization completed
+2025-05-23 08:35:24,313 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:35:24,327 - root - INFO - Schema executed successfully
+2025-05-23 08:35:24,327 - root - INFO - Database initialization completed
+2025-05-23 08:35:24,327 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:35:24,345 - root - INFO - Schema executed successfully
+2025-05-23 08:35:24,346 - root - INFO - Database initialization completed
+2025-05-23 08:37:49,113 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:37:49,123 - root - INFO - Schema executed successfully
+2025-05-23 08:37:49,124 - root - INFO - Database initialization completed
+2025-05-23 08:37:49,124 - scanner_db_functions - INFO - ✅ Scanner database functions patched successfully
+2025-05-23 08:47:19,940 - root - INFO - Initializing database from schema.sql...
+2025-05-23 08:47:19,954 - root - INFO - Schema executed successfully
+2025-05-23 08:47:19,954 - root - INFO - Database initialization completed
+2025-05-23 08:47:19,959 - scanner_db_functions - INFO - Scanner 'Test Client Scanner' created successfully for client 1
+2025-05-23 09:03:59,465 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:03:59,482 - root - INFO - Schema executed successfully
+2025-05-23 09:03:59,482 - root - INFO - Database initialization completed
+2025-05-23 09:03:59,482 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:03:59,504 - root - INFO - Schema executed successfully
+2025-05-23 09:03:59,504 - root - INFO - Users table doesn't exist yet - skipping column check
+2025-05-23 09:03:59,504 - root - INFO - Database initialization completed
+2025-05-23 09:16:59,365 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:16:59,374 - root - INFO - Schema executed successfully
+2025-05-23 09:16:59,374 - root - INFO - Database initialization completed
+2025-05-23 09:17:23,412 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:17:23,422 - root - INFO - Schema executed successfully
+2025-05-23 09:17:23,422 - root - INFO - Database initialization completed
+2025-05-23 09:17:37,972 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:17:37,982 - root - INFO - Schema executed successfully
+2025-05-23 09:17:37,983 - root - INFO - Database initialization completed
+2025-05-23 09:18:43,269 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:18:43,282 - root - INFO - Schema executed successfully
+2025-05-23 09:18:43,282 - root - INFO - Database initialization completed
+2025-05-23 09:18:43,283 - fix_auth - INFO - Database tables verified
+2025-05-23 09:18:43,283 - fix_auth - INFO - Database tables verified
+2025-05-23 09:18:43,308 - fix_auth - INFO - Updated existing admin user
+2025-05-23 09:18:43,317 - fix_auth - INFO - Admin user created/updated successfully
+2025-05-23 09:18:43,317 - fix_auth - INFO - Authentication fix applied successfully
+2025-05-23 09:18:43,350 - root - INFO - Created user: debug_34d070d4 with role: client
+2025-05-23 09:18:43,357 - scanner_db_functions - INFO - ✅ Scanner database functions patched successfully
+2025-05-23 09:18:43,363 - scanner_db_functions - INFO - Scanner 'Debug Test Scanner' created successfully for client 4
+2025-05-23 09:19:34,455 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:19:34,469 - root - INFO - Schema executed successfully
+2025-05-23 09:19:34,469 - root - INFO - Database initialization completed
+2025-05-23 09:20:08,414 - root - INFO - Initializing database from schema.sql...
+2025-05-23 09:20:08,423 - root - INFO - Schema executed successfully
+2025-05-23 09:20:08,423 - root - INFO - Database initialization completed
+2025-05-23 10:07:30,324 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:07:30,336 - root - INFO - Schema executed successfully
+2025-05-23 10:07:30,337 - root - INFO - Database initialization completed
+2025-05-23 10:07:57,972 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:07:57,982 - root - INFO - Schema executed successfully
+2025-05-23 10:07:57,983 - root - INFO - Database initialization completed
+2025-05-23 10:08:21,545 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:08:21,556 - root - INFO - Schema executed successfully
+2025-05-23 10:08:21,557 - root - INFO - Database initialization completed
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-23 10:08:21,563 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-23 10:12:57,156 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:12:57,166 - root - INFO - Schema executed successfully
+2025-05-23 10:12:57,166 - root - INFO - Database initialization completed
+2025-05-23 10:13:46,923 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:13:46,936 - root - INFO - Schema executed successfully
+2025-05-23 10:13:46,937 - root - INFO - Database initialization completed
+2025-05-23 10:26:11,577 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:26:11,592 - root - INFO - Schema executed successfully
+2025-05-23 10:26:11,593 - root - INFO - Database initialization completed
+2025-05-23 10:26:25,417 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:26:25,426 - root - INFO - Schema executed successfully
+2025-05-23 10:26:25,427 - root - INFO - Database initialization completed
+2025-05-23 10:54:59,912 - root - INFO - Initializing database from schema.sql...
+2025-05-23 10:54:59,927 - root - INFO - Schema executed successfully
+2025-05-23 10:54:59,927 - root - INFO - Database initialization completed
+2025-05-24 13:18:49,429 - root - INFO - Initializing database from schema.sql...
+2025-05-24 13:18:49,443 - root - INFO - Schema executed successfully
+2025-05-24 13:18:49,443 - root - INFO - Database initialization completed
+2025-05-24 13:18:49,447 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 13:22:12,256 - root - INFO - Initializing database from schema.sql...
+2025-05-24 13:22:12,268 - root - INFO - Schema executed successfully
+2025-05-24 13:22:12,269 - root - INFO - Database initialization completed
+2025-05-24 13:22:12,274 - root - INFO - Loaded 4 scans from client-specific database
+2025-05-24 13:22:50,145 - root - INFO - Initializing database from schema.sql...
+2025-05-24 13:22:50,157 - root - INFO - Schema executed successfully
+2025-05-24 13:22:50,158 - root - INFO - Database initialization completed
+2025-05-24 13:22:50,162 - root - INFO - Loaded 4 scans from client-specific database
+2025-05-24 17:23:52,955 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:23:52,974 - root - INFO - Schema executed successfully
+2025-05-24 17:23:52,974 - root - INFO - Database initialization completed
+2025-05-24 17:23:52,991 - root - INFO - Loaded 4 scans from client-specific database
+2025-05-24 17:23:53,001 - client_database_manager - INFO - Saved scan f3393be0-4ddf-4614-80e5-7bfc9137245d to client 2 database
+2025-05-24 17:23:53,002 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:36:54,250 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:36:54,268 - root - INFO - Schema executed successfully
+2025-05-24 17:36:54,269 - root - INFO - Database initialization completed
+2025-05-24 17:37:47,591 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:37:47,605 - root - INFO - Schema executed successfully
+2025-05-24 17:37:47,605 - root - INFO - Database initialization completed
+2025-05-24 17:37:47,618 - client_database_manager - INFO - Saved scan 48ad5bde-346f-4e8a-9902-1978fa6a3fe2 to client 2 database
+2025-05-24 17:42:56,440 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:42:56,457 - root - INFO - Schema executed successfully
+2025-05-24 17:42:56,457 - root - INFO - Database initialization completed
+2025-05-24 17:42:56,463 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:42:56,464 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:44:51,400 - root - INFO - Initializing database from schema.sql...
+2025-05-24 17:44:51,414 - root - INFO - Schema executed successfully
+2025-05-24 17:44:51,415 - root - INFO - Database initialization completed
+2025-05-24 17:44:51,420 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 17:44:51,422 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 18:06:01,695 - root - INFO - Initializing database from schema.sql...
+2025-05-24 18:06:01,712 - root - INFO - Schema executed successfully
+2025-05-24 18:06:01,713 - root - INFO - Database initialization completed
+2025-05-24 18:06:01,837 - client_database_manager - INFO - Created dedicated database for client 3 (Test Corp): /home/ggrun/CybrScan_1/client_databases/client_3_scans.db
+2025-05-24 18:06:01,945 - client_database_manager - INFO - Created dedicated database for client 4 (Debug Test Corp): /home/ggrun/CybrScan_1/client_databases/client_4_scans.db
+2025-05-24 18:25:59,478 - root - INFO - Initializing database from schema.sql...
+2025-05-24 18:25:59,498 - root - INFO - Schema executed successfully
+2025-05-24 18:25:59,499 - root - INFO - Database initialization completed
+2025-05-24 18:25:59,515 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 18:25:59,527 - client_database_manager - INFO - Saved scan 549ab4de-054a-46f8-bb2c-d60324351f43 to client 2 database
+2025-05-24 18:25:59,528 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 18:27:37,955 - root - INFO - Initializing database from schema.sql...
+2025-05-24 18:27:37,970 - root - INFO - Schema executed successfully
+2025-05-24 18:27:37,971 - root - INFO - Database initialization completed
+2025-05-24 18:27:37,975 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 18:36:32,041 - root - INFO - Initializing database from schema.sql...
+2025-05-24 18:36:32,055 - root - INFO - Schema executed successfully
+2025-05-24 18:36:32,056 - root - INFO - Database initialization completed
+2025-05-24 18:36:32,062 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 18:39:00,177 - root - INFO - Initializing database from schema.sql...
+2025-05-24 18:39:00,190 - root - INFO - Schema executed successfully
+2025-05-24 18:39:00,190 - root - INFO - Database initialization completed
+2025-05-24 18:39:00,195 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 18:39:00,196 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 19:09:08,931 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:09:08,946 - root - INFO - Schema executed successfully
+2025-05-24 19:09:08,947 - root - INFO - Database initialization completed
+2025-05-24 19:09:08,958 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 19:09:08,963 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 19:09:08,964 - root - INFO - Loaded 1 scans from client-specific database
+2025-05-24 19:09:08,966 - root - INFO - Loaded 5 scans from client-specific database
+2025-05-24 19:49:16,333 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:49:16,343 - root - INFO - Schema executed successfully
+2025-05-24 19:49:16,343 - root - INFO - Database initialization completed
+2025-05-24 19:50:35,055 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:50:35,066 - root - INFO - Schema executed successfully
+2025-05-24 19:50:35,066 - root - INFO - Database initialization completed
+2025-05-24 19:51:53,021 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:51:53,032 - root - INFO - Schema executed successfully
+2025-05-24 19:51:53,033 - root - INFO - Database initialization completed
+2025-05-24 19:52:57,781 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:52:57,794 - root - INFO - Schema executed successfully
+2025-05-24 19:52:57,794 - root - INFO - Database initialization completed
+2025-05-24 19:54:39,929 - root - INFO - Initializing database from schema.sql...
+2025-05-24 19:54:39,941 - root - INFO - Schema executed successfully
+2025-05-24 19:54:39,941 - root - INFO - Database initialization completed
+2025-05-24 19:54:39,961 - client_database_manager - WARNING - Recreating database for client 5 - missing scans table
+2025-05-24 19:54:40,016 - client_database_manager - INFO - Created dedicated database for client 5 (Client 6 Test Company): /home/ggrun/CybrScan_1/client_databases/client_5_scans.db
+2025-05-26 10:10:59,010 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:10:59,022 - root - INFO - Schema executed successfully
+2025-05-26 10:10:59,022 - root - INFO - Database initialization completed
+2025-05-26 10:12:34,741 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:12:34,749 - root - INFO - Schema executed successfully
+2025-05-26 10:12:34,750 - root - INFO - Database initialization completed
+2025-05-26 10:13:05,306 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:13:05,322 - root - INFO - Schema executed successfully
+2025-05-26 10:13:05,323 - root - INFO - Database initialization completed
+2025-05-26 10:13:15,344 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:13:15,353 - root - INFO - Schema executed successfully
+2025-05-26 10:13:15,353 - root - INFO - Database initialization completed
+2025-05-26 10:13:28,784 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:13:28,794 - root - INFO - Schema executed successfully
+2025-05-26 10:13:28,794 - root - INFO - Database initialization completed
+2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 10:13:28,801 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 10:29:05,861 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:29:05,870 - root - INFO - Schema executed successfully
+2025-05-26 10:29:05,871 - root - INFO - Database initialization completed
+2025-05-26 10:30:25,621 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:30:25,635 - root - INFO - Schema executed successfully
+2025-05-26 10:30:25,635 - root - INFO - Database initialization completed
+2025-05-26 10:30:25,636 - root - ERROR - Transaction error in get_scanner_stats: get_scanner_stats() takes 2 positional arguments but 3 were given
+2025-05-26 10:30:54,730 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:30:54,746 - root - INFO - Schema executed successfully
+2025-05-26 10:30:54,747 - root - INFO - Database initialization completed
+2025-05-26 10:31:08,487 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:31:08,496 - root - INFO - Schema executed successfully
+2025-05-26 10:31:08,496 - root - INFO - Database initialization completed
+2025-05-26 10:31:50,250 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:31:50,262 - root - INFO - Schema executed successfully
+2025-05-26 10:31:50,262 - root - INFO - Database initialization completed
+2025-05-26 10:31:50,263 - root - ERROR - Transaction error in get_scanner_by_id: no such table: deployed_scanners
+2025-05-26 10:32:08,653 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:32:08,665 - root - INFO - Schema executed successfully
+2025-05-26 10:32:08,665 - root - INFO - Database initialization completed
+2025-05-26 10:48:23,375 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:48:23,388 - root - INFO - Schema executed successfully
+2025-05-26 10:48:23,388 - root - INFO - Database initialization completed
+2025-05-26 10:48:37,314 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:48:37,324 - root - INFO - Schema executed successfully
+2025-05-26 10:48:37,324 - root - INFO - Database initialization completed
+2025-05-26 10:50:31,932 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:50:31,947 - root - INFO - Schema executed successfully
+2025-05-26 10:50:31,947 - root - INFO - Database initialization completed
+2025-05-26 10:51:46,051 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:51:46,066 - root - INFO - Schema executed successfully
+2025-05-26 10:51:46,066 - root - INFO - Database initialization completed
+2025-05-26 10:56:04,288 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:56:04,300 - root - INFO - Schema executed successfully
+2025-05-26 10:56:04,300 - root - INFO - Database initialization completed
+2025-05-26 10:58:24,099 - root - INFO - Initializing database from schema.sql...
+2025-05-26 10:58:24,112 - root - INFO - Schema executed successfully
+2025-05-26 10:58:24,113 - root - INFO - Database initialization completed
+2025-05-26 11:10:07,218 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:10:07,232 - root - INFO - Schema executed successfully
+2025-05-26 11:10:07,233 - root - INFO - Database initialization completed
+2025-05-26 11:11:01,745 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:11:01,759 - root - INFO - Schema executed successfully
+2025-05-26 11:11:01,759 - root - INFO - Database initialization completed
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated HTML files for scanner scanner_919391f3
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:01,825 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:11:01,828 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-26 11:11:01,829 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:01,829 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:01,829 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:11:54,654 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:11:54,668 - root - INFO - Schema executed successfully
+2025-05-26 11:11:54,668 - root - INFO - Database initialization completed
+2025-05-26 11:11:54,698 - scanner_deployment - INFO - Generated HTML files for scanner scanner_919391f3
+2025-05-26 11:11:54,698 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:54,698 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:54,699 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:11:54,701 - scanner_deployment - INFO - Generated HTML files for scanner scanner_c73b04ed
+2025-05-26 11:11:54,701 - scanner_deployment - INFO - Generated CSS for scanner
+2025-05-26 11:11:54,702 - scanner_deployment - INFO - Generated JavaScript for scanner
+2025-05-26 11:11:54,702 - scanner_deployment - INFO - Generated API documentation for scanner
+2025-05-26 11:14:21,272 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:14:21,285 - root - INFO - Schema executed successfully
+2025-05-26 11:14:21,285 - root - INFO - Database initialization completed
+2025-05-26 11:49:28,472 - root - INFO - Initializing database from schema.sql...
+2025-05-26 11:49:28,483 - root - INFO - Schema executed successfully
+2025-05-26 11:49:28,484 - root - INFO - Database initialization completed
+2025-05-26 12:14:29,785 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:14:29,803 - root - INFO - Schema executed successfully
+2025-05-26 12:14:29,803 - root - INFO - Database initialization completed
+2025-05-26 12:36:21,810 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:36:21,824 - root - INFO - Schema executed successfully
+2025-05-26 12:36:21,824 - root - INFO - Database initialization completed
+2025-05-26 12:36:21,825 - root - ERROR - Transaction error in update_scanner_config: no such column: last_updated
+2025-05-26 12:38:11,680 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:38:11,693 - root - INFO - Schema executed successfully
+2025-05-26 12:38:11,694 - root - INFO - Database initialization completed
+2025-05-26 12:38:11,754 - root - INFO - Created default template: scanner_template.html
+2025-05-26 12:38:11,754 - root - INFO - Created default template: scanner_styles.css
+2025-05-26 12:38:11,754 - root - INFO - Created default template: scanner_script.js
+2025-05-26 12:38:11,759 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 12:38:11,759 - root - INFO - Scanner generated successfully for client 2
+2025-05-26 12:38:11,759 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 12:55:45,299 - root - INFO - Initializing database from schema.sql...
+2025-05-26 12:55:45,309 - root - INFO - Schema executed successfully
+2025-05-26 12:55:45,310 - root - INFO - Database initialization completed
+2025-05-26 12:55:45,310 - root - INFO - Updating scanner 1 with data: {'scanner_name': 'Updated Scanner Name', 'business_domain': 'https://example.com', 'contact_email': 'contact@example.com', 'contact_phone': '+1234567890', 'primary_color': '#ff0000', 'secondary_color': '#00ff00', 'button_color': '#0000ff', 'email_subject': 'Updated Email Subject', 'email_intro': 'Updated email intro text', 'scanner_description': 'Updated scanner description', 'cta_button_text': 'Click Here Now', 'company_tagline': 'We protect everything', 'support_email': 'support@example.com', 'custom_footer_text': 'Custom footer text here'}
+2025-05-26 12:55:45,310 - root - INFO - Found scanner, client_id: 2
+2025-05-26 12:55:45,310 - root - INFO - Executing client update: 
+        UPDATE clients 
+        SET scanner_name = ?, business_domain = ?, contact_email = ?, contact_phone = ?, updated_at = ?, updated_by = ?
+        WHERE id = ?
+         with values: ['Updated Scanner Name', 'https://example.com', 'contact@example.com', '+1234567890', '2025-05-26T12:55:45.310598', 1, 2]
+2025-05-26 12:55:45,310 - root - INFO - Client update affected 1 rows
+2025-05-26 12:55:45,310 - root - INFO - Executing scanner update: 
+        UPDATE scanners 
+        SET name = ?, contact_email = ?, contact_phone = ?, domain = ?, updated_at = ?
+        WHERE id = ?
+         with values: ['Updated Scanner Name', 'contact@example.com', '+1234567890', 'https://example.com', '2025-05-26T12:55:45.310845', 1]
+2025-05-26 12:55:45,310 - root - INFO - Scanner update affected 1 rows
+2025-05-26 12:55:45,310 - root - INFO - Adding custom field: primary_color = #ff0000
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: secondary_color = #00ff00
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: button_color = #0000ff
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: email_subject = Updated Email Subject
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: email_intro = Updated email intro text
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: scanner_description = Updated scanner description
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: cta_button_text = Click Here Now
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: company_tagline = We protect everything
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: support_email = support@example.com
+2025-05-26 12:55:45,311 - root - INFO - Adding custom field: custom_footer_text = Custom footer text here
+2025-05-26 12:55:45,367 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 12:55:45,367 - root - INFO - Scanner updated successfully for client 2
+2025-05-26 12:55:45,367 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 13:14:14,033 - root - INFO - Initializing database from schema.sql...
+2025-05-26 13:14:14,050 - root - INFO - Schema executed successfully
+2025-05-26 13:14:14,050 - root - INFO - Database initialization completed
+2025-05-26 13:14:14,106 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 13:14:14,106 - root - INFO - Scanner updated successfully for client 2
+2025-05-26 13:14:14,106 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 13:14:14,120 - root - ERROR - Transaction error in update_deployment_status: 'int' object has no attribute 'execute'
+2025-05-26 13:14:14,120 - root - INFO - Scanner updated successfully for client 2
+2025-05-26 13:14:14,120 - root - ERROR - Transaction error in log_action: no such table: audit_log
+2025-05-26 16:14:17,810 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:14:17,823 - root - INFO - Schema executed successfully
+2025-05-26 16:14:17,824 - root - INFO - Database initialization completed
+2025-05-26 16:15:29,799 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:15:29,811 - root - INFO - Schema executed successfully
+2025-05-26 16:15:29,811 - root - INFO - Database initialization completed
+2025-05-26 16:17:35,164 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:17:35,178 - root - INFO - Schema executed successfully
+2025-05-26 16:17:35,179 - root - INFO - Database initialization completed
+2025-05-26 16:17:35,190 - client_database_manager - INFO - Saved scan test_scanner_919391f3_20250526_161735_0 to client 2 database
+2025-05-26 16:17:35,196 - client_database_manager - INFO - Saved scan test_scanner_919391f3_20250526_161735_1 to client 2 database
+2025-05-26 16:17:35,203 - client_database_manager - INFO - Saved scan test_scanner_919391f3_20250526_161735_2 to client 2 database
+2025-05-26 16:17:35,208 - client_database_manager - INFO - Saved scan test_scanner_c73b04ed_20250526_161735_0 to client 4 database
+2025-05-26 16:17:35,212 - client_database_manager - INFO - Saved scan test_scanner_c73b04ed_20250526_161735_1 to client 4 database
+2025-05-26 16:17:35,217 - client_database_manager - INFO - Saved scan test_scanner_c73b04ed_20250526_161735_2 to client 4 database
+2025-05-26 16:17:35,217 - client_database_manager - WARNING - Recreating database for client 6 - missing scans table
+2025-05-26 16:17:35,277 - client_database_manager - INFO - Created dedicated database for client 6 (Client 6): /home/ggrun/CybrScan_1/client_databases/client_6_scans.db
+2025-05-26 16:17:35,282 - client_database_manager - INFO - Saved scan test_scanner_f2c9d6f0_20250526_161735_0 to client 6 database
+2025-05-26 16:17:35,287 - client_database_manager - INFO - Saved scan test_scanner_f2c9d6f0_20250526_161735_1 to client 6 database
+2025-05-26 16:17:35,291 - client_database_manager - INFO - Saved scan test_scanner_f2c9d6f0_20250526_161735_2 to client 6 database
+2025-05-26 16:17:40,801 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:17:40,813 - root - INFO - Schema executed successfully
+2025-05-26 16:17:40,814 - root - INFO - Database initialization completed
+2025-05-26 16:17:52,210 - root - INFO - Initializing database from schema.sql...
+2025-05-26 16:17:52,223 - root - INFO - Schema executed successfully
+2025-05-26 16:17:52,223 - root - INFO - Database initialization completed
